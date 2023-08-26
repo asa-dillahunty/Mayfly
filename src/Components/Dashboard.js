@@ -6,13 +6,13 @@ import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
+import { setHours } from './firebase';
 
 function Dashboard() {
   const [selectedDate, setSelectedDate] = useState('');
   const [hoursWorked, setHoursWorked] = useState('');
 
-  const navigate = useNavigate()
-  
+  const navigate = useNavigate()  
 
   const handleLogout = async () => {
     try {
@@ -31,6 +31,8 @@ function Dashboard() {
       // Save the hours worked data to your Firebase Firestore
       // Use selectedDate and hoursWorked in this function
       // Example: await firebase.firestore().collection('hours').add({ date: selectedDate, hours: hoursWorked });
+      console.log(auth.currentUser.uid,selectedDate,hoursWorked);
+      await setHours(auth.currentUser.uid,selectedDate,hoursWorked);
       console.log('Hours data added successfully');
       setSelectedDate('');
       setHoursWorked('');
