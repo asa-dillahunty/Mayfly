@@ -33,15 +33,18 @@ export const db = getFirestore(app);
 
 export async function setHours(userID,date,hours) {
     // let today=
-    var A = new Date(date.getFullYear(),0,1);
-    var days = Math.floor((date - A) / (24 * 60 * 60 * 1000));
+    // var A = new Date(date.getFullYear(),0,1);
+    // var days = Math.floor((date - A) / (24 * 60 * 60 * 1000));
  
-    var weekNumber = Math.ceil(days / 7);
-    console.log(A,weekNumber,days);
+    // var weekNumber = Math.ceil(days / 7);
+    // console.log(A,weekNumber,days);
 
     // setDoc(doc(db, userID, date), {
     //   hours: hours
     // });
+}
+export async function getHours(userID,date) {
+    return 8;
 }
 
 export default app;

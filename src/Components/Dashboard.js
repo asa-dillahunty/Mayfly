@@ -1,25 +1,22 @@
 // Dashboard.js
 import React, { useEffect, useState } from 'react';
-import { auth } from './firebase';
+import { auth, getHours, setHours } from './firebase';
 import { useNavigate } from 'react-router-dom';
-
 import { format } from 'date-fns';
 import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
-import { setHours } from './firebase';
+import './Dashboard.css';
 
 function Dashboard() {
-  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [hoursWorked, setHoursWorked] = useState('');
 
-  const navigate = useNavigate()  
+  const navigate = useNavigate();
 
   const handleLogout = async () => {
     try {
       await auth.signOut();
-      console.log("Current User: ", auth.currentUser);
       navigate('/');
-      // Navigate the user to the login page or any other appropriate action
     } catch (error) {
       console.error('Error signing out:', error.message);
     }
@@ -28,48 +25,91 @@ function Dashboard() {
   const handleAddHours = async (e) => {
     e.preventDefault();
     try {
-      // Save the hours worked data to your Firebase Firestore
-      // Use selectedDate and hoursWorked in this function
-      // Example: await firebase.firestore().collection('hours').add({ date: selectedDate, hours: hoursWorked });
-      console.log(auth.currentUser.uid,selectedDate,hoursWorked);
-      await setHours(auth.currentUser.uid,selectedDate,hoursWorked);
+      await setHours(auth.currentUser.uid, selectedDate, hoursWorked);
       console.log('Hours data added successfully');
-      setSelectedDate('');
-      setHoursWorked('');
+      // setHoursWorked('');
     } catch (error) {
       console.error('Error adding hours data:', error.message);
     }
   };
 
+  const handleDateChange = async (date) => {
+    setSelectedDate(date);
+    const formattedDate = format(date, 'yyyy-MM-dd');
+    const hours = await getHours(auth.currentUser.uid, formattedDate);
+    setHoursWorked(hours);
+  };
+
+  const handlePresetClick = async (presetHours) => {
+    setHoursWorked(presetHours);
+  };
+
   useEffect(() => {
     if (!auth.currentUser) navigate('/');
-  });
+    handleDateChange(selectedDate);
+  }, [selectedDate]);
 
-  let footer = <p>select bitch</p>
   return (
-    <div>
-      <h1>Dashboard</h1>
-      <button onClick={handleLogout}>Log Out</button>
-      <form onSubmit={handleAddHours}>
-        <label>
-          Select Date:
-          <DayPicker
-            mode="single"
-            selected={selectedDate}
-            onSelect={setSelectedDate}
-            footer={footer}
-          />
-        </label>
-        <label>
-          Hours Worked:
-          <input
-            type="number"
-            value={hoursWorked}
-            onChange={(e) => setHoursWorked(e.target.value)}
-          />
-        </label>
-        <button type="submit">Add Hours</button>
-      </form>
+    <div className="dashboard-container">
+      <div className="dashboard-header">
+        <h1>Dashboard</h1>
+        <button className="dashboard-logout" onClick={handleLogout}>
+          Log Out
+        </button>
+      </div>
+      <div className="dashboard-content">
+        <form onSubmit={handleAddHours}>
+          <label className="date-picker-label">
+            Select Date:
+            <DayPicker
+              selected={selectedDate}
+              onDayClick={handleDateChange}
+              className="DayPicker"
+            />
+          </label>
+          <div class="hours-and-button-container">
+            <div className="worked-hours">
+              <p className="worked-hours-label">Hours Worked:</p>
+              <p>{hoursWorked || 'No data available'}</p>
+            </div>
+            <div className="hours-controls">
+              <button
+                className="hours-button"
+                onClick={() => setHoursWorked(Number(hoursWorked) + 0.25)}
+              >
+                +
+              </button>
+              <button
+                className="hours-button"
+                onClick={() => setHoursWorked(Number(hoursWorked) - 0.25)}
+              >
+                -
+              </button>
+            </div>
+          </div>
+          <div className="presets">
+            <button
+              className="preset-button"
+              onClick={() => handlePresetClick(4)}
+            >
+              4 hrs
+            </button>
+            <button
+              className="preset-button"
+              onClick={() => handlePresetClick(8)}
+            >
+              8 hrs
+            </button>
+            <button
+              className="preset-button"
+              onClick={() => handlePresetClick(12)}
+            >
+              12 hrs
+            </button>
+          </div>
+          <button type="submit">Add Hours</button>
+        </form>
+      </div>
     </div>
   );
 }
