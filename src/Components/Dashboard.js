@@ -23,11 +23,11 @@ function Dashboard() {
   };
 
   const handleAddHours = async (e) => {
+    console.log(auth.currentUser.uid);
     e.preventDefault();
     try {
       await setHours(auth.currentUser.uid, selectedDate, hoursWorked);
       console.log('Hours data added successfully');
-      // setHoursWorked('');
     } catch (error) {
       console.error('Error adding hours data:', error.message);
     }
@@ -35,19 +35,21 @@ function Dashboard() {
 
   const handleDateChange = async (date) => {
     setSelectedDate(date);
-    const formattedDate = format(date, 'yyyy-MM-dd');
-    const hours = await getHours(auth.currentUser.uid, formattedDate);
-    setHoursWorked(hours);
+    // const formattedDate = format(date, 'yyyy-MM-dd');
+    if (auth.currentUser) {
+      const hours = await getHours(auth.currentUser.uid, date);
+      setHoursWorked(hours);
+    }
   };
 
-  const handlePresetClick = async (presetHours) => {
+  const handlePresetClick = (presetHours) => {
     setHoursWorked(presetHours);
   };
 
   useEffect(() => {
     if (!auth.currentUser) navigate('/');
     handleDateChange(selectedDate);
-  }, [selectedDate]);
+  }, [selectedDate,navigate]);
 
   return (
     <div className="dashboard-container">
@@ -58,7 +60,7 @@ function Dashboard() {
         </button>
       </div>
       <div className="dashboard-content">
-        <form onSubmit={handleAddHours}>
+        <div className='form'>
           <label className="date-picker-label">
             Select Date:
             <DayPicker
@@ -67,10 +69,10 @@ function Dashboard() {
               className="DayPicker"
             />
           </label>
-          <div class="hours-and-button-container">
+          <div className="hours-and-button-container">
             <div className="worked-hours">
               <p className="worked-hours-label">Hours Worked:</p>
-              <p>{hoursWorked || 'No data available'}</p>
+              <p>{hoursWorked}</p>
             </div>
             <div className="hours-controls">
               <button
@@ -107,8 +109,8 @@ function Dashboard() {
               12 hrs
             </button>
           </div>
-          <button type="submit">Add Hours</button>
-        </form>
+          <button onClick={handleAddHours}>Add Hours</button>
+        </div>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import firebase from 'firebase/app';
 import { getAuth } from "firebase/auth";
-import { getFirestore, doc, setDoc} from "firebase/firestore";
+import { getFirestore, doc, setDoc, getDoc, collection} from "firebase/firestore";
 import { initializeApp } from "firebase/app";
 import 'firebase/auth';
 
@@ -17,6 +17,7 @@ const firebaseConfig = {
 };
 
 const justDate = (datetime) => {
+    if (!datetime) return null;
     var day = datetime.getDate(); //Date of the month: 2 in our example
     var month = datetime.getMonth(); //Month of the Year: 0-based index, so 1 in our example
     var year = datetime.getFullYear() //Year: 2013
@@ -25,6 +26,7 @@ const justDate = (datetime) => {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
+// const citiesRef = collection(db, "cities");
   
   
 // Initialize Firebase Authentication and get a reference to the service
@@ -39,12 +41,25 @@ export async function setHours(userID,date,hours) {
     // var weekNumber = Math.ceil(days / 7);
     // console.log(A,weekNumber,days);
 
-    // setDoc(doc(db, userID, date), {
-    //   hours: hours
-    // });
+    setDoc(doc(db, userID, justDate(date)), {
+      hours: hours
+    });
 }
+
 export async function getHours(userID,date) {
-    return 8;
+    // return 8;
+    if (!userID) return;
+    const docRef = doc(db, userID, justDate(date));
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+        console.log("Document data:", docSnap.data());
+        return docSnap.data().hours;
+    } else {
+    // docSnap.data() will be undefined in this case
+        console.log("No such document!");
+    }
+    return 0;
 }
 
 export default app;
