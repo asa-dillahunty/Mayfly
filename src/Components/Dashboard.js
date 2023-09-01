@@ -1,6 +1,6 @@
 // Dashboard.js
 import React, { useEffect, useState } from 'react';
-import { auth, getHours, setHours } from './firebase';
+import { auth, getHours, setHours, deleteCache } from './firebase';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { DayPicker } from 'react-day-picker';
@@ -15,6 +15,7 @@ function Dashboard() {
 
   const handleLogout = async () => {
     try {
+      deleteCache();
       await auth.signOut();
       navigate('/');
     } catch (error) {
@@ -23,7 +24,6 @@ function Dashboard() {
   };
 
   const handleAddHours = async (e) => {
-    console.log(auth.currentUser.uid);
     e.preventDefault();
     try {
       await setHours(auth.currentUser.uid, selectedDate, hoursWorked);
