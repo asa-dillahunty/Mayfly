@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 import './Dashboard.css';
+import Calendar from './Calendar';
 
 function Dashboard() {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -45,6 +46,10 @@ function Dashboard() {
   const handlePresetClick = (presetHours) => {
     setHoursWorked(presetHours);
   };
+
+  const getDate = () => {
+    return format(selectedDate,'yyyy-MM-dd');
+  }
 
   useEffect(() => {
     if (!auth.currentUser) navigate('/');
@@ -111,6 +116,7 @@ function Dashboard() {
           </div>
           <button onClick={handleAddHours}>Add Hours</button>
         </div>
+        <Calendar selectedDate={selectedDate} />
       </div>
     </div>
   );

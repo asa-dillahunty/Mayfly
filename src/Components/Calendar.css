@@ -1,0 +1,20 @@
+.dateCarousel {
+    width: 100%;
+    border-collapse: collapse;
+    overflow: scroll;
+    max-width: fit-content;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.date {
+    background-color: red;
+    border: 2px solid black;
+    width: 33%;
+    min-width: 33%;
+}
+
+.selected {
+    background-color: rosybrown;
+    transform: translateY(10%) scale(1.2);
+}
