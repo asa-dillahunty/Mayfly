@@ -30,6 +30,7 @@ const ABBREVIATIONS = [ "Sun","Mon","Tue","Wed","Thu","Fri","Sat" ]
 function DateCell(props) {
     const selectedThisDateCell = () => {
         props.setSelectedDate(props.date);
+        props.onDayClick(props.date);
     }
     // props needs a date!
     return <td className={"date" + (props.isSelected ? " selected" : "")} onClick={selectedThisDateCell}>
@@ -48,13 +49,11 @@ function Calendar(props) {
     
     // console.log(selectedDate,currentDate,currentDate == selectedDate, currentDate === selectedDate)
     return <div>
-        <h2>This is the calendar</h2>
-        <p>This is the date: {currentDate.value.toString()}</p>
         <table className="dateCarousel">
             <tr>
                 {/* I bet this is horrible for performance */}
                 { DateArray.map((currDate,i) => 
-                    <DateCell key={i} date={currDate} isSelected={currDate == selectedDate} setSelectedDate={setSelectedDate} />
+                    <DateCell key={i} date={currDate} isSelected={currDate == selectedDate} setSelectedDate={setSelectedDate} onDayClick={props.onDayClick} />
                 ) }
             </tr>
         </table>

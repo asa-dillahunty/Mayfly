@@ -68,11 +68,12 @@ function Dashboard() {
         <div className='form'>
           <label className="date-picker-label">
             Select Date:
-            <DayPicker
+            <Calendar selectedDate={selectedDate} onDayClick={handleDateChange}/>
+            {/* <DayPicker
               selected={selectedDate}
               onDayClick={handleDateChange}
               className="DayPicker"
-            />
+            /> */}
           </label>
           <div className="hours-and-button-container">
             <div className="worked-hours">
@@ -116,7 +117,7 @@ function Dashboard() {
           </div>
           <button onClick={handleAddHours}>Add Hours</button>
         </div>
-        <Calendar selectedDate={selectedDate} />
+        
       </div>
     </div>
   );
