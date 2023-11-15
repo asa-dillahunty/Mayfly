@@ -1,20 +1,26 @@
-.dateCarousel {
+.carouselWrapper {
     width: 100%;
+    overflow-x: scroll;
+    border: 2px solid black;
+}
+
+.dateCarousel {
     border-collapse: collapse;
-    overflow: scroll;
-    max-width: fit-content;
-    overflow-x: auto;
     white-space: nowrap;
+    min-width: 100%;
+    transition: all .5s;
 }
 
 .date {
-    background-color: red;
+    background-color: #f1f1f1;
     border: 2px solid black;
-    width: 33%;
-    min-width: 33%;
+    min-width: 80px;
+    transition: all .25s;
 }
 
 .selected {
-    background-color: rosybrown;
-    transform: translateY(10%) scale(1.2);
+    background-color: paleturquoise;
+    border-bottom-color: paleturquoise;
+    border-right-color: black;
+    font-weight: bold;
 }

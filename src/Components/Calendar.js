@@ -48,7 +48,7 @@ function Calendar(props) {
     // console.log("copmare:",new Date(new Date().setDate(currentDate.value.getDate()+1)));
     
     // console.log(selectedDate,currentDate,currentDate == selectedDate, currentDate === selectedDate)
-    return <div>
+    return <div className='carouselWrapper'>
         <table className="dateCarousel">
             <tr>
                 {/* I bet this is horrible for performance */}
