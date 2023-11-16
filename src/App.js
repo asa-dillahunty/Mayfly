@@ -14,8 +14,8 @@ function App() {
     <>
     <Routes>
       {/* <Route index element={<App />} /> */}
-      <Route path="/" element={<Login />} />
-      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/Primer" element={<Login />} />
+      <Route path="/Primer/Dashboard" element={<Dashboard />} />
       <Route path="*" element={ <Lost />} />
     </Routes>
     </>

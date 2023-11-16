@@ -1,4 +1,4 @@
-<h1 align='center'>Primer is a Time sheet application custom built for my parent's needs.</h1>
+<h1 align='center'>Primer is a custom build time sheet application</h1>
 
 <h2 align='left'>Technology Used:</h2>
 <p align='center'>

@@ -19,7 +19,7 @@ function Login() {
         .then((userCredential) => {
           // Signed in
           const user = userCredential.user;
-          navigate('/dashboard');
+          navigate('/Primer/Dashboard');
         })
         .catch((error) => {
           const errorCode = error.code;
@@ -31,7 +31,7 @@ function Login() {
 
   const navigate = useNavigate();
   useEffect(() => {
-    if (auth.currentUser) navigate('dashboard');
+    if (auth.currentUser) navigate('/Primer/Dashboard');
   });
 
   return (

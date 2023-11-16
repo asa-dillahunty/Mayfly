@@ -18,7 +18,7 @@ function Dashboard() {
     try {
       deleteCache();
       await auth.signOut();
-      navigate('/');
+      navigate('/Primer');
     } catch (error) {
       console.error('Error signing out:', error.message);
     }
@@ -52,7 +52,7 @@ function Dashboard() {
   }
 
   useEffect(() => {
-    if (!auth.currentUser) navigate('/');
+    if (!auth.currentUser) navigate('/Primer');
     handleDateChange(selectedDate);
   }, [selectedDate,navigate]);
 
