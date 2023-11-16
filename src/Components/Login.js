@@ -4,7 +4,7 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { useNavigate } from 'react-router-dom';
 
 
-import { auth, app } from './firebase';
+import { auth } from './firebase';
 import './Login.css';
 import logo from '../PrimerIcon.png';
 
@@ -19,10 +19,11 @@ function Login() {
         .then((userCredential) => {
           // Signed in
           const user = userCredential.user;
+          console.log(user);
           navigate('/Primer/Dashboard');
         })
         .catch((error) => {
-          const errorCode = error.code;
+          // const errorCode = error.code;
           const errorMessage = error.message;
           alert("Failed to sign in: " + errorMessage);
         });

@@ -1,5 +1,5 @@
 <h1 align='center'>Primer is a custom build time sheet application</h1>
-
+<img alt='Deployed Status' src='https://github.com/asa-dillahunty/Primer/workflows/Deploy%20GitHub%20Pages/badge.svg'>
 <h2 align='left'>Technology Used:</h2>
 <p align='center'>
     <img margin=20px height=40px alt='React' src='https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB'>

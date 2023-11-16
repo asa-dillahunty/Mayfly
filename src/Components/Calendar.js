@@ -53,7 +53,7 @@ function Calendar(props) {
             <tr>
                 {/* I bet this is horrible for performance */}
                 { DateArray.map((currDate,i) => 
-                    <DateCell key={i} date={currDate} isSelected={currDate == selectedDate} setSelectedDate={setSelectedDate} onDayClick={props.onDayClick} />
+                    <DateCell key={i} date={currDate} isSelected={currDate === selectedDate} setSelectedDate={setSelectedDate} onDayClick={props.onDayClick} />
                 ) }
             </tr>
         </table>

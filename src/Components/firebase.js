@@ -77,7 +77,6 @@ export async function setHours(userID,date,hours) {
 
 export async function getHours(userID,date) {
     const docName = buildDocName(date);
-    console.log(docName);
     
     if (!userID) return;
 
@@ -104,7 +103,6 @@ export function buildDocName(date) {
     // console.log("here is the date",date);
     // if (date === undefined) return "";
     const weekNum = getWeek(date);
-    console.log("weekNum: ",weekNum);
 
     /*
     if the start of the last year was wednesday or it was a (tuesday and a leap year)

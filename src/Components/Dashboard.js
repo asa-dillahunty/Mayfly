@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { auth, getHours, setHours, deleteCache } from './firebase';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { DayPicker } from 'react-day-picker';
+// import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 import './Dashboard.css';
 import Calendar from './Calendar';
@@ -47,9 +47,9 @@ function Dashboard() {
     setHoursWorked(presetHours);
   };
 
-  const getDate = () => {
-    return format(selectedDate,'yyyy-MM-dd');
-  }
+  // const getDate = () => {
+  //   return format(selectedDate,'yyyy-MM-dd');
+  // }
 
   useEffect(() => {
     if (!auth.currentUser) navigate('/Primer');
