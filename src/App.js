@@ -9,16 +9,16 @@ import Lost from './Components/Lost';
 
 
 function App() {
-  return (
-    <>
-    <Routes>
-      {/* <Route index element={<App />} /> */}
-      <Route path="/Primer" element={<Login />} />
-      <Route path="/Primer/Dashboard" element={<Dashboard />} />
-      <Route path="*" element={ <Lost />} />
-    </Routes>
-    </>
-  );
+	return (
+		<>
+		<Routes>
+			{/* <Route index element={<App />} /> */}
+			<Route path="/Primer" element={<Login />} />
+			<Route path="/Primer/Dashboard" element={<Dashboard />} />
+			<Route path="/Primer/*" element={ <Lost />} />
+		</Routes>
+		</>
+	);
 }
 
 

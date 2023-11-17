@@ -1,6 +1,7 @@
 import { getAuth } from "firebase/auth";
 import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore";
 import { initializeApp } from "firebase/app";
+import { signal } from '@preact/signals-react';
 import 'firebase/auth';
 
 // Your web app's Firebase configuration
@@ -15,6 +16,7 @@ const firebaseConfig = {
     measurementId: "G-J8SZNH25ZJ"
 };
 
+export const hoursWorked = signal(0);
 const firebaseCache = {};
 
 export function deleteCache() {

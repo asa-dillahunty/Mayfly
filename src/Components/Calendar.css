@@ -1,26 +1,38 @@
 .carouselWrapper {
-    width: 100%;
-    overflow-x: scroll;
-    border: 2px solid black;
+	width: 100%;
+	overflow-x: scroll;
+	overflow-y: hidden;
+
+	scrollbar-width: none;  /* Firefox */
+
+	-webkit-user-select: none; /* Safari */
+	user-select: none;
+}
+
+.carouselWrapper::-webkit-scrollbar {
+	display: none; /* Safari and Chrome */
 }
 
 .dateCarousel {
-    border-collapse: collapse;
-    white-space: nowrap;
-    min-width: 100%;
-    transition: all .5s;
+	border-collapse: collapse;
+	white-space: nowrap;
+	min-width: 100%;
+	transition: all .5s;
+	position: right;
 }
 
 .date {
-    background-color: #f1f1f1;
-    border: 2px solid black;
-    min-width: 80px;
-    transition: all .25s;
+	background-color: #f1f1f1;
+	border: 2px solid black;
+	min-width: 80px;
+	transition: all .25s;
 }
 
 .selected {
-    background-color: paleturquoise;
-    border-bottom-color: paleturquoise;
-    border-right-color: black;
-    font-weight: bold;
+	background-color: paleturquoise;
+	border-bottom-color: paleturquoise;
+	border-right-color: black;
+	font-weight: bold;
+	transform: translateY(10%) scaleY(120%);
+	z-index: 10;
 }
