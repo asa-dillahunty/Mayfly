@@ -46,3 +46,6 @@ jobs:
           git add .
           git commit -m "Deploy to gh-pages"
           git push -f origin gh-pages
+
+        env:
+          GH_TOKEN: ${{ secrets.PRIMER_DEPLOY_KEY }}
