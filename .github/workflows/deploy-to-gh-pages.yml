@@ -4,9 +4,9 @@ name: Deploy GitHub Pages
 on:
   # Triggers the workflow on push or pull request events but only for the main branch
   push:
-    branches: [ deploy ] # changed to a fake branch while this isn't working
+    branches: [ main ] # changed to a fake branch while this isn't working
   pull_request:
-    branches: [ deploy ] # changed to a fake branch while this isn't working
+    branches: [ main ] # changed to a fake branch while this isn't working
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -30,6 +30,19 @@ jobs:
       - name: Install
         run: npm install
         
-      # Deploys to pages
-      - name: Deploy
-        run: npm run deploy
+      # Builds application
+      - name: Build
+        run: npm run build
+
+      - name: Deploy to gh-pages
+        run: |
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+          git checkout --orphan gh-pages
+          git rm -rf .
+          mv build/* .
+          rm -rf node_modules
+          rm -rf build
+          git add .
+          git commit -m "Deploy to gh-pages"
+          git push -f origin gh-pages
