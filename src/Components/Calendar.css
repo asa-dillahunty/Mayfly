@@ -33,6 +33,6 @@
 	border-bottom-color: paleturquoise;
 	border-right-color: black;
 	font-weight: bold;
-	transform: translateY(10%) scaleY(120%);
+	/* transform: translateY(10%) scaleY(120%); */
 	z-index: 10;
 }

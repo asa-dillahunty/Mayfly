@@ -17,6 +17,11 @@ const firebaseConfig = {
 };
 
 export const hoursWorked = signal(0);
+export const selectedDate = signal(new Date());
+export const setSelectedDate = (date) => {
+    selectedDate.value = date;
+}
+
 const firebaseCache = {};
 
 export function deleteCache() {

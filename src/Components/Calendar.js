@@ -8,8 +8,14 @@
 //  takes a prop for current week number
 //  days need to be selectable. 
 import { signal } from '@preact/signals-react';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { DayPicker } from 'react-day-picker';
+
 import './Calendar.css';
+import { selectedDate, setSelectedDate } from './firebase';
+
+export const WEEK_VIEW = 0;
+export const MONTH_VIEW = 1;
 
 const currentDate = signal(new Date(new Date().toDateString()));
 const DaysDisplayed = 7
@@ -29,7 +35,7 @@ buildDateArray();
 const ABBREVIATIONS = [ "Sun","Mon","Tue","Wed","Thu","Fri","Sat" ]
 function DateCell(props) {
 	const selectedThisDateCell = () => {
-		props.setSelectedDate(props.date);
+		setSelectedDate(props.date);
 		props.onDayClick(props.date);
 	}
 	// props needs a date!
@@ -40,7 +46,6 @@ function DateCell(props) {
 }
 
 function Calendar(props) {
-	const [selectedDate, setSelectedDate] = useState(currentDate.value);
 	// var temp = new Date();
 	// console.log(temp);
 	// console.log("copmare:",temp.setDate(currentDate.value.getDate()+1));
@@ -52,20 +57,27 @@ function Calendar(props) {
 	// should only run on mount (depend)
 	useEffect(() => {
 		// scroll left
+		// 
 	}, []);
 
-	return <div className='carouselWrapper'>
-		<table className="dateCarousel">
-			<tbody>
-				<tr>
-					{/* I bet this is horrible for performance */}
-					{ DateArray.map((currDate,i) => 
-						<DateCell key={i} date={currDate} isSelected={currDate === selectedDate} setSelectedDate={setSelectedDate} onDayClick={props.onDayClick} />
-					) }
-				</tr>
-			</tbody>
-		</table>
-	</div>
+	if (props.view === WEEK_VIEW) {
+
+		return <div className='carouselWrapper'>
+			<table className="dateCarousel">
+				<tbody>
+					<tr>
+						{/* I bet this is horrible for performance */}
+						{ DateArray.map((currDate,i) => 
+							<DateCell key={i} date={currDate} isSelected={currDate === selectedDate.value} onDayClick={props.onDayClick} />
+						) }
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	}
+	else if (props.view === MONTH_VIEW) {
+		return <DayPicker selected={selectedDate.value} onDayClick={props.onDayClick} className="DayPicker" />
+	}
 }
 
 export default Calendar;

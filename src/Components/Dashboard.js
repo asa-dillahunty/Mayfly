@@ -1,5 +1,5 @@
 // Dashboard.js
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { auth, getHours, setHours, deleteCache } from './firebase';
 import { useNavigate } from 'react-router-dom';
 // import { format } from 'date-fns';
@@ -7,13 +7,18 @@ import { useNavigate } from 'react-router-dom';
 import 'react-day-picker/dist/style.css';
 import './Dashboard.css';
 import Calendar from './Calendar';
+import { WEEK_VIEW, MONTH_VIEW } from './Calendar';
 import HourAdder from './HourAdder';
-import { hoursWorked } from './firebase';
+import { hoursWorked, selectedDate, setSelectedDate } from './firebase';
 
 function Dashboard() {
-	const [selectedDate, setSelectedDate] = useState(new Date());
-
 	const navigate = useNavigate();
+	const [calendarView, setCalendarView] = useState( WEEK_VIEW );
+
+	const toggleView = () => {
+		if (calendarView === WEEK_VIEW) setCalendarView(MONTH_VIEW);
+		else setCalendarView(WEEK_VIEW);
+	}
 
 	const handleLogout = async () => {
 		try {
@@ -28,7 +33,7 @@ function Dashboard() {
 	const handleAddHours = async (e) => {
 		e.preventDefault();
 		try {
-			await setHours(auth.currentUser.uid, selectedDate, hoursWorked.value);
+			await setHours(auth.currentUser.uid, selectedDate.value, hoursWorked.value);
 			console.log('Hours data added successfully');
 		} catch (error) {
 			console.error('Error adding hours data:', error.message);
@@ -48,10 +53,10 @@ function Dashboard() {
 	//   return format(selectedDate,'yyyy-MM-dd');
 	// }
 
-	useEffect(() => {
-		if (!auth.currentUser) navigate('/Primer');
-		handleDateChange(selectedDate);
-	}, [selectedDate,navigate]);
+	// useEffect(() => {
+	// 	if (!auth.currentUser) navigate('/Primer');
+	// 	handleDateChange(selectedDate);
+	// }, [selectedDate,navigate]);
 
 	return (
 		<div className="dashboard-container">
@@ -62,15 +67,10 @@ function Dashboard() {
 				</button>
 			</div>
 			<div className="dashboard-content">
+				<button onClick={toggleView}>{ calendarView === WEEK_VIEW ? "Month View" : "Week View" } </button>
 				<div className='form'>
 					<label className="date-picker-label">
-						Select Date:
-						<Calendar selectedDate={selectedDate} onDayClick={handleDateChange}/>
-						{/* <DayPicker
-						selected={selectedDate}
-						onDayClick={handleDateChange}
-						className="DayPicker"
-						/> */}
+						<Calendar view={calendarView} onDayClick={handleDateChange}/>
 					</label>
 					<HourAdder handleAddHours={handleAddHours}/>
 				</div>
