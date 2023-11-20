@@ -70,7 +70,7 @@ function Dashboard() {
 				<button onClick={toggleView}>{ calendarView === WEEK_VIEW ? "Month View" : "Week View" } </button>
 				<div className='form'>
 					<label className="date-picker-label">
-						<Calendar view={calendarView} onDayClick={handleDateChange}/>
+						<Calendar view={calendarView} onDayClick={handleDateChange} startSelected={true}/>
 					</label>
 					<HourAdder handleAddHours={handleAddHours}/>
 				</div>

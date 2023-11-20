@@ -7,24 +7,23 @@
 //  takes a prop for if display name
 //  takes a prop for current week number
 //  days need to be selectable. 
-import { signal } from '@preact/signals-react';
+// import { signal } from '@preact/signals-react';
 import { useEffect } from 'react';
 import { DayPicker } from 'react-day-picker';
 
 import './Calendar.css';
-import { selectedDate, setSelectedDate } from './firebase';
+import { selectedDate, setSelectedDate, currentDate } from './firebase';
 
 export const WEEK_VIEW = 0;
 export const MONTH_VIEW = 1;
 
-const currentDate = signal(new Date(new Date().toDateString()));
 const DaysDisplayed = 7
 const DateArray = [];
 const buildDateArray = () => {
 	DateArray.length = 0;
 	let temp;
 	for (var i=0;i<DaysDisplayed;i++) {
-		temp = new Date(new Date().setDate(currentDate.value.getDate()-(DaysDisplayed-i-1)));
+		temp = new Date(new Date().setDate(currentDate.value.getDate() - i));
 		DateArray.push(new Date(temp.toDateString()));
 	}
 	console.log("Date Array Built: ", DateArray);
@@ -32,7 +31,7 @@ const buildDateArray = () => {
 buildDateArray();
 
 
-const ABBREVIATIONS = [ "Sun","Mon","Tue","Wed","Thu","Fri","Sat" ]
+const ABBREVIATIONS = [ "Sun","Mon","Tue","Wed","Thu","Fri","Sat" ];
 function DateCell(props) {
 	const selectedThisDateCell = () => {
 		setSelectedDate(props.date);
@@ -56,13 +55,16 @@ function Calendar(props) {
 
 	// should only run on mount (depend)
 	useEffect(() => {
-		// scroll left
-		// 
+
+		// if star
+		if (props.startSelected) {
+			props.onDayClick(DateArray[0]);
+		}
 	}, []);
 
 	if (props.view === WEEK_VIEW) {
 
-		return <div className='carouselWrapper'>
+		return <div className='carouselWrapper' dir="rtl">
 			<table className="dateCarousel">
 				<tbody>
 					<tr>
