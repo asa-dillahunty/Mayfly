@@ -19,6 +19,10 @@ function HourAdder(props) {
 		hoursWorked.value = pickerValue.hours + pickerValue.minutes;
 	}, [pickerValue]);
 
+	const killScroll = (e) => {
+		e.preventDefault();
+	};
+
 	const handlePresetClick = (presetHours) => {
 		hoursWorked.value = presetHours;
 	};
@@ -42,6 +46,7 @@ function HourAdder(props) {
 					<p>{hoursWorked.value}</p>
 				</div>
 			</div>
+			<div onScroll={killScroll}>
 			<Picker height={100} wheel={'normal'} value={pickerValue} onChange={setPickerValue}>
 				{Object.keys(selections).map(name => (
 					<Picker.Column key={name} name={name}>
@@ -53,6 +58,7 @@ function HourAdder(props) {
 					</Picker.Column>
 				))}
 			</Picker>
+			</div>
 			<button onClick={props.handleAddHours}>Add Hours</button>
 		</div>
 }
