@@ -1,5 +1,6 @@
 import { hoursWorked } from "./firebase"
 import Picker from 'react-mobile-picker'
+import { useState, useEffect } from "react";
 import './HourAdder.css';
 
 const selections = {
@@ -8,6 +9,16 @@ const selections = {
 }
 
 function HourAdder(props) {
+	const [pickerValue, setPickerValue] = useState({
+		hours: 0,
+		minutes: 0,
+	});
+
+	useEffect(() => {
+		console.log('The state has been updated');
+		hoursWorked.value = pickerValue.hours + pickerValue.minutes;
+	}, [pickerValue]);
+
 	const handlePresetClick = (presetHours) => {
 		hoursWorked.value = presetHours;
 	};
@@ -31,7 +42,7 @@ function HourAdder(props) {
 					<p>{hoursWorked.value}</p>
 				</div>
 			</div>
-			<Picker height={50} value={hoursWorked.value} onChange={setHoursValue}>
+			<Picker height={100} wheel={'normal'} value={pickerValue} onChange={setPickerValue}>
 				{Object.keys(selections).map(name => (
 					<Picker.Column key={name} name={name}>
 					{selections[name].map(option => (
