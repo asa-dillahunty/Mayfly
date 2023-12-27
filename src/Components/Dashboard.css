@@ -4,7 +4,7 @@
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	height: 100vh;
+	min-height: 100vh;
 	font-family: Arial, sans-serif;
 	/* background-color: #1f1f1f; */
 	background-color: #f7f7f7;
@@ -36,6 +36,9 @@
 	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 	width: 300px;
 	text-align: center;
+
+	margin-top: 75px;
+	margin-bottom: 20px;
 }
 
 .date-picker-label {

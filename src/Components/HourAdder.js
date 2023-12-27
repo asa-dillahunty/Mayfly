@@ -46,18 +46,18 @@ function HourAdder(props) {
 					<p>{hoursWorked.value}</p>
 				</div>
 			</div>
-			<div onScroll={killScroll}>
-			<Picker height={100} wheel={'normal'} value={pickerValue} onChange={setPickerValue}>
-				{Object.keys(selections).map(name => (
-					<Picker.Column key={name} name={name}>
-					{selections[name].map(option => (
-						<Picker.Item key={option} value={option}>
-						{option}
-						</Picker.Item>
+			<div className="killScroll" onScroll={killScroll}>
+				<Picker value={pickerValue} onChange={setPickerValue}>
+					{Object.keys(selections).map(name => (
+						<Picker.Column key={name} name={name}>
+						{selections[name].map(option => (
+							<Picker.Item key={option} value={option}>
+							{option}
+							</Picker.Item>
+						))}
+						</Picker.Column>
 					))}
-					</Picker.Column>
-				))}
-			</Picker>
+				</Picker>
 			</div>
 			<button onClick={props.handleAddHours}>Add Hours</button>
 		</div>
