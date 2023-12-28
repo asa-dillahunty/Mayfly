@@ -53,7 +53,8 @@
 	width: 50%;
 	margin: auto;
 
-	background-color: #eae5fa;
+	background-color: #f1f1f1;
 	border-radius: 5px;
 	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	touch-action: none;
 }
