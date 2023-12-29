@@ -14,6 +14,8 @@ function Login() {
 
 	const handleSignIn = async (e) => {
 		e.preventDefault();
+		// Todo:
+		// 	- block sign in while waiting
 			signInWithEmailAndPassword(auth, email + "@dillahuntyfarms.com", password)
 				.then((userCredential) => {
 					// Signed in

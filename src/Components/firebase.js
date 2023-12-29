@@ -27,9 +27,10 @@ export const refreshCurrentDate = () => {
 }
 
 const firebaseCache = {};
-
+const firebaseSignalCache = {};
 export function deleteCache() {
 	deleteObjMembers(firebaseCache);
+	// deleteObjMembers(firebaseSignalCache);
 }
 
 function deleteObjMembers(obj) {
@@ -80,10 +81,16 @@ export async function setHours(userID,date,hours) {
 	var savedData = firebaseCache[userID][docName];
 	fillWeekCache(savedData);
 	savedData[date.getDay()] = {
-		date:date,
 		hours:hours
 	};
-	setDoc(doc(db, userID, docName), savedData);
+	setDoc(doc(db, userID, docName), savedData).then((_value) => {
+		// Todo:
+		//	- if fail do something
+
+		// update the firebase signal cache thing
+		getHoursSignal(userID,date,docName).value = hours;
+	});
+
 }
 
 export async function getHours(userID,date) {
@@ -99,15 +106,42 @@ export async function getHours(userID,date) {
 	if (docSnap.exists()) {
 		if (!firebaseCache[userID]) firebaseCache[userID]={};
 		firebaseCache[userID][docName] = docSnap.data();
+		// this for loop is probably horrible performance-wise (mostly because of buildDocName)
+		// fixed that ^. 
+		// Todo: 
+		//	- to reinvestigate performance here
+		//	- what is this 7? Replace magic number.
+		for (let i=0;i<7;i++) {
+			// I'm not even using i????
+			firebaseSignalCache[userID][docName][i].value = firebaseCache[userID][docName][i].hours;
+		}
 		return firebaseCache[userID][docName][date.getDay()].hours;
 	} else {
 		// docSnap.data() will be undefined in this case
+		// signals default to zero and do no need to be updated
 		if (!firebaseCache[userID]) firebaseCache[userID]={};
 		firebaseCache[userID][docName] = fillWeekCache();
 		console.log("No such document!");
 		// console.log(firebaseCache);
 	}
 	return 0;
+}
+
+export function getHoursSignal(userID,date,docName) {
+	if (arguments.length === 2) docName = buildDocName(date);
+	
+	if (!userID) return;
+	// if it exists, great
+	if (firebaseSignalCache[userID] && firebaseSignalCache[userID][docName]) return firebaseSignalCache[userID][docName][date.getDay()];
+	if (!firebaseSignalCache[userID]) firebaseSignalCache[userID]={};
+
+	firebaseSignalCache[userID][docName] = {};
+	for (let i=0;i<7;i++) {
+		// since we know this will only ever hold hours, it doesn't need to be an object at index i
+		firebaseSignalCache[userID][docName][i] = new signal(0);
+	}
+	console.log(firebaseSignalCache);
+	return firebaseSignalCache[userID][docName][date.getDay()];
 }
 
 export function buildDocName(date) {
