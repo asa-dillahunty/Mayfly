@@ -41,7 +41,7 @@ function DateCell(props) {
 	return <td className={"date" + (props.isSelected ? " selected" : "")} onClick={selectedThisDateCell}>
 		<p className="dateDay">{ABBREVIATIONS[props.date.getUTCDay()]}</p>
 		<p className="dateNum">{props.date.getUTCDate()}</p>
-		<p className="dateHours">{getHoursSignal(auth.currentUser.uid,props.date).value + ' hrs'} </p>
+		<p className="dateHours">{getHoursSignal(auth.currentUser.uid,props.date).value}</p>
 		<div className={getHoursSignal(auth.currentUser.uid,props.date).value > 6 ? "statusCircle goodHours" : "statusCircle badHours"}></div>
 	</td>
 }
