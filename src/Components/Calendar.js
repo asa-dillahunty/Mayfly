@@ -12,7 +12,7 @@ import { useEffect } from 'react';
 import { DayPicker } from 'react-day-picker';
 
 import './Calendar.css';
-import { selectedDate, setSelectedDate, currentDate } from './firebase';
+import { auth, selectedDate, setSelectedDate, currentDate, getHoursSignal } from './firebase';
 
 export const WEEK_VIEW = 0;
 export const MONTH_VIEW = 1;
@@ -41,15 +41,17 @@ function DateCell(props) {
 	return <td className={"date" + (props.isSelected ? " selected" : "")} onClick={selectedThisDateCell}>
 		<p className="dateDay">{ABBREVIATIONS[props.date.getUTCDay()]}</p>
 		<p className="dateNum">{props.date.getUTCDate()}</p>
+		<p className="dateHours">{getHoursSignal(auth.currentUser.uid,props.date).value + ' hrs'} </p>
+		<div className={getHoursSignal(auth.currentUser.uid,props.date).value > 6 ? "statusCircle goodHours" : "statusCircle badHours"}></div>
 	</td>
 }
 
 function Calendar(props) {
 	// var temp = new Date();
 	// console.log(temp);
-	// console.log("copmare:",temp.setDate(currentDate.value.getDate()+1));
+	// console.log("compare:",temp.setDate(currentDate.value.getDate()+1));
 	// console.log(temp);
-	// console.log("copmare:",new Date(new Date().setDate(currentDate.value.getDate()+1)));
+	// console.log("compare:",new Date(new Date().setDate(currentDate.value.getDate()+1)));
 	
 	// console.log(selectedDate,currentDate,currentDate == selectedDate, currentDate === selectedDate)
 

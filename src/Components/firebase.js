@@ -30,7 +30,7 @@ const firebaseCache = {};
 const firebaseSignalCache = {};
 export function deleteCache() {
 	deleteObjMembers(firebaseCache);
-	deleteObjMembers(firebaseSignalCache);
+	// deleteObjMembers(firebaseSignalCache);
 }
 
 function deleteObjMembers(obj) {
@@ -83,7 +83,14 @@ export async function setHours(userID,date,hours) {
 	savedData[date.getDay()] = {
 		hours:hours
 	};
-	setDoc(doc(db, userID, docName), savedData);
+	setDoc(doc(db, userID, docName), savedData).then((_value) => {
+		// Todo:
+		//	- if fail do something
+
+		// update the firebase signal cache thing
+		getHoursSignal(userID,date,docName).value = hours;
+	});
+
 }
 
 export async function getHours(userID,date) {
@@ -100,8 +107,13 @@ export async function getHours(userID,date) {
 		if (!firebaseCache[userID]) firebaseCache[userID]={};
 		firebaseCache[userID][docName] = docSnap.data();
 		// this for loop is probably horrible performance-wise (mostly because of buildDocName)
+		// fixed that ^. 
+		// Todo: 
+		//	- to reinvestigate performance here
+		//	- what is this 7? Replace magic number.
 		for (let i=0;i<7;i++) {
-			getHoursSignal(userID,date).value = firebaseCache[userID][docName][date.getDay()].hours;
+			// I'm not even using i????
+			firebaseSignalCache[userID][docName][i].value = firebaseCache[userID][docName][i].hours;
 		}
 		return firebaseCache[userID][docName][date.getDay()].hours;
 	} else {
@@ -115,8 +127,8 @@ export async function getHours(userID,date) {
 	return 0;
 }
 
-export function getHoursSignal(userID,date) {
-	const docName = buildDocName(date);
+export function getHoursSignal(userID,date,docName) {
+	if (arguments.length === 2) docName = buildDocName(date);
 	
 	if (!userID) return;
 	// if it exists, great
@@ -128,6 +140,7 @@ export function getHoursSignal(userID,date) {
 		// since we know this will only ever hold hours, it doesn't need to be an object at index i
 		firebaseSignalCache[userID][docName][i] = new signal(0);
 	}
+	console.log(firebaseSignalCache);
 	return firebaseSignalCache[userID][docName][date.getDay()];
 }
 
