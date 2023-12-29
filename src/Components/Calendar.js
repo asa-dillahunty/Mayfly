@@ -58,6 +58,10 @@ function Calendar(props) {
 
 		// if star
 		if (props.startSelected) {
+			// run get hours to make sure the data is cached on load
+			// this is if a user is needed if a user is already logged in on a refresh
+			// getHours(auth.currentUser.uid,DateArray[0]);
+
 			props.onDayClick(DateArray[0]);
 		}
 	}, []);
