@@ -3,6 +3,8 @@ import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore";
 import { initializeApp } from "firebase/app";
 import { signal } from '@preact/signals-react';
 import 'firebase/auth';
+import 'firebase/functions';
+import { getFunctions } from "firebase/functions";
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -164,6 +166,15 @@ function fillWeekCache(week) {
 		else week[i]={hours:0};
 	}
 	return week;
+}
+
+export function makeAdmin(uid) {
+	const functions = getFunctions(app);
+	const setAdminClaim = functions.httpsCallable('setAdminClaim');
+	setAdminClaim({uid: uid})
+		.then(result => {console.log(result)})
+		.catch(error => {console.log(error)});
+	// getAuth().setCustomUserClaims(uid, {admin:true}).then(()=>{console.log("done it")});
 }
 
 export default app;

@@ -20,7 +20,11 @@ function Login() {
 				.then((userCredential) => {
 					// Signed in
 					const user = userCredential.user;
-					console.log(user);
+					// console.log("User Data:");
+					// console.log(user);
+					// console.log("User Data Over:");
+					// if admin -> navigate to admin dashboard
+					// navigate('/Primer/Admin');
 					navigate('/Primer/Dashboard');
 				})
 				.catch((error) => {

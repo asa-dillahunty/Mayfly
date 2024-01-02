@@ -15,6 +15,7 @@ function Dashboard() {
 	const navigate = useNavigate();
 	const [calendarView, setCalendarView] = useState( WEEK_VIEW );
 
+	// Todo: this functionality should be moved to the calendar component
 	const toggleView = () => {
 		if (calendarView === WEEK_VIEW) setCalendarView(MONTH_VIEW);
 		else setCalendarView(WEEK_VIEW);
