@@ -7,13 +7,20 @@ import { useNavigate } from 'react-router-dom';
 import { auth } from './firebase';
 import './Login.css';
 import logo from '../PrimerIcon.png';
+import ClickBlocker from './ClickBlocker';
 
 function Login() {
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
+	const [blocked, setBlocked] = useState(false);
 
 	const handleSignIn = async (e) => {
 		e.preventDefault();
+		setBlocked(true);
+		attemptSignIn();
+	}
+
+	const attemptSignIn = async () => {
 		// Todo:
 		// 	- block sign in while waiting
 			signInWithEmailAndPassword(auth, email + "@dillahuntyfarms.com", password)
@@ -26,11 +33,14 @@ function Login() {
 					// if admin -> navigate to admin dashboard
 					// navigate('/Primer/Admin');
 					navigate('/Primer/Dashboard');
+					// could this result in a component attempting to be updated when it is unmounted?
+					setBlocked(false);
 				})
 				.catch((error) => {
 					// const errorCode = error.code;
 					const errorMessage = error.message;
 					alert("Failed to sign in: " + errorMessage);
+					setBlocked(false);
 				});
 		
 	};
@@ -42,6 +52,7 @@ function Login() {
 
 	return (
 		<div className="login-container">
+			<ClickBlocker block={blocked} />
 			<div className="login-form">
 				<h1 className="login-title"> 
 					<img src={logo} className="login-logo" alt="logo" />

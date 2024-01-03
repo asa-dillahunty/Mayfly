@@ -1,0 +1,16 @@
+div.blocker {
+    pointer-events: none;
+
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    background-color: #00000055;
+
+    animation: appear 1s ease 0s; /* shouldn't even notice it on a fast connection */
+}
+
+@keyframes appear {
+	0% { opacity: 0; }
+	100% { opacity: 1; }
+}

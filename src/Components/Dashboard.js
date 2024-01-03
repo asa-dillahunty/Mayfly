@@ -10,10 +10,12 @@ import Calendar from './Calendar';
 import { WEEK_VIEW, MONTH_VIEW } from './Calendar';
 import HourAdder from './HourAdder';
 import { hoursWorked, selectedDate, setSelectedDate } from './firebase';
+import ClickBlocker from './ClickBlocker';
 
 function Dashboard() {
 	const navigate = useNavigate();
 	const [calendarView, setCalendarView] = useState( WEEK_VIEW );
+	const [blocked, setBlocked] = useState(false);
 
 	// Todo: this functionality should be moved to the calendar component
 	const toggleView = () => {
@@ -22,12 +24,16 @@ function Dashboard() {
 	}
 
 	const handleLogout = async () => {
+		setBlocked(true);
 		try {
 			deleteCache();
 			await auth.signOut();
 			navigate('/Primer');
+			// could this also result in a component attempting to update after it is unmounted?
+			setBlocked(false);
 		} catch (error) {
 			console.error('Error signing out:', error.message);
+			setBlocked(false);
 		}
 	};
 
@@ -61,8 +67,9 @@ function Dashboard() {
 
 	return (
 		<div className="dashboard-container">
-		<div className="dashboard-header">
-			<h1>Dashboard</h1>
+			<ClickBlocker block={blocked} />
+			<div className="dashboard-header">
+				<h1>Dashboard</h1>
 				<button className="dashboard-logout" onClick={handleLogout}>
 					Log Out
 				</button>
