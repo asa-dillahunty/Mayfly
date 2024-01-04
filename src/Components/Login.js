@@ -16,13 +16,14 @@ function Login() {
 
 	const handleSignIn = async (e) => {
 		e.preventDefault();
+		// block sign in while waiting
 		setBlocked(true);
 		attemptSignIn();
 	}
 
 	const attemptSignIn = async () => {
 		// Todo:
-		// 	- block sign in while waiting
+		// 	- check if admin 
 			signInWithEmailAndPassword(auth, email + "@dillahuntyfarms.com", password)
 				.then((userCredential) => {
 					// Signed in

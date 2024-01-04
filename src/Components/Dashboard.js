@@ -39,11 +39,14 @@ function Dashboard() {
 
 	const handleAddHours = async (e) => {
 		e.preventDefault();
+		setBlocked(true);
 		try {
 			await setHours(auth.currentUser.uid, selectedDate.value, hoursWorked.value);
 			console.log('Hours data added successfully');
+			setBlocked(false); // do I need to do this in a .then() ?
 		} catch (error) {
 			console.error('Error adding hours data:', error.message);
+			setBlocked(false);
 		}
 	};
 
@@ -75,6 +78,7 @@ function Dashboard() {
 				</button>
 			</div>
 			<div className="dashboard-content">
+				<ClickBlocker block={blocked} />
 				<button onClick={toggleView}>{ calendarView === WEEK_VIEW ? "Month View" : "Week View" } </button>
 				<div className='form'>
 					<label className="date-picker-label">
