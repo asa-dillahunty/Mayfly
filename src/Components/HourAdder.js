@@ -52,7 +52,7 @@ function HourAdder(props) {
 					))}
 				</Picker>
 			</div>
-			<button onClick={props.handleAddHours}>Add Hours</button>
+			<button onClick={props.handleAddHours} disabled={props.blocked}>Add Hours</button>
 		</div>
 }
 

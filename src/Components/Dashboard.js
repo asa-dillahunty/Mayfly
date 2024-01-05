@@ -73,18 +73,17 @@ function Dashboard() {
 			<ClickBlocker block={blocked} />
 			<div className="dashboard-header">
 				<h1>Dashboard</h1>
-				<button className="dashboard-logout" onClick={handleLogout}>
+				<button className="dashboard-logout" onClick={handleLogout} disabled={blocked}>
 					Log Out
 				</button>
 			</div>
 			<div className="dashboard-content">
-				<ClickBlocker block={blocked} />
 				<button onClick={toggleView}>{ calendarView === WEEK_VIEW ? "Month View" : "Week View" } </button>
 				<div className='form'>
 					<label className="date-picker-label">
 						<Calendar view={calendarView} onDayClick={handleDateChange} startSelected={true}/>
 					</label>
-					<HourAdder handleAddHours={handleAddHours}/>
+					<HourAdder handleAddHours={handleAddHours} blocked={blocked}/>
 				</div>
 			</div>
 		</div>

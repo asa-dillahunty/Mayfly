@@ -143,6 +143,10 @@ export function getHoursSignal(userID,date,docName) {
 		firebaseSignalCache[userID][docName][i] = new signal(0);
 	}
 	console.log(firebaseSignalCache);
+
+	// if the signal doesn't exist, call get hours to set it up -> but for now return a zero
+	getHours(userID,date,docName);
+
 	return firebaseSignalCache[userID][docName][date.getDay()];
 }
 

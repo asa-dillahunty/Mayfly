@@ -18,6 +18,7 @@ function Login() {
 		e.preventDefault();
 		// block sign in while waiting
 		setBlocked(true);
+		// disable login butto
 		attemptSignIn();
 	}
 
@@ -74,7 +75,7 @@ function Login() {
 						value={password}
 						onChange={(e) => setPassword(e.target.value)}
 					/>
-					<button type="submit" className="login-button">
+					<button type="submit" className="login-button" disabled={blocked}>
 						Sign In
 					</button>
 				</form>
