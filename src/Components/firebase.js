@@ -18,6 +18,7 @@ const firebaseConfig = {
 	measurementId: "G-J8SZNH25ZJ"
 };
 
+const daysInChunk = 7;
 export const hoursWorked = signal(0);
 export const selectedDate = signal(new Date(new Date().toDateString()));
 export const setSelectedDate = (date) => {
@@ -44,7 +45,7 @@ function deleteObjMembers(obj) {
 }
 
 /**
- * This function does a lot of math. Is this something I want to cache?
+ * This function does a lot of math. Is this something I want to cache? #dynamicProgramming
  */
 const startOfPayPeriod = 4; // Thursday
 function getWeek(selectedDatetime) {
@@ -95,8 +96,8 @@ export async function setHours(userID,date,hours) {
 
 }
 
-export async function getHours(userID,date) {
-	const docName = buildDocName(date);
+export async function getHours(userID,date,docName) {
+	if (arguments.length === 2) docName = buildDocName(date);
 	
 	if (!userID) return;
 
@@ -112,8 +113,7 @@ export async function getHours(userID,date) {
 		// fixed that ^. 
 		// Todo: 
 		//	- to reinvestigate performance here
-		//	- what is this 7? Replace magic number.
-		for (let i=0;i<7;i++) {
+		for (let i=0;i<daysInChunk;i++) {
 			// I'm not even using i????
 			firebaseSignalCache[userID][docName][i].value = firebaseCache[userID][docName][i].hours;
 		}
@@ -138,8 +138,8 @@ export function getHoursSignal(userID,date,docName) {
 	if (!firebaseSignalCache[userID]) firebaseSignalCache[userID]={};
 
 	firebaseSignalCache[userID][docName] = {};
-	for (let i=0;i<7;i++) {
-		// since we know this will only ever hold hours, it doesn't need to be an object at index i
+	for (let i=0;i<daysInChunk;i++) {
+		// since we know this will only ever hold hours signals, it doesn't need to be an object at index i
 		firebaseSignalCache[userID][docName][i] = new signal(0);
 	}
 	console.log(firebaseSignalCache);
@@ -165,7 +165,7 @@ export function buildDocName(date) {
 
 function fillWeekCache(week) {
 	if (!week) week = {};
-	for (var i=0;i<7;i++) {
+	for (var i=0;i<daysInChunk;i++) {
 		if (week[i]) continue;
 		else week[i]={hours:0};
 	}
