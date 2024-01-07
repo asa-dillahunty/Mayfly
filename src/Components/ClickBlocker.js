@@ -1,11 +1,13 @@
 // ClickBlocker.js
 import React from 'react'
 import './ClickBlocker.css';
+import { RingLoader } from 'react-spinners';
 
-// Todo:
-// 	- add support for showing some kind of loading icon as well.
 function ClickBlocker(props) {
-	if (props.block) return ( <div className="blocker"></div> );
+	if (props.block) 
+		if (props.loading) 
+			return ( <div className="blocker"> <RingLoader color='#ffffff' /> </div> );
+			else return ( <div className="blocker"></div> );
 	else return <></>
 }
 

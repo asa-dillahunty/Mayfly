@@ -28,7 +28,7 @@ function Login() {
 			signInWithEmailAndPassword(auth, email + "@dillahuntyfarms.com", password)
 				.then((userCredential) => {
 					// Signed in
-					const user = userCredential.user;
+					// const user = userCredential.user;
 					// console.log("User Data:");
 					// console.log(user);
 					// console.log("User Data Over:");
@@ -54,7 +54,7 @@ function Login() {
 
 	return (
 		<div className="login-container">
-			<ClickBlocker block={blocked} />
+			<ClickBlocker block={blocked} loading={true} />
 			<div className="login-form">
 				<h1 className="login-title"> 
 					<img src={logo} className="login-logo" alt="logo" />
