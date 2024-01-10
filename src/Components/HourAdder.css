@@ -28,24 +28,24 @@
 	margin-top: 20px;
 }
 
-.preset-button {
-	margin: 0 5px;
-	padding: 6px 12px;
-	background-color: #007bff;
-	color: #fff;
-	border: none;
-	border-radius: 3px;
-	cursor: pointer;
-}
-
-.hours-and-button-container {
+.worked-hours-container {
 	display: flex;
 	width: 100%;
 	align-items: center;
 	justify-content: center;
+	flex-direction: column;
 
 	-webkit-user-select: none; /* Safari */
-    user-select: none;
+	user-select: none;
+}
+
+.worked-hours-label {
+	
+}
+
+.worked-hours {
+	margin-top: 0;
+	font-weight: bold;
 }
 
 .killScroll {
@@ -57,4 +57,14 @@
 	border-radius: 5px;
 	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 	touch-action: none;
+}
+
+.add-hours-button {
+	margin: 25px 0px 5px 0px;
+	padding: 6px 12px;
+	background-color: #007bff;
+	color: #fff;
+	border: none;
+	border-radius: 3px;
+	cursor: pointer;
 }

@@ -3,6 +3,7 @@ import Picker from 'react-mobile-picker'
 import { useState, useEffect } from "react";
 import './HourAdder.css';
 import { effect } from "@preact/signals-react";
+import ClickBlocker from "./ClickBlocker";
 
 const selections = {
 	hours: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24],
@@ -32,12 +33,11 @@ function HourAdder(props) {
 	});
 
 	if (props.hide === true) return <div></div>
-	else return <div>
-			<div className="hours-and-button-container">
-				<div className="worked-hours">
-					<p className="worked-hours-label">Hours Worked:</p>
-					<p>{hoursWorked.value}</p>
-				</div>
+	else return <div className="hours-and-picker-container">
+			<ClickBlocker blocked={ props.blocked || props.locked } locked={ props.locked } />
+			<div className="worked-hours-container">
+				<p className="worked-hours-label">Hours Worked:</p>
+				<p className="worked-hours">{hoursWorked.value}</p>
 			</div>
 			<div className="killScroll">
 				<Picker value={pickerValue} onChange={setPickerValue}>
@@ -52,7 +52,7 @@ function HourAdder(props) {
 					))}
 				</Picker>
 			</div>
-			<button onClick={props.handleAddHours} disabled={props.blocked}>Add Hours</button>
+			<button className="add-hours-button" onClick={props.handleAddHours} disabled={props.blocked}>Add Hours</button>
 		</div>
 }
 

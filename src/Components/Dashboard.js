@@ -1,6 +1,6 @@
 // Dashboard.js
 import React, { useState } from 'react';
-import { auth, getHours, setHours, deleteCache } from './firebase';
+import { auth, getHours, setHours, deleteCache, buildDocName } from './firebase';
 import { useNavigate } from 'react-router-dom';
 // import { format } from 'date-fns';
 // import { DayPicker } from 'react-day-picker';
@@ -68,6 +68,9 @@ function Dashboard() {
 	// 	handleDateChange(selectedDate);
 	// }, [selectedDate,navigate]);
 
+	// I have no idea but this accessing selectedDate.value is causing so many things to fail
+	const outsidePayPeriod = false; // (buildDocName(selectedDate.value) === buildDocName(new Date()));
+
 	return (
 		<div className="dashboard-container">
 			<ClickBlocker block={blocked} />
@@ -83,7 +86,7 @@ function Dashboard() {
 					<label className="date-picker-label">
 						<Calendar view={calendarView} onDayClick={handleDateChange} startSelected={true}/>
 					</label>
-					<HourAdder handleAddHours={handleAddHours} blocked={blocked}/>
+					<HourAdder handleAddHours={handleAddHours} blocked={blocked} locked={outsidePayPeriod}/>
 				</div>
 			</div>
 		</div>
