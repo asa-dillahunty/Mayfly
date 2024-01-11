@@ -1,4 +1,5 @@
 <h1 align='center'>Primer is a custom built time sheet application</h1>
+It is designed specifically to handle pay periods of a week and to only work some of the time
 <a href="https://asa-dillahunty.github.io/Primer">
 	<img alt='Deployed Status' src='https://github.com/asa-dillahunty/Primer/workflows/Deploy%20GitHub%20Pages/badge.svg'>
 </a>
