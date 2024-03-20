@@ -1,3 +1,13 @@
+.DayPicker {
+	width: 100%;
+}
+
+.DayPicker-Day--selected {
+	background-color: #007bff;
+	color: #fff;
+	border-radius: 50%;
+}
+
 .carouselWrapper {
 	width: 100%;
 	overflow-x: scroll;

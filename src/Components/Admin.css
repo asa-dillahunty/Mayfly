@@ -1,0 +1,56 @@
+.dashboard-content {
+	background-color: #fff;
+	padding: 20px;
+	border-radius: 5px;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	text-align: center;
+
+	width: 720px;
+
+	margin-bottom: 20px;
+}
+
+ul {
+	padding: 0;
+	margin: 0;
+}
+
+li {
+	list-style-type: none;
+}
+
+span {
+	/* border: 3px solid black; */
+	display: block;
+	padding-top: 5px;
+	padding-bottom: 5px;
+}
+
+span.employee-name {
+	width: 80%;
+	background-color: rgb(228, 255, 255);
+	text-align: left;
+	padding-left: 10px;
+}
+span.employee-weekly-hours {
+	width: 20%;
+	background-color: rgb(255, 235, 235);
+	text-align: center;
+}
+
+details > summary {
+	list-style: none;
+}
+
+details > summary::-webkit-details-marker {
+	display: none;
+}
+
+details > summary {
+	display: flex;
+	flex-direction: row;
+}
+
+details > summary.table-key {
+	border-bottom: 3px solid black;
+}

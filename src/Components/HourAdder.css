@@ -1,3 +1,19 @@
+.hour-adder-content {
+	background-color: #fff;
+	padding: 20px;
+	border-radius: 5px;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	width: 300px;
+	text-align: center;
+
+	margin-bottom: 20px;
+}
+
+.date-picker-label {
+	display: block;
+	margin-bottom: 10px;
+}
+
 .hours-controls {
 	display: flex;
 	flex-direction: column;
@@ -39,12 +55,13 @@
 	user-select: none;
 }
 
-.worked-hours-label {
-	
-}
-
 .worked-hours {
 	margin-top: 0;
+	font-weight: bold;
+	font-size: 18px;
+}
+
+.worked-hours-label {
 	font-weight: bold;
 }
 

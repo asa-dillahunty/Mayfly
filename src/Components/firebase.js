@@ -5,7 +5,6 @@ import { signal } from '@preact/signals-react';
 import 'firebase/auth';
 import 'firebase/functions';
 import { getFunctions } from "firebase/functions";
-import { useNavigate } from 'react-router-dom';
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -229,9 +228,7 @@ export async function makeAdmin(uid,cid) {
 }
 
 export async function getIsAdmin(uid) {
-	console.log(uid);
 	const adminData = await getAdminData(uid);
-	console.log(adminData);
 	if (adminData) return adminData.isAdmin === true;
 	else return false;
 }

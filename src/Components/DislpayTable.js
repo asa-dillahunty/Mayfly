@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import ClickBlocker from './ClickBlocker';
 
 import './DisplayTable.css';
+import { HourAdder } from './HourAdder';
 
 function CreateCompanyPopup(props) {
 	const [companyName,setCompanyName] = useState('');
@@ -27,23 +28,35 @@ function CreateCompanyPopup(props) {
 }
 
 export function AdminCompanyDisplayTable(props) {
+	const [blocked, setBlocked] = useState(false);
 	if (!props.company || !props.company.employees) return;
 
 	return (
 		<div className='company-details'>
 			<h2> {props.company.name} </h2>
-			
-			<details className='employee-details'>
-				<summary>Employees</summary>
-				<ul>
-					{props.company.employees.map((emp,index) => (
-						<li key={index}>
-							<p>Name: {emp.name} | Hours this week: {emp.hoursThisWeek}</p> 
-							<button>Remove EMP</button>
-						</li>
-					))}
-				</ul>
-			</details>
+			<h3>Employees</h3>
+			<ul>
+				<li key={0}>
+					<details>
+						<summary className='table-key'>
+							<span className='employee-name'>Employee Name</span>
+							<span className='employee-weekly-hours'>Hours this week: </span>
+						</summary>
+					</details>
+				</li>
+				{props.company.employees.map((emp,index) => (
+					<li key={index+1}>
+						<details>
+							<summary>
+								<span className='employee-name'> {emp.name} </span>
+								<span className='employee-weekly-hours'> {emp.hoursThisWeek} </span>
+							</summary>
+						
+							<HourAdder uid={emp.id} blocked={blocked} setBlocked={setBlocked} />
+						</details>
+					</li>
+				))}
+			</ul>
 		</div>
 	)
 }

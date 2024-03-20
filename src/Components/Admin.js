@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { auth, createCompany, deleteCache, getCompanies, getCompany, getMyCompanyID, performLogout } from './firebase';
 import { useNavigate } from 'react-router-dom';
 import './Admin.css';
-import DisplayTable from './DislpayTable';
 import { AdminCompanyDisplayTable } from './DislpayTable';
 
 function AdminDashboard() {

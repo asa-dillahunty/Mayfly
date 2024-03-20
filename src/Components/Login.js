@@ -32,15 +32,9 @@ function Login() {
 					// console.log("User Data:");
 					// console.log(user);
 					// console.log("User Data Over:");
-					getIsAdmin(userCredential.user.uid).then((isAdmin) => {
-						// if 'Asa' -> navigate to OmniAdmin Dashboard
-						navigate('/Primer/OmniAdmin');
-						// if admin -> navigate to admin dashboard
-						if (isAdmin === true) navigate('/Primer/Admin');
-						else navigate('/Primer/Dashboard');
-						// could this result in a component attempting to be updated when it is unmounted?
-						setBlocked(false);
-					});
+					navigateUser().then(() =>
+						setBlocked(false)
+					);
 				})
 				.catch((error) => {
 					// const errorCode = error.code;
@@ -53,8 +47,18 @@ function Login() {
 
 	const navigate = useNavigate();
 	useEffect(() => {
-		if (auth.currentUser) navigate('/Primer/Dashboard');
+		if (auth.currentUser) navigateUser();
 	});
+
+	const navigateUser = async () => {
+		const isAdmin = await getIsAdmin(auth.currentUser.uid)
+			// if 'Asa' -> navigate to OmniAdmin Dashboard
+			navigate('/Primer/OmniAdmin');
+			// if admin -> navigate to admin dashboard
+			if (isAdmin === true) navigate('/Primer/Admin');
+			else navigate('/Primer/Dashboard');
+			// could this result in a component attempting to be updated when it is unmounted?
+	}
 
 	return (
 		<div className="login-container">

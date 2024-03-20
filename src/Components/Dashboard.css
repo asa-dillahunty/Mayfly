@@ -9,6 +9,10 @@
 	/* background-color: #1f1f1f; */
 	background-color: #f7f7f7;
 	position: relative;
+
+	/* this serves to push the hour adder down some, since it was actually weird for it to be dead center */
+	/* also, that's how tall the header is (below) */
+	padding-top: 75px;
 }
 
 .dashboard-header {
@@ -29,43 +33,6 @@
 	cursor: pointer;
 }
 
-.dashboard-content {
-	background-color: #fff;
-	padding: 20px;
-	border-radius: 5px;
-	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-	width: 300px;
-	text-align: center;
-
-	margin-top: 75px;
-	margin-bottom: 20px;
-}
-
-.date-picker-label {
-	display: block;
-	margin-bottom: 10px;
-}
-
 .presets {
 	margin-top: 10px;
-}
-
-.worked-hours {
-	margin-top: 20px;
-	font-size: 18px;
-}
-
-.worked-hours-label {
-	font-weight: bold;
-}
-
-/* Additional CSS for the date picker */
-.DayPicker {
-	width: 100%;
-}
-
-.DayPicker-Day--selected {
-	background-color: #007bff;
-	color: #fff;
-	border-radius: 50%;
 }

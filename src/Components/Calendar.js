@@ -31,8 +31,8 @@ function DateCell(props) {
 	return <td className={"date" + (props.isSelected ? " selected" : "")} onClick={selectedThisDateCell}>
 		<p className="dateDay">{ABBREVIATIONS[props.date.getUTCDay()]}</p>
 		<p className="dateNum">{props.date.getUTCDate()}</p>
-		<p className="dateHours">{getHoursSignal(auth.currentUser.uid,props.date).value}</p>
-		<div className={getHoursSignal(auth.currentUser.uid,props.date).value > 6 ? "statusCircle goodHours" : "statusCircle badHours"}></div>
+		<p className="dateHours">{getHoursSignal(props.uid,props.date).value}</p>
+		<div className={getHoursSignal(props.uid,props.date).value > 6 ? "statusCircle goodHours" : "statusCircle badHours"}></div>
 	</td>
 }
 
@@ -42,7 +42,7 @@ function Calendar(props) {
 		if (props.startSelected) {
 			// run get hours to make sure the data is cached on load
 			// this is if a user is needed if a user is already logged in on a refresh
-			// getHours(auth.currentUser.uid,DateArray[0]);
+			// getHours(props.uid,DateArray[0]);
 
 			props.onDayClick(DateArray[0]);
 		}
@@ -55,7 +55,7 @@ function Calendar(props) {
 					<tr>
 						{/* I bet this is horrible for performance */}
 						{ DateArray.map((currDate,i) => 
-							<DateCell key={i} date={currDate} isSelected={currDate === selectedDate.value} onDayClick={props.onDayClick} />
+							<DateCell uid={props.uid} key={i} date={currDate} isSelected={currDate === selectedDate.value} onDayClick={props.onDayClick} />
 						) }
 					</tr>
 				</tbody>
