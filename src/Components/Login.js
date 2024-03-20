@@ -4,7 +4,7 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { useNavigate } from 'react-router-dom';
 
 
-import { auth } from './firebase';
+import { auth, getIsAdmin } from './firebase';
 import './Login.css';
 import logo from '../PrimerIcon.png';
 import ClickBlocker from './ClickBlocker';
@@ -32,11 +32,15 @@ function Login() {
 					// console.log("User Data:");
 					// console.log(user);
 					// console.log("User Data Over:");
-					// if admin -> navigate to admin dashboard
-					// navigate('/Primer/Admin');
-					navigate('/Primer/Dashboard');
-					// could this result in a component attempting to be updated when it is unmounted?
-					setBlocked(false);
+					getIsAdmin(userCredential.user.uid).then((isAdmin) => {
+						// if 'Asa' -> navigate to OmniAdmin Dashboard
+						navigate('/Primer/OmniAdmin');
+						// if admin -> navigate to admin dashboard
+						if (isAdmin === true) navigate('/Primer/Admin');
+						else navigate('/Primer/Dashboard');
+						// could this result in a component attempting to be updated when it is unmounted?
+						setBlocked(false);
+					});
 				})
 				.catch((error) => {
 					// const errorCode = error.code;

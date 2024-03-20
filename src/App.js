@@ -6,6 +6,7 @@ import './App.css';
 import Login from "./Components/Login";
 import Dashboard from './Components/Dashboard';
 import Admin from './Components/Admin';
+import OmniAdmin from './Components/OmniAdmin';
 import Lost from './Components/Lost';
 
 
@@ -17,6 +18,7 @@ function App() {
 			<Route path="/Primer" element={<Login />} />
 			<Route path="/Primer/Dashboard" element={<Dashboard />} />
 			<Route path="/Primer/Admin" element={ <Admin /> } />
+			<Route path="/Primer/OmniAdmin" element={ <OmniAdmin /> } />
 			<Route path="/Primer/*" element={ <Lost />} />
 		</Routes>
 		</>

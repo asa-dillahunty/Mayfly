@@ -1,43 +1,44 @@
-// Dashboard.js
-import React from 'react';
-import { auth, deleteCache, makeAdmin } from './firebase';
+import React, { useEffect, useState } from 'react';
+import { auth, createCompany, deleteCache, getCompanies, getCompany, getMyCompanyID, performLogout } from './firebase';
 import { useNavigate } from 'react-router-dom';
-// import { format } from 'date-fns';
-// import { DayPicker } from 'react-day-picker';
-import 'react-day-picker/dist/style.css';
-import './Dashboard.css';
+import './Admin.css';
+import DisplayTable from './DislpayTable';
+import { AdminCompanyDisplayTable } from './DislpayTable';
 
-function Dashboard() {
+function AdminDashboard() {
+	const [companyData, setCompanyData] = useState({});       
 	const navigate = useNavigate();
 
-	const handleLogout = async () => {
-		try {
-			deleteCache();
-			await auth.signOut();
-			navigate('/Primer');
-		} catch (error) {
-			console.error('Error signing out:', error.message);
-		}
+	const fetchCompany = async () => {
+		const companyID = await getMyCompanyID(auth.currentUser.uid);
+		const companyObj = await getCompany(companyID);
+		console.log(companyObj);
+		setCompanyData(companyObj);
 	};
-
+	
+	useEffect(() => {
+		fetchCompany();
+	}, []);
+	
 	return (
 		<div className="dashboard-container">
 		<div className="dashboard-header">
 			<h1>Dashboard</h1>
-				<button className="dashboard-logout" onClick={handleLogout}>
+				<button className="dashboard-logout" onClick={() => performLogout(navigate)}>
 					Log Out
 				</button>
 			</div>
 			<div className="dashboard-content">
-                {/* list of current users 
-                    - contains option to delete
-                    - some kind of display of hours worked recently
-                    - option to add new users */}
+				{/* list of current users 
+					- contains option to delete
+					- some kind of display of hours worked recently
+					- option to add new users */}
 				<p>Admin Dashboard!</p>
-                <button onClick={() => {makeAdmin( auth.currentUser.uid )}}>Make Me Admin</button>
+
+				<AdminCompanyDisplayTable company={companyData} />
 			</div>
 		</div>
 	);
 }
 
-export default Dashboard;
+export default AdminDashboard;

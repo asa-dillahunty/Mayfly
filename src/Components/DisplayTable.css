@@ -1,0 +1,22 @@
+details > summary {
+	font-weight: bold;
+}
+
+.company-details {
+	text-align: left;
+	background-color: gainsboro;
+	/* padding: 0 20px 0 20px; */
+}
+
+.company-details > button {
+	margin: 20px;
+}
+
+.admin-details, .employee-details {
+	margin-left: 20px;
+}
+
+.admin-details > p, .employee-details > p {
+	margin: 5px;
+	margin-left: 20px;
+}
