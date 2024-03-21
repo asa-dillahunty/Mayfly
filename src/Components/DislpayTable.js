@@ -3,7 +3,7 @@ import ClickBlocker from './ClickBlocker';
 
 import './DisplayTable.css';
 import { HourAdder } from './HourAdder';
-import { getEndOfWeekString, selectedDate } from './firebase';
+import { getEndOfWeekString, getWeekSpanString, selectedDate } from './firebase';
 
 function CreateCompanyPopup(props) {
 	const [companyName,setCompanyName] = useState('');
@@ -35,7 +35,6 @@ export function AdminCompanyDisplayTable(props) {
 	return (
 		<div className='company-details'>
 			<h2> {props.company.name} </h2>
-			<h3>Employees</h3>
 			<ul>
 				<li key={0}>
 					<details>

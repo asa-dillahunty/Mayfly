@@ -105,7 +105,13 @@ function HourSelector(props) {
 						<Picker.Column key={name} name={name}>
 						{selections[name].map(option => (
 							<Picker.Item key={option} value={option}>
-							{option}
+								{({ selected }) => (
+									<div style={{ 
+										fontWeight: selected ? 'bold' : 'normal',
+									}}>
+										{option}
+									</div>
+								)}
 							</Picker.Item>
 						))}
 						</Picker.Column>

@@ -65,8 +65,9 @@ function Login() {
 			<ClickBlocker block={blocked} loading={true} />
 			<div className="login-form">
 				<h1 className="login-title"> 
-					<img src={logo} className="login-logo" alt="logo" />
-					rimer Login
+					{/* <img src={logo} className="login-logo" alt="logo" />
+					rimer Login */}
+					<span>Mayfly</span> Login
 				</h1>
 				<form onSubmit={handleSignIn}>
 					<input

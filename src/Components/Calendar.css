@@ -2,12 +2,6 @@
 	width: 100%;
 }
 
-.DayPicker-Day--selected {
-	background-color: #007bff;
-	color: #fff;
-	border-radius: 50%;
-}
-
 .carouselWrapper {
 	width: 100%;
 	overflow-x: scroll;
@@ -40,10 +34,11 @@
 }
 
 .selected {
-	background-color: paleturquoise;
-	border-bottom-color: paleturquoise;
+	background-color: var(--accent);
+	border-bottom-color: var(--accent);
 	border-right-color: black;
 	font-weight: bold;
+	color: var(--background);
 	/* transform: translateY(10%) scaleY(120%); */
 	z-index: 10;
 }
@@ -90,9 +85,9 @@
 }
 
 .badHours {
-	background-color: red;
+	background-color: var(--secondary);
 }
 
-.goodHours {
-	background-color: rgb(28, 240, 28);
-}
+/* .goodHours {
+	background-color: var(--primary);
+} */

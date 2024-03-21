@@ -80,6 +80,21 @@ function getWeek(selectedDatetime) {
 	return weekNumber;
 }
 
+export function getWeekSpanString(selectedDate) {
+	// we move ahead one day just in case it is the day of the pay period
+	let finalDay = new Date(selectedDate.getTime());
+	finalDay.setDate(finalDay.getDate() + 1);
+	while (finalDay.getDay() !== startOfPayPeriod) {
+		finalDay.setDate(finalDay.getDate() + 1);
+	}
+	let firstDay = new Date(selectedDate.getTime());
+	while (firstDay.getDay() !== startOfPayPeriod) {
+		firstDay.setDate(firstDay.getDate() - 1);
+	}
+	// why + 1 ? date.getMonth() starts at 0 for January
+	return (firstDay.getMonth()+1) + "/" + firstDay.getDate() + " - " + (finalDay.getMonth()+1) + "/" + finalDay.getDate();
+}
+
 export function getEndOfWeekString(selectedDate) {
 	let finalDay = new Date(selectedDate.getTime());
 	while (finalDay.getDay() !== startOfPayPeriod) {

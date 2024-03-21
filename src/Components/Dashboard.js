@@ -1,6 +1,6 @@
 // Dashboard.js
 import React, { useState } from 'react';
-import { auth, deleteCache,  } from './firebase';
+import { auth, deleteCache, performLogout,  } from './firebase';
 import { useNavigate } from 'react-router-dom';
 // import { format } from 'date-fns';
 // import { DayPicker } from 'react-day-picker';
@@ -13,25 +13,18 @@ function Dashboard() {
 	const navigate = useNavigate();
 	const [blocked, setBlocked] = useState(false);
 
-	const handleLogout = async () => {
+	const handleLogout = () => {
 		setBlocked(true);
-		try {
-			deleteCache();
-			await auth.signOut();
-			navigate('/Primer');
-			// could this also result in a component attempting to update after it is unmounted?
+		performLogout(navigate).then(() => {
 			setBlocked(false);
-		} catch (error) {
-			console.error('Error signing out:', error.message);
-			setBlocked(false);
-		}
+		});
 	};
 
 	return (
 		<div className="dashboard-container">
 			<ClickBlocker block={blocked} />
 			<div className="dashboard-header">
-				<h1>Dashboard</h1>
+				<h1>Mayfly</h1>
 				<button className="dashboard-logout" onClick={handleLogout} disabled={blocked}>
 					Log Out
 				</button>

@@ -4,8 +4,12 @@ details > summary {
 
 .company-details {
 	text-align: left;
-	background-color: gainsboro;
+	/* background-color: gainsboro; */
 	/* padding: 0 20px 0 20px; */
+}
+
+.company-details > h2 {
+	text-align: center;
 }
 
 .company-details > button {
@@ -19,4 +23,54 @@ details > summary {
 .admin-details > p, .employee-details > p {
 	margin: 5px;
 	margin-left: 20px;
+}
+
+ul {
+	padding: 0;
+	margin: 0;
+}
+
+li {
+	list-style-type: none;
+}
+
+.company-details > ul > li span {
+	/* border: 3px solid black; */
+	display: block;
+	padding-top: 5px;
+	padding-bottom: 5px;
+
+	border-collapse: collapse;
+	box-sizing: border-box;
+
+	/* border: 1px solid var(--text); */
+}
+
+span.employee-name {
+	width: 70%;
+	/* background-color: rgb(228, 255, 255); */
+	text-align: left;
+	padding-left: 10px;
+}
+span.employee-weekly-hours {
+	width: 30%;
+	background-color: var(--secondary);
+	text-align: center;
+}
+
+details > summary {
+	list-style: none;
+}
+
+details > summary::-webkit-details-marker {
+	display: none;
+}
+
+details > summary {
+	display: flex;
+	flex-direction: row;
+}
+
+details > summary.table-key {
+	border-bottom: 3px solid black;
 }

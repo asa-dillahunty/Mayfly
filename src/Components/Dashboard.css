@@ -25,8 +25,8 @@
 }
 
 .dashboard-logout {
-	background-color: #007bff;
-	color: #fff;
+	background-color: var(--primary);
+	color: var(--background);
 	border: none;
 	border-radius: 3px;
 	padding: 8px 12px;
@@ -35,4 +35,9 @@
 
 .presets {
 	margin-top: 10px;
+}
+
+.dashboard-header > h1 {
+	font-family: var(--titleFont);
+	color: var(--primary);
 }

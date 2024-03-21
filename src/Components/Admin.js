@@ -23,18 +23,12 @@ function AdminDashboard() {
 	return (
 		<div className="dashboard-container">
 		<div className="dashboard-header">
-			<h1>Dashboard</h1>
+			<h1>Mayfly</h1>
 				<button className="dashboard-logout" onClick={() => performLogout(navigate)}>
 					Log Out
 				</button>
 			</div>
 			<div className="dashboard-content">
-				{/* list of current users 
-					- contains option to delete
-					- some kind of display of hours worked recently
-					- option to add new users */}
-				<p>Admin Dashboard!</p>
-
 				<AdminCompanyDisplayTable company={companyData} />
 			</div>
 		</div>

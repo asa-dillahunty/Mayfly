@@ -1,0 +1,15 @@
+@import url('https://fonts.googleapis.com/css?family=Lobster+Two');
+
+:root {
+	--text: #0e1b08;
+	--background: #f7fcf5;
+	--primary: #54bc55;
+	--secondary: #9dd7d9;
+	--accent: #76a8c9;
+
+	--titleFont:"Lobster Two"
+}
+
+button {
+	font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
