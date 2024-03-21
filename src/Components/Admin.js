@@ -16,6 +16,7 @@ function AdminDashboard() {
 	};
 	
 	useEffect(() => {
+		console.log("Fetching Company Data");
 		fetchCompany();
 	}, []);
 	

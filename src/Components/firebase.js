@@ -23,7 +23,6 @@ const ADMIN_DOC_NAME = "Administrative_Data";
 const COMPANY_EMPLOYEE_COLLECTION = "Employees";
 const daysInChunk = 7;
 
-export const hoursWorked = signal(0);
 export const selectedDate = signal(new Date(new Date().toDateString()));
 export const setSelectedDate = (date) => {
 	selectedDate.value = date;
@@ -81,6 +80,16 @@ function getWeek(selectedDatetime) {
 	return weekNumber;
 }
 
+export function getEndOfWeekString(selectedDate) {
+	let finalDay = new Date(selectedDate.getTime());
+	while (finalDay.getDay() !== startOfPayPeriod) {
+		finalDay.setDate(finalDay.getDate() + 1)
+	}
+	// why + 1 ? date.getMonth() starts at 0 for January
+	// why % 100 ? grabs last two digits of the year
+	return (finalDay.getMonth()+1) + "/" + finalDay.getDate() + "/" + (finalDay.getFullYear() % 100);
+}
+
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);  
   
@@ -110,18 +119,38 @@ export async function setHours(userID,date,hours) {
 
 }
 
+export function getHoursEarlyReturn(userID,date,docName) {
+	if (arguments.length === 2) docName = buildDocName(date);
+
+	if (firebaseCache[userID] && firebaseCache[userID][docName] && !firebaseCache[userID][docName]["awaiting"]) 
+		return firebaseCache[userID][docName][date.getDay()].hours;
+	if (firebaseCache[userID] && firebaseCache[userID][docName] && firebaseCache[userID][docName]["awaiting"]) {
+		return -1;
+	}
+	// set waiting true
+	if (!firebaseCache[userID]) firebaseCache[userID]={};
+	if (!firebaseCache[userID][docName]) firebaseCache[userID][docName] = {"awaiting" : true};
+	// start the search
+	getHours(userID,date,docName);
+	return -1;
+}
+
 export async function getHours(userID,date,docName) {
+	// console.log("getting hours");
 	if (arguments.length === 2) docName = buildDocName(date);
 	
 	if (!userID) return;
 
-	if (firebaseCache[userID] && firebaseCache[userID][docName]) return firebaseCache[userID][docName][date.getDay()].hours;
+	if (firebaseCache[userID] && firebaseCache[userID][docName] && !firebaseCache[userID][docName]["awaiting"]) 
+		return firebaseCache[userID][docName][date.getDay()].hours;
 	console.log("pulling data from Firebase");
+
 	const docRef = doc(db, userID, docName);
 	const docSnap = await getDoc(docRef);
 
+	if (!firebaseCache[userID]) firebaseCache[userID]={};
+
 	if (docSnap.exists()) {
-		if (!firebaseCache[userID]) firebaseCache[userID]={};
 		firebaseCache[userID][docName] = docSnap.data();
 		// this for loop is probably horrible performance-wise (mostly because of buildDocName)
 		// fixed that ^. 
@@ -130,6 +159,7 @@ export async function getHours(userID,date,docName) {
 		
 		// call get signals to set up the signals
 		getHoursSignal(userID,date,docName);
+		// update the signals
 		for (let i=0;i<daysInChunk;i++) {
 			// since we know this will only ever hold hours signals, it doesn't need to be an object at index i
 			firebaseSignalCache[userID][docName][i].value = firebaseCache[userID][docName][i].hours;
@@ -176,7 +206,7 @@ export async function getHoursThisWeek(userID,date,docName) {
 	if (!userID) return 0;
 
 	// if the data is not cached -> force it to do so, so we don't have cache code copied all over the place
-	if (!firebaseCache[userID] || !firebaseCache[userID][docName]) {
+	if (!firebaseCache[userID] || !firebaseCache[userID][docName] || firebaseCache[userID][docName]["awaiting"]) {
 		await getHours(userID, date, docName);
 	}
 	if (!firebaseCache[userID] || !firebaseCache[userID][docName]) {

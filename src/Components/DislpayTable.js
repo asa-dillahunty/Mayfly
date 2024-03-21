@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ClickBlocker from './ClickBlocker';
 
 import './DisplayTable.css';
 import { HourAdder } from './HourAdder';
+import { getEndOfWeekString, selectedDate } from './firebase';
 
 function CreateCompanyPopup(props) {
 	const [companyName,setCompanyName] = useState('');
@@ -29,8 +30,8 @@ function CreateCompanyPopup(props) {
 
 export function AdminCompanyDisplayTable(props) {
 	const [blocked, setBlocked] = useState(false);
+	
 	if (!props.company || !props.company.employees) return;
-
 	return (
 		<div className='company-details'>
 			<h2> {props.company.name} </h2>
@@ -40,7 +41,7 @@ export function AdminCompanyDisplayTable(props) {
 					<details>
 						<summary className='table-key'>
 							<span className='employee-name'>Employee Name</span>
-							<span className='employee-weekly-hours'>Hours this week: </span>
+							<span className='employee-weekly-hours'>{getEndOfWeekString(selectedDate.value)}</span>
 						</summary>
 					</details>
 				</li>
