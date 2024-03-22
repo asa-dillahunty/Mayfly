@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { Children, useEffect, useState } from 'react';
 import ClickBlocker from './ClickBlocker';
 
 import './DisplayTable.css';
@@ -30,6 +30,7 @@ function CreateCompanyPopup(props) {
 
 export function AdminCompanyDisplayTable(props) {
 	const [blocked, setBlocked] = useState(false);
+	const [opened, setOpened] = useState(0);
 	
 	if (!props.company || !props.company.employees) return;
 	return (
@@ -46,9 +47,10 @@ export function AdminCompanyDisplayTable(props) {
 				</li>
 				{props.company.employees.map((emp,index) => (
 					<li key={index+1}>
-						<details>
+						<details open={opened === index+1} onToggle={()=>{setOpened(index+1)}}>
 							<summary>
 								<span className='employee-name'> {emp.name} </span>
+								{/* emp.HoursThisWeek is a computed signal */}
 								<span className='employee-weekly-hours'> {emp.hoursThisWeek} </span>
 							</summary>
 						

@@ -49,7 +49,7 @@ const selections = {
 }
 function HourSelector(props) {
 	const [start,setStart] = useState(true);
-	const [hoursWorked, setHoursWorked] = useState(0);
+	const [hoursWorked, setHoursWorked] = useState(-2);
 	const [pickerValue, setPickerValue] = useState({
 		hours: 0,
 		minutes: 0,
@@ -68,10 +68,8 @@ function HourSelector(props) {
 
 		if (!auth.currentUser) return;
 		const hours = getHoursEarlyReturn(props.uid, selectedDate.value);
-		if (hoursWorked < 0) return; // we don't have the proper hours yet
+		if (hours < 0) return; // we don't have the proper hours yet
 		if (hoursWorked === hours) return;
-		if (Math.floor(hours) === pickerValue.hours && 
-			hours % 1 === pickerValue.minutes) return;
 		// tell the picker, it will update the hours
 		setPickerValue({
 			hours: Math.floor(hours),

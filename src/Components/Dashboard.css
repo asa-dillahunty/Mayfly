@@ -13,6 +13,8 @@
 	/* this serves to push the hour adder down some, since it was actually weird for it to be dead center */
 	/* also, that's how tall the header is (below) */
 	padding-top: 75px;
+	padding-bottom: 30px;
+	box-sizing: border-box; /* this prevents that ^ from forcing the window to be scroll-able */
 }
 
 .dashboard-header {

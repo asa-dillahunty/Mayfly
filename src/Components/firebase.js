@@ -1,7 +1,7 @@
 import { getAuth } from "firebase/auth";
 import { getFirestore, doc, setDoc, getDoc, getDocs, addDoc, collection } from "firebase/firestore";
 import { initializeApp } from "firebase/app";
-import { signal } from '@preact/signals-react';
+import { computed, signal } from '@preact/signals-react';
 import 'firebase/auth';
 import 'firebase/functions';
 import { getFunctions } from "firebase/functions";
@@ -80,17 +80,27 @@ function getWeek(selectedDatetime) {
 	return weekNumber;
 }
 
-export function getWeekSpanString(selectedDate) {
-	// we move ahead one day just in case it is the day of the pay period
-	let finalDay = new Date(selectedDate.getTime());
+function getStartOfPayPeriod(date) {
+	let firstDay = new Date(date.getTime());
+	while (firstDay.getDay() !== startOfPayPeriod) {
+		firstDay.setDate(firstDay.getDate() - 1);
+	}
+	return firstDay;
+}
+
+function getEndOfPayPeriod(date) {
+	let finalDay = new Date(date.getTime());
 	finalDay.setDate(finalDay.getDate() + 1);
 	while (finalDay.getDay() !== startOfPayPeriod) {
 		finalDay.setDate(finalDay.getDate() + 1);
 	}
-	let firstDay = new Date(selectedDate.getTime());
-	while (firstDay.getDay() !== startOfPayPeriod) {
-		firstDay.setDate(firstDay.getDate() - 1);
-	}
+	return finalDay;
+}
+
+export function getWeekSpanString(selectedDate) {
+	// we move ahead one day just in case it is the day of the pay period
+	let finalDay = getEndOfPayPeriod(selectedDate);
+	let firstDay = getStartOfPayPeriod(selectedDate);
 	// why + 1 ? date.getMonth() starts at 0 for January
 	return (firstDay.getMonth()+1) + "/" + firstDay.getDate() + " - " + (finalDay.getMonth()+1) + "/" + finalDay.getDate();
 }
@@ -202,37 +212,30 @@ export function getHoursSignal(userID,date,docName) {
 	if (!firebaseSignalCache[userID][docName]) firebaseSignalCache[userID][docName] = {};
 	for (let i=0;i<daysInChunk;i++) {
 		// since we know this will only ever hold hours signals, it doesn't need to be an object at index i
-		if (firebaseCache[userID] && firebaseCache[userID][docName]) {
-			firebaseSignalCache[userID][docName][i] = new signal(firebaseCache[userID][docName][i]);
+		if (firebaseCache[userID] && firebaseCache[userID][docName] && !firebaseCache[userID][docName]["awaiting"]) {
+			firebaseSignalCache[userID][docName][i] = new signal(firebaseCache[userID][docName][i].hours);
 		}
 		else firebaseSignalCache[userID][docName][i] = new signal(0);
 	}
 	// we assume that all our data has been cached
 
 	// if the signal doesn't exist, call get hours to set it up
+	getHoursEarlyReturn(userID,date,docName);
 
 	return firebaseSignalCache[userID][docName][date.getDay()];
 }
 
 export async function getHoursThisWeek(userID,date,docName) {
-	console.log(date);
 	if (arguments.length === 2) docName = buildDocName(date);
-	
 	if (!userID) return 0;
 
-	// if the data is not cached -> force it to do so, so we don't have cache code copied all over the place
-	if (!firebaseCache[userID] || !firebaseCache[userID][docName] || firebaseCache[userID][docName]["awaiting"]) {
-		await getHours(userID, date, docName);
-	}
-	if (!firebaseCache[userID] || !firebaseCache[userID][docName]) {
-		// should probably error out here
-		return 0;
-	}
-
 	let totalHours = 0;
-	for (let i=0;i<daysInChunk;i++) {
-		totalHours += firebaseCache[userID][docName][i].hours;
-	}
+	let currDay = getStartOfPayPeriod(date);
+	
+	do {
+		currDay.setDate(currDay.getDate() + 1);
+		totalHours += await getHours(userID,currDay,docName);
+	} while (currDay.getDay() !== startOfPayPeriod)
 	return totalHours;
 }
 
