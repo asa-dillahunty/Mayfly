@@ -23,7 +23,7 @@
 }
 
 .add-employee-form > div {
-	padding: 10px;
+	padding: 7px;
 }
 
 .add-employee-form > div.input-container {
@@ -33,7 +33,7 @@
 }
 
 .add-employee-form > div.input-container > input {
-	width: 80%;
+	width: 60%;
 }
 
 .add-employee-form > div.button-container {

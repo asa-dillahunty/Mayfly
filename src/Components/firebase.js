@@ -1,4 +1,4 @@
-import { getAuth } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import { getFirestore, doc, setDoc, getDoc, getDocs, addDoc, collection } from "firebase/firestore";
 import { initializeApp } from "firebase/app";
 import { signal } from '@preact/signals-react';
@@ -24,6 +24,7 @@ const UNCLAIMED_LIST_COLLECTION_NAME = "UnclaimedList"
 const ADMIN_DOC_NAME = "Administrative_Data";
 const COMPANY_EMPLOYEE_COLLECTION = "Employees";
 const daysInChunk = 7;
+export const FAKE_EMAIL_EXTENSION = "@dillahuntyfarms.com";
 
 export const selectedDate = signal(new Date(new Date().toDateString()));
 export const setSelectedDate = (date) => {
@@ -382,6 +383,16 @@ export async function createEmployee(employeeData, companyID) {
 
 	// add other fields for their name and things :)
 	// add it to the new "unclaimed" collection, along with the company ID to trace it back to the company
+}
+
+export async function createUser(userData) {
+	const email = userData.username + FAKE_EMAIL_EXTENSION;
+	const userCredential = await createUserWithEmailAndPassword(auth, email, userData.password);
+	
+	console.log("uid:",userCredential.uid);
+	const user = userCredential.user;
+	console.log(user);
+	return user;
 }
 
 export function randomString(length) {

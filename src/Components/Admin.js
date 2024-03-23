@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { auth, deleteCache, getCompany, getMyCompanyID, performLogout, createEmployee } from './firebase';
+import { auth, deleteCache, getCompany, getMyCompanyID, performLogout, createEmployee, createUser } from './firebase';
 import './Admin.css';
 import { AdminCompanyDisplayTable } from './DislpayTable';
 import ClickBlocker from './ClickBlocker';
@@ -43,13 +43,16 @@ function AdminDashboard(props) {
 export function AddEmployeeForm (props) {
 	const createTempEmployee = () => {
 		const empName = document.getElementById("employee-name").value;
-		const empOther = document.getElementById("employee-other").value;
-		console.log(empName, empOther);
+
+		const empData = {
+			name:empName,
+		}
+		console.log(empData);
 		getMyCompanyID(auth.currentUser.uid).then((companyID) => {
-			createEmployee({name:empName,other:empOther}, companyID)
-				.then(()=>{
+			createEmployee(empData, companyID)
+				.then( () => {
 					props.setBlocked(false);
-				})
+				});
 		});
 	}
 
@@ -58,10 +61,6 @@ export function AddEmployeeForm (props) {
 			<div className='input-container'>
 				<label htmlFor="employee-name">Name:</label>
 				<input id='employee-name' name="employee-name" type='text'></input>
-			</div>
-			<div className='input-container'>
-				<label htmlFor="employee-other">Other:</label>
-				<input id='employee-other' name="employee-other" type='text'></input>
 			</div>
 			<div className='button-container'>
 				<button className='submit-button' onClick={createTempEmployee}>Submit</button>

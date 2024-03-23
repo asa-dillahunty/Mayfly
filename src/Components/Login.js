@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { signInWithEmailAndPassword } from "firebase/auth";
 
 
-import { auth, getIsAdmin } from './firebase';
+import { auth, getIsAdmin, FAKE_EMAIL_EXTENSION, createUser } from './firebase';
 import './Login.css';
 import logo from '../PrimerIcon.png';
 import ClickBlocker from './ClickBlocker';
@@ -25,7 +25,7 @@ function Login(props) {
 	const attemptSignIn = async () => {
 		// Todo:
 		// 	- check if admin 
-			signInWithEmailAndPassword(auth, email + "@dillahuntyfarms.com", password)
+			signInWithEmailAndPassword(auth, email + FAKE_EMAIL_EXTENSION, password)
 				.then((userCredential) => {
 					// Signed in
 					// const user = userCredential.user;
@@ -86,6 +86,9 @@ function Login(props) {
 					<button type="submit" className="login-button" disabled={blocked}>
 						Sign In
 					</button>
+					<p className='signup-p'>Don't have an account?&nbsp;
+						<span onClick={()=>{props.setCurrPage(pageListEnum.SignUp)}}>Sign up!</span>
+					</p>
 				</form>
 			</div>
 		</div>
@@ -93,3 +96,48 @@ function Login(props) {
 }
 
 export default Login;
+
+
+export function SignUp (props) {
+	const [blocked,setBlocked] = useState(false);
+	const createNewUser = () => {
+		const empName = document.getElementById("user-name").value;
+		const empUsername = document.getElementById("user-username").value;
+		const empPassword = document.getElementById("user-password").value;
+
+		const empData = {
+			name:empName,
+			username:empUsername,
+			password:empPassword
+		}
+		console.log(empData);
+		createUser(empData)
+			.then( () => {
+				setBlocked(false);
+			});
+	}
+
+	return (
+		<div className="signup-container">
+			<ClickBlocker block={blocked} loading={true} />
+			<div className='add-user-form'>
+				<div className='input-container'>
+					<label htmlFor="user-name">Name:</label>
+					<input id='user-name' name="user-name" type='text'></input>
+				</div>
+				<div className='input-container'>
+					<label htmlFor="user-username">Username:</label>
+					<input id='user-username' name="user-username" type='text'></input>
+				</div>
+				<div className='input-container'>
+					<label htmlFor="user-password">Password:</label>
+					<input id='user-password' name="user-password" type='text'></input>
+				</div>
+				<div className='button-container'>
+					<button className='submit-button' onClick={createNewUser}>Submit</button>
+					<button className='cancel-button' onClick={() => props.setCurrPage(pageListEnum.Login)}>Cancel</button>
+				</div>
+			</div>
+		</div>
+	);
+}
