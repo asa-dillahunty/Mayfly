@@ -1,10 +1,11 @@
 import { getAuth } from "firebase/auth";
 import { getFirestore, doc, setDoc, getDoc, getDocs, addDoc, collection } from "firebase/firestore";
 import { initializeApp } from "firebase/app";
-import { computed, signal } from '@preact/signals-react';
+import { signal } from '@preact/signals-react';
 import 'firebase/auth';
 import 'firebase/functions';
 import { getFunctions } from "firebase/functions";
+import { pageListEnum } from "../App";
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -19,6 +20,7 @@ const firebaseConfig = {
 };
 
 const COMPANY_LIST_COLLECTION_NAME = "CompanyList";
+const UNCLAIMED_LIST_COLLECTION_NAME = "UnclaimedList"
 const ADMIN_DOC_NAME = "Administrative_Data";
 const COMPANY_EMPLOYEE_COLLECTION = "Employees";
 const daysInChunk = 7;
@@ -36,7 +38,7 @@ export const performLogout = async (navigate) => {
 	try {
 		deleteCache();
 		await auth.signOut();
-		navigate('/Primer');
+		navigate(pageListEnum.Login);
 	} catch (error) {
 		console.error('Error signing out:', error.message);
 	}
@@ -337,6 +339,68 @@ export function createCompany(companyName) {
 		// do something to alert the user
 		console.log(error);
 	})
+}
+
+
+
+// Creating a way to make users
+
+// New collection ? -> unclaimed
+// Admins can read/write
+// Normal users can only write (to delete what they claimed)
+
+// Create new employee function for admins ->
+export async function createEmployee(employeeData, companyID) {
+	// grab unclaimed collection
+	const unclaimedCollection = collection(db, UNCLAIMED_LIST_COLLECTION_NAME);
+	const unclaimedSnapshot = await getDocs(unclaimedCollection); // Fetch documents from the "Companies" collection
+	const unclaimedList = unclaimedSnapshot.docs.map(doc => (doc.id));
+	// makes a list of unclaimed ids
+	
+	let claimCode = "";
+	do {
+		claimCode = randomString(8);
+	} while (unclaimedList.includes(claimCode));
+	
+	// add claimCode to the unclaimed collection
+	await setDoc(await doc(db, UNCLAIMED_LIST_COLLECTION_NAME, claimCode), {
+		"unclaimed":true,
+		"companyID":companyID
+	});
+	
+	// create a new employee in the collection
+	// add it to the company's employees collection
+	await setDoc(await doc(db, COMPANY_LIST_COLLECTION_NAME + '/' + companyID + '/' + COMPANY_EMPLOYEE_COLLECTION, claimCode), {
+		...employeeData
+	});
+	// const employeeCollection = collection(db, COMPANY_LIST_COLLECTION_NAME + '/' + companyID + '/' + COMPANY_EMPLOYEE_COLLECTION);
+	// const docListSnapshot = await getDocs(employeeCollection);
+
+
+
+	// add a field that says unclaimed ^ (? Under admin_details)
+
+	// add other fields for their name and things :)
+	// add it to the new "unclaimed" collection, along with the company ID to trace it back to the company
+}
+
+export function randomString(length) {
+	const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+	var result = '';
+	for (var i = 0; i < length; i++) {
+		result += chars[Math.floor(Math.random() * chars.length)];
+	}
+	return result;
+}
+
+// Claim function for employee -> 
+function claimCode(code) {
+	// see if in the unclaimed collection
+	// if not, return or throw some error
+	// grab the companyID from the document
+	// grab the unclaimed document from the employee collection
+	// delete it
+	// 
 }
 
 export default app;

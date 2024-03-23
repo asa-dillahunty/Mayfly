@@ -1,5 +1,4 @@
-import React from 'react';
-import { Route, Routes } from "react-router-dom";
+import React, { useState } from 'react';
 
 import './App.css';
 
@@ -8,23 +7,39 @@ import Dashboard from './Components/Dashboard';
 import Admin from './Components/Admin';
 import OmniAdmin from './Components/OmniAdmin';
 import Lost from './Components/Lost';
+import Test from './Components/Test'
 
 
 function App() {
-	return (
-		<>
-		<Routes>
-			{/* <Route index element={<App />} /> */}
-			<Route path="/Primer" element={<Login />} />
-			<Route path="/Primer/Dashboard" element={<Dashboard />} />
-			<Route path="/Primer/Admin" element={ <Admin /> } />
-			<Route path="/Primer/OmniAdmin" element={ <OmniAdmin /> } />
-			<Route path="/Primer/*" element={ <Lost />} />
-		</Routes>
-		</>
-	);
+	const [currPage, setCurrPage] = useState(pageListEnum.Login);
+
+	switch (currPage) {
+		case pageListEnum.Login:
+			return <Login setCurrPage={setCurrPage} />;
+		case pageListEnum.Dashboard:
+			return <Dashboard setCurrPage={setCurrPage} />;
+		case pageListEnum.Admin:
+			return <Admin setCurrPage={setCurrPage} />;
+		case pageListEnum.OmniAdmin:
+			return <OmniAdmin setCurrPage={setCurrPage} />;
+		case pageListEnum.Test:
+			return <Test setCurrPage={setCurrPage} />;
+		case pageListEnum.Lost:
+			return <Lost setCurrPage={setCurrPage} />;
+
+		default:
+			return <Login setCurrPage={setCurrPage} />;
+	}
 }
 
+export const pageListEnum = {
+	Login:"login",
+	Dashboard:"dashboard",
+	Admin:"admin",
+	OmniAdmin:"omniAdmin",
+	Lost:"lost",
+	Test:"test",
+}
 
 // signInWithEmailAndPassword(auth, email, password)
 //   .then((userCredential) => {

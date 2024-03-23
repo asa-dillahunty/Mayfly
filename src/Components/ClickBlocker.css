@@ -4,7 +4,6 @@ div.blocker {
 	height: 100%;
 	z-index: 10;
 	background-color: #00000055;
-	cursor: progress;
 
 	animation: appear 1s ease 0s; /* shouldn't even notice it on a fast connection */
 
@@ -14,6 +13,10 @@ div.blocker {
 
 	top: 0;
 	left: 0;
+}
+
+div.blocker.loading {
+	cursor: progress;
 }
 
 @keyframes appear {

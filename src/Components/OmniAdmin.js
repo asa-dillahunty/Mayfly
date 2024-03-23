@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { auth, createCompany, deleteCache, getCompanies, makeAdmin, performLogout } from './firebase';
-import { useNavigate } from 'react-router-dom';
 // import { format } from 'date-fns';
 // import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
@@ -8,12 +7,11 @@ import './OmniAdmin.css';
 import DisplayTable from './DislpayTable';
 
 
-function OmniAdminDashboard() {
-	const navigate = useNavigate();
+function OmniAdminDashboard(props) {
 	const [companies, setCompanies] = useState([]);
 
 	const handleLogout = async () => {
-		performLogout(navigate);
+		performLogout(props.setCurrPage);
 	};
 
 	const fetchCompanies = async () => {

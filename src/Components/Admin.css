@@ -9,3 +9,48 @@
 
 	margin-bottom: 20px;
 }
+
+.add-employee-form {
+	background-color: var(--background);
+	display: flex;
+	flex-direction: column;
+
+	padding: 20px;
+	border-radius: 5px;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+	width: 340px;
+}
+
+.add-employee-form > div {
+	padding: 10px;
+}
+
+.add-employee-form > div.input-container {
+	width: 100%;
+	display: flex;
+	justify-content: space-between;
+}
+
+.add-employee-form > div.input-container > input {
+	width: 80%;
+}
+
+.add-employee-form > div.button-container {
+	margin: auto;
+}
+
+.add-employee-form > div.button-container > button {
+	margin: 0 10px 0 10px;
+	padding: 10px 15px 10px 15px;
+}
+
+.add-employee-form > div > .submit-button {
+	background-color: var(--primary);
+	color: var(--background);
+}
+
+.add-employee-form > div > .cancel-button {
+	background-color: var(--accent);
+	color: var(--background);
+}

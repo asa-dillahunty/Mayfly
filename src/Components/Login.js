@@ -1,15 +1,15 @@
 // Login.js
 import React, { useEffect, useState } from 'react';
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { useNavigate } from 'react-router-dom';
 
 
 import { auth, getIsAdmin } from './firebase';
 import './Login.css';
 import logo from '../PrimerIcon.png';
 import ClickBlocker from './ClickBlocker';
+import { pageListEnum } from '../App';
 
-function Login() {
+function Login(props) {
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
 	const [blocked, setBlocked] = useState(false);
@@ -45,19 +45,18 @@ function Login() {
 		
 	};
 
-	const navigate = useNavigate();
 	useEffect(() => {
 		if (auth.currentUser) navigateUser();
 	});
 
 	const navigateUser = async () => {
 		const isAdmin = await getIsAdmin(auth.currentUser.uid)
-			// if 'Asa' -> navigate to OmniAdmin Dashboard
-			navigate('/Primer/OmniAdmin');
-			// if admin -> navigate to admin dashboard
-			if (isAdmin === true) navigate('/Primer/Admin');
-			else navigate('/Primer/Dashboard');
-			// could this result in a component attempting to be updated when it is unmounted?
+		// if 'Asa' -> navigate to OmniAdmin Dashboard
+		// props.setCurrPage(pageListEnum.OmniAdmin);
+		// if admin -> navigate to admin dashboard
+		if (isAdmin === true) props.setCurrPage(pageListEnum.Admin);
+		else props.setCurrPage(pageListEnum.Dashboard);
+		// could this result in a component attempting to be updated when it is unmounted?
 	}
 
 	return (
@@ -67,7 +66,7 @@ function Login() {
 				<h1 className="login-title"> 
 					{/* <img src={logo} className="login-logo" alt="logo" />
 					rimer Login */}
-					<span>Mayfly</span> Login
+					<span onClick={()=>props.setCurrPage(pageListEnum.Test)}>Mayfly</span> Login
 				</h1>
 				<form onSubmit={handleSignIn}>
 					<input

@@ -12,4 +12,6 @@
 
 button {
 	font-family: Verdana, Geneva, Tahoma, sans-serif;
+	border: none;
+	border-radius: 3px;
 }
