@@ -1,6 +1,6 @@
 // Dashboard.js
 import React, { useEffect, useState } from 'react';
-import { auth, deleteCache, getMyCompanyID, performLogout, setMyCompany, getClaimCodeInfo } from './firebase';
+import { auth, deleteCache, getMyCompanyID, performLogout, setMyCompany, getClaimCodeInfo, createCompanyEmployee, deleteUnclaimedEmployee, getCompanyEmployee } from './firebase';
 // import { format } from 'date-fns';
 // import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
@@ -29,17 +29,26 @@ function Dashboard(props) {
 		// trigger on load
 		if (claimedState !== claimedStateEnum.loading) return; 
 		getMyCompanyID(auth.currentUser.uid).then((companyID) => {
-			console.log("companyID:",companyID);
 			if (companyID !== undefined) setClaimedState(claimedStateEnum.claimed);
 			else setClaimedState(claimedStateEnum.unclaimed);
 		});
 	});
 
 	const executeClaim = () => {
-		const claimCode = document.getElementById("claimCode");
+		const claimCode = document.getElementById("claimCode").value;
 		getClaimCodeInfo(claimCode).then((data) => {
+			const companyID = data.companyID;
 			console.log(data);
-			// setMyCompany(auth.currentUser.uid,data.companyID);
+			setMyCompany(auth.currentUser.uid, companyID).then(() => {
+				getCompanyEmployee(companyID, claimCode).then((empData) => {
+					delete empData.unclaimed;
+					createCompanyEmployee(empData, auth.currentUser.uid, companyID).then(() => {
+						deleteUnclaimedEmployee(claimCode, companyID).then(() => {
+							setClaimedState(claimedStateEnum.claimed);
+						});
+					});
+				});
+			});
 		});
 	}
 

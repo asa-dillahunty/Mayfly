@@ -1,5 +1,5 @@
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
-import { getFirestore, doc, setDoc, getDoc, getDocs, addDoc, collection } from "firebase/firestore";
+import { getFirestore, doc, setDoc, getDoc, getDocs, addDoc, collection, deleteDoc } from "firebase/firestore";
 import { initializeApp } from "firebase/app";
 import { signal } from '@preact/signals-react';
 import 'firebase/auth';
@@ -144,7 +144,6 @@ export async function setHours(userID,date,hours) {
 		// update the firebase signal cache thing
 		getHoursSignal(userID,date,docName).value = hours;
 	});
-
 }
 
 export function getHoursEarlyReturn(userID,date,docName) {
@@ -293,6 +292,7 @@ export async function setMyCompany(uid,cid) {
 	setDoc(docRef, {"company":cid}).then((_value) => {
 		// Todo:
 		//	- if fail do something
+		// update cache
 
 		alert("succeeded (probably)");
 	});
@@ -319,6 +319,18 @@ export async function getAdminData(uid) {
 		else return {};
 	}
 	return firebaseCache[uid][ADMIN_DOC_NAME];
+}
+
+export async function getCompanyEmployee(company_ID, empID) {
+	const docRef = doc(db, COMPANY_LIST_COLLECTION_NAME +'/'+ company_ID +"/"+COMPANY_EMPLOYEE_COLLECTION,empID);	
+	const docSnap = await getDoc(docRef);
+	if (docSnap.exists()) {
+		return docSnap.data();
+	}
+	else {
+		// TODO:
+			// throw an error
+	}
 }
 
 export async function getCompany(company_ID) {
@@ -358,16 +370,19 @@ export function createCompany(companyName) {
 	})
 }
 
+export async function createCompanyEmployee(empData, empID, companyID) {
+	await setDoc(doc(db, COMPANY_LIST_COLLECTION_NAME + '/' + companyID + '/' + COMPANY_EMPLOYEE_COLLECTION, empID), {
+		...empData
+	});
+}
 
+export async function deleteCompanyEmployee(empID, companyID) {
+	const docRef = doc(db, COMPANY_LIST_COLLECTION_NAME + '/' + companyID + '/' + COMPANY_EMPLOYEE_COLLECTION, empID)
+	await deleteDoc(docRef);
+	console.log("deleted a document. feels bad man");
+}
 
-// Creating a way to make users
-
-// New collection ? -> unclaimed
-// Admins can read/write
-// Normal users can only write (to delete what they claimed)
-
-// Create new employee function for admins ->
-export async function createEmployee(employeeData, companyID) {
+export async function createUnclaimedEmployee(employeeData, companyID) {
 	// grab unclaimed collection
 	const unclaimedCollection = collection(db, UNCLAIMED_LIST_COLLECTION_NAME);
 	const unclaimedSnapshot = await getDocs(unclaimedCollection); // Fetch documents from the "Companies" collection
@@ -387,27 +402,23 @@ export async function createEmployee(employeeData, companyID) {
 	
 	// create a new employee in the collection
 	// add it to the company's employees collection
-	await setDoc(doc(db, COMPANY_LIST_COLLECTION_NAME + '/' + companyID + '/' + COMPANY_EMPLOYEE_COLLECTION, claimCode), {
-		...employeeData
-	});
-	// const employeeCollection = collection(db, COMPANY_LIST_COLLECTION_NAME + '/' + companyID + '/' + COMPANY_EMPLOYEE_COLLECTION);
-	// const docListSnapshot = await getDocs(employeeCollection);
-
-
-
-	// add a field that says unclaimed ^ (? Under admin_details)
+	employeeData.unclaimed = true;
+	await createCompanyEmployee(employeeData, claimCode, companyID);
 
 	// add other fields for their name and things :)
 	// add it to the new "unclaimed" collection, along with the company ID to trace it back to the company
 }
 
-export async function getClaimCodeInfo(claimCode) {
-	console.log("heere");
-
+export async function deleteUnclaimedEmployee(claimCode, companyID) {
 	const docRef = doc(db, UNCLAIMED_LIST_COLLECTION_NAME, claimCode);
-	console.log("here2");
+	await deleteDoc(docRef);
+
+	await deleteCompanyEmployee(claimCode, companyID);
+}
+
+export async function getClaimCodeInfo(claimCode) {
+	const docRef = doc(db, UNCLAIMED_LIST_COLLECTION_NAME, claimCode);
 	const docSnap = await getDoc(docRef);
-	console.log("here2");
 
 	if (!docSnap.exists()) return undefined;
 	return docSnap.data();
@@ -416,10 +427,8 @@ export async function getClaimCodeInfo(claimCode) {
 export async function createUser(userData) {
 	const email = userData.username + FAKE_EMAIL_EXTENSION;
 	const userCredential = await createUserWithEmailAndPassword(auth, email, userData.password);
-	
-	console.log("uid:",userCredential.uid);
 	const user = userCredential.user;
-	console.log(user);
+
 	return user;
 }
 

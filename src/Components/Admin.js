@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { auth, deleteCache, getCompany, getMyCompanyID, performLogout, createEmployee, createUser } from './firebase';
+import { auth, deleteCache, getCompany, getMyCompanyID, performLogout, createUnclaimedEmployee, createUser } from './firebase';
 import './Admin.css';
 import { AdminCompanyDisplayTable } from './DislpayTable';
 import ClickBlocker from './ClickBlocker';
@@ -49,7 +49,7 @@ export function AddEmployeeForm (props) {
 		}
 		console.log(empData);
 		getMyCompanyID(auth.currentUser.uid).then((companyID) => {
-			createEmployee(empData, companyID)
+			createUnclaimedEmployee(empData, companyID)
 				.then( () => {
 					props.setBlocked(false);
 				});
