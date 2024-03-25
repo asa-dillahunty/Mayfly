@@ -270,7 +270,7 @@ export async function makeAdmin(uid,cid) {
 	const docRef = doc(db, uid, ADMIN_DOC_NAME);
 	// const docSnap = await getDoc(docRef);
 
-	setDoc(docRef, {"isAdmin":true,"companies":["Mine","Not Mine","Yours"]}).then((_value) => {
+	setDoc(docRef, {"isAdmin":true,"company":cid}).then((_value) => {
 		// Todo:
 		//	- if fail do something
 
@@ -284,10 +284,26 @@ export async function getIsAdmin(uid) {
 	else return false;
 }
 
+// uid - userID
+// cid - company ID
+export async function setMyCompany(uid,cid) {
+	const docRef = doc(db, uid, ADMIN_DOC_NAME);
+	// const docSnap = await getDoc(docRef);
+
+	setDoc(docRef, {"company":cid}).then((_value) => {
+		// Todo:
+		//	- if fail do something
+
+		alert("succeeded (probably)");
+	});
+}
+
 export async function getMyCompanyID(userID) {
+	console.log("userID",userID);
 	const adminData = await getAdminData(userID);
+	console.log(adminData);
 	if (adminData) return adminData.company;
-	else return "";
+	else return undefined;
 }
 
 export async function getAdminData(uid) {
@@ -364,14 +380,14 @@ export async function createEmployee(employeeData, companyID) {
 	} while (unclaimedList.includes(claimCode));
 	
 	// add claimCode to the unclaimed collection
-	await setDoc(await doc(db, UNCLAIMED_LIST_COLLECTION_NAME, claimCode), {
+	await setDoc(doc(db, UNCLAIMED_LIST_COLLECTION_NAME, claimCode), {
 		"unclaimed":true,
 		"companyID":companyID
 	});
 	
 	// create a new employee in the collection
 	// add it to the company's employees collection
-	await setDoc(await doc(db, COMPANY_LIST_COLLECTION_NAME + '/' + companyID + '/' + COMPANY_EMPLOYEE_COLLECTION, claimCode), {
+	await setDoc(doc(db, COMPANY_LIST_COLLECTION_NAME + '/' + companyID + '/' + COMPANY_EMPLOYEE_COLLECTION, claimCode), {
 		...employeeData
 	});
 	// const employeeCollection = collection(db, COMPANY_LIST_COLLECTION_NAME + '/' + companyID + '/' + COMPANY_EMPLOYEE_COLLECTION);
@@ -383,6 +399,18 @@ export async function createEmployee(employeeData, companyID) {
 
 	// add other fields for their name and things :)
 	// add it to the new "unclaimed" collection, along with the company ID to trace it back to the company
+}
+
+export async function getClaimCodeInfo(claimCode) {
+	console.log("heere");
+
+	const docRef = doc(db, UNCLAIMED_LIST_COLLECTION_NAME, claimCode);
+	console.log("here2");
+	const docSnap = await getDoc(docRef);
+	console.log("here2");
+
+	if (!docSnap.exists()) return undefined;
+	return docSnap.data();
 }
 
 export async function createUser(userData) {
