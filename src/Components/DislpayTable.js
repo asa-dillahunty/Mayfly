@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import ClickBlocker from './ClickBlocker';
 
 import './DisplayTable.css';
-import { HourAdder } from './HourAdder';
 import { getEndOfWeekString, selectedDate } from './firebase';
+
+import Dropdown from 'react-bootstrap/Dropdown';
 
 function CreateCompanyPopup(props) {
 	const [companyName,setCompanyName] = useState('');
@@ -29,8 +30,6 @@ function CreateCompanyPopup(props) {
 }
 
 export function AdminCompanyDisplayTable(props) {
-	const [blocked, setBlocked] = useState(false);
-	const [opened, setOpened] = useState(0);
 	
 	if (!props.company || !props.company.employees) return;
 	return (
@@ -38,30 +37,49 @@ export function AdminCompanyDisplayTable(props) {
 			<h2> {props.company.name} </h2>
 			<ul>
 				<li key={0} className='table-key'>
-					<span className='kebab'></span> {/* fake kebab so we get spacing right */}
+					<div className='dropdown'></div> {/* fake kebab so we get spacing right */}
 					<span className='employee-name'>Employee Name</span>
 					<span className='employee-weekly-hours'>{getEndOfWeekString(selectedDate.value)}</span>
 				</li>
 				{props.company.employees.filter( emp => !emp.unclaimed ).map((emp,index) => (
-					<li key={index+1}>
-						<span className='kebab'>&#8942;</span>
-						<span className='employee-name'> {emp.name} </span>
-						{/* emp.HoursThisWeek is a computed signal */}
-						<span className='employee-weekly-hours'> {emp.hoursThisWeek} </span>
-					</li>
+					<EmployeeLine index={index+1} emp={emp} />
 				))}
 
-				{props.company.employees.filter(emp=> emp.unclaimed ).map((emp, index) => (
-					<li key={index+1}>
-						<span className='kebab'>&#8942;</span>
-						<span className='employee-name'> {emp.name} </span>
-						{/* emp.HoursThisWeek is a computed signal */}
-						<span className='employee-weekly-hours'> unreg </span>
-					</li>
+				{props.company.employees.filter(emp => emp.unclaimed ).map((emp, index) => (
+					<EmployeeLine index={index+1} emp={emp} />
 				))}
 			</ul>
 		</div>
 	)
+}
+
+function EmployeeLine(props) {
+	const CustomToggle = React.forwardRef(({ children, onClick }, ref) => (
+		<button className='kebab-container' onClick={e => {e.preventDefault();onClick(e); }} >
+			{/* custom icon */}
+			{children}
+		</button>
+	));
+
+	return (
+		<li key={props.index}>
+			{/* <span className='kebab'>&#8942;</span> */}
+			<Dropdown>
+				<Dropdown.Toggle as={CustomToggle}>
+					<span className='kebab'>&#8942;</span>
+				</Dropdown.Toggle>
+				<Dropdown.Menu size="sm" title="">
+					<Dropdown.Item>Edit Hours</Dropdown.Item>
+					<Dropdown.Item>View Code</Dropdown.Item>
+					<Dropdown.Item>Remove Employee</Dropdown.Item>
+				</Dropdown.Menu>
+			</Dropdown>
+			<span className='employee-name'> {props.emp.name} </span>
+			{/* emp.HoursThisWeek is a computed signal */}
+			<span className='employee-weekly-hours'> {props.emp.unclaimed ? "unreg" : props.emp.hoursThisWeek} </span>
+		</li>
+	);
+
 }
 
 export function CompanyDisplayTable(props) {

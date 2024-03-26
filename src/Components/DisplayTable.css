@@ -60,15 +60,33 @@ span.employee-weekly-hours {
 	text-align: center;
 }
 
-.company-details span.kebab {
+.company-details .dropdown {
 	width: 5%;
-	/* background-color: red; */
-	font-weight: bold;
-	text-align: center;
-	
+
+	padding: 0;
+	margin: 0;
+}
+
+.company-details .kebab-container {
+	width: 100%;
+	height: 100%;
+
+	padding: 0;
+	margin: 0;
+
 	display: inline-flex;
 	align-items: center;
 	justify-content: right;
+	
+	color: var(--text);
+	background-color: var(--background);
+
+	text-decoration: none;
+}
+
+.company-details span.kebab {
+	font-weight: bold;
+	text-align: center;
 
 	/* font-size: 23px; */
 	padding: 0;

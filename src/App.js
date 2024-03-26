@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 
 import './App.css';
+import 'bootstrap/dist/css/bootstrap.min.css'; // need this for the react-bootstrap package
 
 import Login, { SignUp } from "./Components/Login";
 import Dashboard from './Components/Dashboard';
