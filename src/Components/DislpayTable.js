@@ -37,24 +37,26 @@ export function AdminCompanyDisplayTable(props) {
 		<div className='company-details'>
 			<h2> {props.company.name} </h2>
 			<ul>
-				<li key={0}>
-					<details>
-						<summary className='table-key'>
-							<span className='employee-name'>Employee Name</span>
-							<span className='employee-weekly-hours'>{getEndOfWeekString(selectedDate.value)}</span>
-						</summary>
-					</details>
+				<li key={0} className='table-key'>
+					<span className='kebab'></span> {/* fake kebab so we get spacing right */}
+					<span className='employee-name'>Employee Name</span>
+					<span className='employee-weekly-hours'>{getEndOfWeekString(selectedDate.value)}</span>
 				</li>
-				{props.company.employees.map((emp,index) => (
+				{props.company.employees.filter( emp => !emp.unclaimed ).map((emp,index) => (
 					<li key={index+1}>
-						<details open={opened === index+1} onToggle={()=>{setOpened(index+1)}}>
-							<summary>
-								<span className='employee-name'> {emp.name} </span>
-								{/* emp.HoursThisWeek is a computed signal */}
-								<span className='employee-weekly-hours'> {emp.unclaimed ? "Unregistered" : emp.hoursThisWeek} </span>
-							</summary>
-							<HourAdder uid={emp.id} blocked={blocked} setBlocked={setBlocked} />
-						</details>
+						<span className='kebab'>&#8942;</span>
+						<span className='employee-name'> {emp.name} </span>
+						{/* emp.HoursThisWeek is a computed signal */}
+						<span className='employee-weekly-hours'> {emp.hoursThisWeek} </span>
+					</li>
+				))}
+
+				{props.company.employees.filter(emp=> emp.unclaimed ).map((emp, index) => (
+					<li key={index+1}>
+						<span className='kebab'>&#8942;</span>
+						<span className='employee-name'> {emp.name} </span>
+						{/* emp.HoursThisWeek is a computed signal */}
+						<span className='employee-weekly-hours'> unreg </span>
 					</li>
 				))}
 			</ul>

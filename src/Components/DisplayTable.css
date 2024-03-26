@@ -32,11 +32,13 @@ ul {
 
 li {
 	list-style-type: none;
+	display: flex;
+	width: 100%;
 }
 
 .company-details > ul > li span {
 	/* border: 3px solid black; */
-	display: block;
+	display: inline-block;
 	padding-top: 5px;
 	padding-bottom: 5px;
 
@@ -53,24 +55,26 @@ span.employee-name {
 	padding-left: 10px;
 }
 span.employee-weekly-hours {
-	width: 30%;
+	width: 25%;
 	background-color: var(--secondary);
 	text-align: center;
 }
 
-details > summary {
-	list-style: none;
+.company-details span.kebab {
+	width: 5%;
+	/* background-color: red; */
+	font-weight: bold;
+	text-align: center;
+	
+	display: inline-flex;
+	align-items: center;
+	justify-content: right;
+
+	/* font-size: 23px; */
+	padding: 0;
+	margin: 0;
 }
 
-details > summary::-webkit-details-marker {
-	display: none;
-}
-
-details > summary {
-	display: flex;
-	flex-direction: row;
-}
-
-details > summary.table-key {
+.company-details li.table-key {
 	border-bottom: 3px solid black;
 }
