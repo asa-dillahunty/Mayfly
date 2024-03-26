@@ -32,7 +32,7 @@ function AdminDashboard(props) {
 				<AdminCompanyDisplayTable company={companyData} />
 				<button onClick={() => { setBlocked(true); }}>Add Employee</button>
 				<ClickBlocker custom={true} block={blocked}>
-					<AddEmployeeForm  setBlocked={setBlocked}/>
+					<AddEmployeeForm  setBlocked={setBlocked} refreshTable={fetchCompany}/>
 				</ClickBlocker>
 			</div>
 			
@@ -51,7 +51,9 @@ export function AddEmployeeForm (props) {
 		getMyCompanyID(auth.currentUser.uid).then((companyID) => {
 			createUnclaimedEmployee(empData, companyID)
 				.then( () => {
-					props.setBlocked(false);
+					props.refreshTable().then(() => {
+						props.setBlocked(false)
+					});
 				});
 		});
 	}
@@ -60,7 +62,7 @@ export function AddEmployeeForm (props) {
 		<div className='add-employee-form'>
 			<div className='input-container'>
 				<label htmlFor="employee-name">Name:</label>
-				<input id='employee-name' name="employee-name" type='text'></input>
+				<input id='employee-name' name="employee-name" type='text' autoComplete='off'></input>
 			</div>
 			<div className='button-container'>
 				<button className='submit-button' onClick={createTempEmployee}>Submit</button>

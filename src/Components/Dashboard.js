@@ -17,6 +17,7 @@ const claimedStateEnum = {
 function Dashboard(props) {
 	const [blocked, setBlocked] = useState(false);
 	const [claimedState, setClaimedState] = useState(claimedStateEnum.loading);
+	const [infoModal, setInfoModal] = useState(false);
 
 	const handleLogout = () => {
 		setBlocked(true);
@@ -35,21 +36,88 @@ function Dashboard(props) {
 	});
 
 	const executeClaim = () => {
-		const claimCode = document.getElementById("claimCode").value;
+		let claimCode = '';
+		const inputs = document.querySelectorAll("#claimCode input");
+		for (let i=0;i<6;i++) {
+			claimCode = claimCode + inputs[i].value;
+		}
+
 		getClaimCodeInfo(claimCode).then((data) => {
+			// TODO: 
+			//		Execute these in a "transaction" or a batch write
+			// https://firebase.google.com/docs/firestore/manage-data/transactions
 			const companyID = data.companyID;
 			console.log(data);
 			setMyCompany(auth.currentUser.uid, companyID).then(() => {
+				console.log("step 1");
 				getCompanyEmployee(companyID, claimCode).then((empData) => {
+					console.log("step 2");
 					delete empData.unclaimed;
 					createCompanyEmployee(empData, auth.currentUser.uid, companyID).then(() => {
+						console.log("step 3");
 						deleteUnclaimedEmployee(claimCode, companyID).then(() => {
+							console.log("step 4");
 							setClaimedState(claimedStateEnum.claimed);
 						});
 					});
 				});
 			});
 		});
+	}
+
+	const pasteCode = (e) => {
+		e.preventDefault();
+		const pasted = e.clipboardData.getData("text/plain");
+		if (pasted.length !== 6) return; // not a code
+		if (/[^a-zA-Z]/.test(pasted)) return;
+
+		const inputs = document.querySelectorAll("#claimCode input");
+		for (let i=0;i<6;i++) {
+			inputs[i].value = pasted[i].toUpperCase();
+		}
+		inputs[5].focus();
+	}
+
+	const claimInputBackspace = (e) => {
+		if (e.key === 'Backspace') {
+			if (e.target.value === '') {
+				const index = parseInt(e.target.id[e.target.id.length - 1]); // gets the last character. won't work for > 9 (obviously)
+				if (index > 0) {
+					const inputs = document.querySelectorAll("#claimCode input");
+					inputs[index-1].focus();
+					inputs[index-1].select();
+				}
+			}
+		}
+	}
+
+	const claimInputChange = (e) => {
+		const val = e.target.value;
+		const index = parseInt(e.target.id[e.target.id.length - 1]); // gets the last character. won't work for > 9 (obviously)
+		const inputs = document.querySelectorAll("#claimCode input");
+
+		console.log(val,index,inputs);
+
+		
+		if (!/^[a-zA-Z]*$/.test(val)) {
+			e.target.value = ''; // Clear the input value if it's not a letter
+			console.log("clear");
+		}
+		else {
+			// force uppercase
+			if (e.target.value === e.target.value.toLowerCase())
+				e.target.value = e.target.value.toUpperCase();
+
+			if (index === inputs.length - 1) {
+				// last input
+				return;
+			}
+			if (val && inputs[index + 1]) {
+				inputs[index + 1].focus();
+				inputs[index + 1].select();
+			}
+		}
+
 	}
 
 	// if loading -> return a skeleton dashboard
@@ -73,16 +141,35 @@ function Dashboard(props) {
 		return (
 			<div className="dashboard-container">
 				<ClickBlocker block={blocked} />
+				<ClickBlocker block={infoModal} custom={true}>
+					<div className='info-modal-container'>
+						<p>Your administrator is responsible for sending you a code. Contact your employer to request a code.</p>
+						<p>If you are an administrator or don't have an employer that sent you to this website to make an account, email me at asadillahunty@gmail.com</p>
+						<button onClick={() => {setInfoModal(false)}}>Close</button>
+					</div>
+				</ClickBlocker>
 				<div className="dashboard-header">
 					<h1>Mayfly</h1>
 					<button className="dashboard-logout" onClick={handleLogout} disabled={blocked}>
 						Log Out
 					</button>
 				</div>
-				<p>Hello you are not part of any company right now : enter a code to join a company "HYPGBMWA"</p>
+				<h2>Welcome to <span className='title'>Mayfly</span></h2>
+				<p className='tagline'>Your new timekeeping app</p>
 				<label>Input your code</label>
-				<input id="claimCode" type='text'></input>
-				<button onClick={executeClaim}>click me</button>
+				<div id="claimCode">
+					<input className='claim-code' id={`claim-code-0`} name={`claim-code-0`} maxLength={1} type='text' onChange={claimInputChange} onKeyDown={claimInputBackspace} autoComplete='off' onPaste={pasteCode}></input>
+					<input className='claim-code' id={`claim-code-1`} name={`claim-code-1`} maxLength={1} type='text' onChange={claimInputChange} onKeyDown={claimInputBackspace} autoComplete='off'></input>
+					<input className='claim-code' id={`claim-code-2`} name={`claim-code-2`} maxLength={1} type='text' onChange={claimInputChange} onKeyDown={claimInputBackspace} autoComplete='off'></input>
+					<input className='claim-code' id={`claim-code-3`} name={`claim-code-3`} maxLength={1} type='text' onChange={claimInputChange} onKeyDown={claimInputBackspace} autoComplete='off'></input>
+					<input className='claim-code' id={`claim-code-4`} name={`claim-code-4`} maxLength={1} type='text' onChange={claimInputChange} onKeyDown={claimInputBackspace} autoComplete='off'></input>
+					<input className='claim-code' id={`claim-code-5`} name={`claim-code-5`} maxLength={1} type='text' onChange={claimInputChange} onKeyDown={claimInputBackspace} autoComplete='off'></input>
+				</div>
+				{/* <input id="claimCode" type='text' autoComplete='off' maxLength={6}></input> */}
+				<p className='claim-code-info-p'>
+					<span onClick={()=>{setInfoModal(true)}}>Don't have a code?</span>
+				</p>
+				<button className='claim-submit-button' onClick={executeClaim}>Submit</button>
 			</div>
 		);
 	}

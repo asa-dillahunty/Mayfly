@@ -293,8 +293,6 @@ export async function setMyCompany(uid,cid) {
 		// Todo:
 		//	- if fail do something
 		// update cache
-
-		alert("succeeded (probably)");
 	});
 }
 
@@ -391,7 +389,7 @@ export async function createUnclaimedEmployee(employeeData, companyID) {
 	
 	let claimCode = "";
 	do {
-		claimCode = randomString(8);
+		claimCode = randomString(6);
 	} while (unclaimedList.includes(claimCode));
 	
 	// add claimCode to the unclaimed collection

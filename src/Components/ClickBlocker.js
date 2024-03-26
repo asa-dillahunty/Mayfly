@@ -10,7 +10,7 @@ function ClickBlocker(props) {
 		// this will be used simply for areas that are disabled for some reason (like days outside of the pay period)
 		else if (props.locked) return (  <div className="blocker"> <SquareLoader color='#000000'/> </div> );
 		else if (props.custom) {
-			return ( <div className='blocker'> { props.children } </div>);
+			return ( <div className='blocker fast'> { props.children } </div>);
 		}
 		else return ( <div className="blocker"></div> );
 	else return <></>

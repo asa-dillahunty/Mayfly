@@ -1,9 +1,9 @@
-import React, { Children, useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import ClickBlocker from './ClickBlocker';
 
 import './DisplayTable.css';
 import { HourAdder } from './HourAdder';
-import { getEndOfWeekString, getWeekSpanString, selectedDate } from './firebase';
+import { getEndOfWeekString, selectedDate } from './firebase';
 
 function CreateCompanyPopup(props) {
 	const [companyName,setCompanyName] = useState('');
@@ -51,9 +51,8 @@ export function AdminCompanyDisplayTable(props) {
 							<summary>
 								<span className='employee-name'> {emp.name} </span>
 								{/* emp.HoursThisWeek is a computed signal */}
-								<span className='employee-weekly-hours'> {emp.hoursThisWeek} </span>
+								<span className='employee-weekly-hours'> {emp.unclaimed ? "Unregistered" : emp.hoursThisWeek} </span>
 							</summary>
-						
 							<HourAdder uid={emp.id} blocked={blocked} setBlocked={setBlocked} />
 						</details>
 					</li>
