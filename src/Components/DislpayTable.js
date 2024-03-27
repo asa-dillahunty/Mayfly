@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import ClickBlocker from './ClickBlocker';
 
 import './DisplayTable.css';
-import { getEndOfWeekString, selectedDate } from './firebase';
+import { deleteCompanyEmployee, deleteUnclaimedEmployee, getEndOfWeekString, selectedDate } from './firebase';
 
 import Dropdown from 'react-bootstrap/Dropdown';
+import HourAdder from './HourAdder';
 
 function CreateCompanyPopup(props) {
 	const [companyName,setCompanyName] = useState('');
@@ -30,66 +31,115 @@ function CreateCompanyPopup(props) {
 }
 
 export function AdminCompanyDisplayTable(props) {
+	let claimedList;
+	let unclaimedList;
+	if (props.company && props.company.employees) {
+		claimedList = props.company.employees.filter( emp => !emp.unclaimed );
+		unclaimedList = props.company.employees.filter( emp => emp.unclaimed );
+	}
 	if (!props.company || !props.company.employees) {
 		// TODO:
 		// 	return a skeleton
 		return(<></>);
 	}
-	
-	const claimedList = props.company.employees.filter( emp => !emp.unclaimed );
-	const unclaimedList = props.company.employees.filter( emp => emp.unclaimed );
-	if (!props.company || !props.company.employees) return;
 	return (
 		<div className='company-details'>
 			<h2> {props.company.name} </h2>
 			<ul>
 				<li key={0} className='table-key'>
-					<div className='dropdown'></div> {/* fake kebab so we get spacing right */}
-					<span className='employee-name'>Employee Name</span>
-					<span className='employee-weekly-hours'>{getEndOfWeekString(selectedDate.value)}</span>
+					<div>
+						<div className='dropdown'></div> {/* fake kebab so we get spacing right */}
+						<span className='employee-name'>Employee Name</span>
+						<span className='employee-weekly-hours'>{getEndOfWeekString(selectedDate.value)}</span>
+					</div>
 				</li>
 				{claimedList.map((emp,index) => (
-					<EmployeeLine index={index+1} emp={emp} />
+					<EmployeeLine key={index+1} emp={emp} company={props.company} />
 				))}
 
 				<li key={unclaimedList.length + 1} className='table-key' hidden={unclaimedList.length < 1}>
-					<div className='dropdown'></div> {/* fake kebab so we get spacing right */}
-					<span className='employee-name'>Unregistered Employees</span>
+					<div>
+						<div className='dropdown'></div> {/* fake kebab so we get spacing right */}
+						<span className='employee-name'>Unregistered Employees</span>
+						<span className='employee-weekly-hours'>Code</span>
+					</div>
 				</li>
 				{unclaimedList.map((emp, index) => (
-					<EmployeeLine index={index+unclaimedList.length+2} emp={emp} />
+					<EmployeeLine key={index+claimedList.length+2} emp={emp} company={props.company} refreshTable={props.refreshTable} />
 				))}
 			</ul>
 		</div>
 	)
 }
 
+const CustomToggle = React.forwardRef(({ children, onClick }, ref) => (
+	<button className='kebab-container' onClick={e => {e.preventDefault();onClick(e); }} >
+		{/* custom icon */}
+		{children}
+	</button>
+));
+
 function EmployeeLine(props) {
-	const [companyName, setCompanyName] = useState('');
-	
-	const CustomToggle = React.forwardRef(({ children, onClick }, ref) => (
-		<button className='kebab-container' onClick={e => {e.preventDefault();onClick(e); }} >
-			{/* custom icon */}
-			{children}
-		</button>
-	));
+	const [blocked, setBlocked] = useState(false);
+	const [hideMore, setHideMore] = useState(true);
+
+	const deleteUser = () => {
+		setBlocked(true);
+		const ans = window.confirm(`You want to remove ${props.emp.name} from ${props.company.name}? This action cannot be undone.`);
+		if (!ans) {
+			setBlocked(false);
+			return;
+		}
+
+		if (props.emp.unclaimed) {
+			deleteUnclaimedEmployee(props.emp.id, props.company.id)
+				.then(() => {
+					props.refreshTable().then(() => {
+						setBlocked(false);
+					});
+				});
+		}
+		else {
+			deleteCompanyEmployee(props.emp.id, props.company.id)
+				.then(() => {
+					props.refreshTable().then(() => {
+						setBlocked(false);
+					});
+				});
+		}
+	}
+
+	const toggleShow = () => {
+		setHideMore(!hideMore);
+	}
 
 	return (
-		<li key={props.index}>
+		<li>
 			{/* <span className='kebab'>&#8942;</span> */}
-			<Dropdown>
-				<Dropdown.Toggle as={CustomToggle}>
-					<span className='kebab'>&#8942;</span>
-				</Dropdown.Toggle>
-				<Dropdown.Menu size="sm" title="">
-					<Dropdown.Item>{props.emp.unclaimed ? "Show Login Code" : "Edit Hours" }</Dropdown.Item>
-					<Dropdown.Item>Edit User</Dropdown.Item>
-					<Dropdown.Item>Remove Employee</Dropdown.Item>
-				</Dropdown.Menu>
-			</Dropdown>
-			<span className='employee-name'> {props.emp.name} </span>
-			{/* emp.HoursThisWeek is a computed signal */}
-			<span className='employee-weekly-hours'> {props.emp.unclaimed ? "unreg" : props.emp.hoursThisWeek} </span>
+			<ClickBlocker block={blocked} />
+			<div className='thing-container'>
+				<Dropdown>
+					<Dropdown.Toggle as={CustomToggle}>
+						<span className='kebab'>&#8942;</span>
+					</Dropdown.Toggle>
+					<Dropdown.Menu size="sm" title="">
+						{props.emp.unclaimed ? <></> : <Dropdown.Item onClick={toggleShow}>Edit Hours</Dropdown.Item>}
+						<Dropdown.Item>Edit User</Dropdown.Item>
+						<Dropdown.Item onClick={deleteUser}>Remove Employee</Dropdown.Item>
+					</Dropdown.Menu>
+				</Dropdown>
+				<span className='employee-name'> {props.emp.name} </span>
+				{/* emp.HoursThisWeek is a computed signal */}
+				{ props.emp.unclaimed ?
+					<span className='employee-weekly-hours code'> { props.emp.id } </span> :
+					<span className='employee-weekly-hours'> { props.emp.hoursThisWeek } </span> 
+				}
+			</div>
+			<div className="more-info" hidden={hideMore}>
+				{props.emp.unclaimed ? 
+					<></>: 
+					<HourAdder uid={props.emp.id} blocked={blocked} setBlocked={setBlocked}/>}
+			</div>
 		</li>
 	);
 
@@ -104,7 +154,7 @@ export function CompanyDisplayTable(props) {
 				<summary>Admins</summary>
 				<ul>
 					{props.company.admins.map((emp,index) => (
-						<li key={index}>{ emp } <button>Remove EMP</button></li>
+						<li key={"admins"+index}>{ emp } <button>Remove EMP</button></li>
 					))}
 				</ul>
 			</details>
@@ -112,7 +162,7 @@ export function CompanyDisplayTable(props) {
 				<summary>Employees</summary>
 				<ul>
 					{props.company.employees.map((emp,index) => (
-						<li key={index}>{ emp } <button>Remove EMP</button></li>
+						<li key={"emps"+index}>{ emp } <button>Remove EMP</button></li>
 					))}
 				</ul>
 			</details>
@@ -157,7 +207,7 @@ function DisplayTable(props) {
 			<button onClick={addItem}>Add</button>
 			<ul>
 				{props.displayItems.map(item => (
-					<li key={item.id}>
+					<li key={"companies"+item.id}>
 						<CompanyDisplayTable company={item} />
 					</li>
 				))}

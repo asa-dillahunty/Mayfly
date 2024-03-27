@@ -11,6 +11,7 @@ function AdminDashboard(props) {
 	const fetchCompany = async () => {
 		const companyID = await getMyCompanyID(auth.currentUser.uid);
 		const companyObj = await getCompany(companyID);
+		companyObj.id = companyID;
 		console.log(companyObj);
 		setCompanyData(companyObj);
 	};
@@ -22,20 +23,19 @@ function AdminDashboard(props) {
 	
 	return (
 		<div className="dashboard-container">
-		<div className="dashboard-header">
-			<h1>Mayfly</h1>
+			<div className="dashboard-header">
+				<h1>Mayfly</h1>
 				<button className="dashboard-logout" onClick={() => performLogout(props.setCurrPage)}>
 					Log Out
 				</button>
 			</div>
 			<div className="dashboard-content">
-				<AdminCompanyDisplayTable company={companyData} />
-				<button onClick={() => { setBlocked(true); }}>Add Employee</button>
+				<AdminCompanyDisplayTable company={companyData} refreshTable={fetchCompany}/>
+				<button className="add-emp" onClick={() => { setBlocked(true); }}>Add Employee</button>
 				<ClickBlocker custom={true} block={blocked}>
 					<AddEmployeeForm  setBlocked={setBlocked} refreshTable={fetchCompany}/>
 				</ClickBlocker>
 			</div>
-			
 		</div>
 	);
 }

@@ -377,7 +377,11 @@ export async function createCompanyEmployee(empData, empID, companyID) {
 export async function deleteCompanyEmployee(empID, companyID) {
 	const docRef = doc(db, COMPANY_LIST_COLLECTION_NAME + '/' + companyID + '/' + COMPANY_EMPLOYEE_COLLECTION, empID)
 	await deleteDoc(docRef);
-	console.log("deleted a document. feels bad man");
+
+	// grab the employee's collection -> delete their administrative_data
+	const empDocRef = doc(db, empID, ADMIN_DOC_NAME);
+	await deleteDoc(empDocRef);
+
 }
 
 export async function createUnclaimedEmployee(employeeData, companyID) {
@@ -410,7 +414,6 @@ export async function createUnclaimedEmployee(employeeData, companyID) {
 export async function deleteUnclaimedEmployee(claimCode, companyID) {
 	const docRef = doc(db, UNCLAIMED_LIST_COLLECTION_NAME, claimCode);
 	await deleteDoc(docRef);
-
 	await deleteCompanyEmployee(claimCode, companyID);
 }
 
