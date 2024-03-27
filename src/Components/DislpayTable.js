@@ -30,7 +30,14 @@ function CreateCompanyPopup(props) {
 }
 
 export function AdminCompanyDisplayTable(props) {
+	if (!props.company || !props.company.employees) {
+		// TODO:
+		// 	return a skeleton
+		return(<></>);
+	}
 	
+	const claimedList = props.company.employees.filter( emp => !emp.unclaimed );
+	const unclaimedList = props.company.employees.filter( emp => emp.unclaimed );
 	if (!props.company || !props.company.employees) return;
 	return (
 		<div className='company-details'>
@@ -41,12 +48,16 @@ export function AdminCompanyDisplayTable(props) {
 					<span className='employee-name'>Employee Name</span>
 					<span className='employee-weekly-hours'>{getEndOfWeekString(selectedDate.value)}</span>
 				</li>
-				{props.company.employees.filter( emp => !emp.unclaimed ).map((emp,index) => (
+				{claimedList.map((emp,index) => (
 					<EmployeeLine index={index+1} emp={emp} />
 				))}
 
-				{props.company.employees.filter(emp => emp.unclaimed ).map((emp, index) => (
-					<EmployeeLine index={index+1} emp={emp} />
+				<li key={unclaimedList.length + 1} className='table-key' hidden={unclaimedList.length < 1}>
+					<div className='dropdown'></div> {/* fake kebab so we get spacing right */}
+					<span className='employee-name'>Unregistered Employees</span>
+				</li>
+				{unclaimedList.map((emp, index) => (
+					<EmployeeLine index={index+unclaimedList.length+2} emp={emp} />
 				))}
 			</ul>
 		</div>
@@ -54,6 +65,8 @@ export function AdminCompanyDisplayTable(props) {
 }
 
 function EmployeeLine(props) {
+	const [companyName, setCompanyName] = useState('');
+	
 	const CustomToggle = React.forwardRef(({ children, onClick }, ref) => (
 		<button className='kebab-container' onClick={e => {e.preventDefault();onClick(e); }} >
 			{/* custom icon */}
@@ -69,8 +82,8 @@ function EmployeeLine(props) {
 					<span className='kebab'>&#8942;</span>
 				</Dropdown.Toggle>
 				<Dropdown.Menu size="sm" title="">
-					<Dropdown.Item>Edit Hours</Dropdown.Item>
-					<Dropdown.Item>View Code</Dropdown.Item>
+					<Dropdown.Item>{props.emp.unclaimed ? "Show Login Code" : "Edit Hours" }</Dropdown.Item>
+					<Dropdown.Item>Edit User</Dropdown.Item>
 					<Dropdown.Item>Remove Employee</Dropdown.Item>
 				</Dropdown.Menu>
 			</Dropdown>
