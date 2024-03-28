@@ -5,7 +5,7 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 
 import { auth, getIsAdmin, FAKE_EMAIL_EXTENSION, createUser } from './firebase';
 import './Login.css';
-import logo from '../PrimerIcon.png';
+import logo from '../MayflyLogo.png';
 import ClickBlocker from './ClickBlocker';
 import { pageListEnum } from '../App';
 
@@ -69,8 +69,8 @@ function Login(props) {
 			<div className="login-form">
 				<h1 className="login-title"> 
 					{/* <img src={logo} className="login-logo" alt="logo" />
-					rimer Login */}
-					<span onClick={()=>props.setCurrPage(pageListEnum.Test)}>Mayfly</span> Login
+					<span className='title'>ayfly</span> Login */}
+					<span className='title'>Mayfly</span> Login
 				</h1>
 				<form onSubmit={handleSignIn}>
 					<input
