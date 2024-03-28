@@ -52,7 +52,7 @@ export function AdminCompanyDisplayTable(props) {
 					<span className='employee-weekly-hours'>{getEndOfWeekString(selectedDate.value)}</span>
 				</li>
 				{claimedList.map((emp,index) => (
-					<EmployeeLine key={index+1} emp={emp} company={props.company} />
+					<EmployeeLine key={index+1} emp={emp} company={props.company} refreshTable={props.refreshTable} />
 				))}
 
 				<li key={unclaimedList.length + 1} className='table-key' hidden={unclaimedList.length < 1}>
