@@ -30,16 +30,10 @@ ul {
 	margin: 0;
 }
 
-li {
+.company-details li {
 	list-style-type: none;
 	display: flex;
-	flex-direction: column;
-	width: 100%;
-}
-
-li > div {
-	list-style-type: none;
-	display: flex;
+	flex-direction: row;
 	width: 100%;
 }
 
@@ -103,4 +97,23 @@ span.employee-weekly-hours {
 .company-details li.table-key {
 	border-bottom: 3px solid black;
 	margin-top: 40px;
+}
+
+.company-details li div.more-info {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}
+
+.company-details li div.more-info > button.toggler {
+	background-color: var(--accent);
+	border-radius: 3px;
+	
+	width: 100%;
+	padding: 10px;
+	margin-top: -15px; /* This compensates for HourAdder's own margin-bottom */
+
+	color: var(--background);
+	font-weight: bold;
 }

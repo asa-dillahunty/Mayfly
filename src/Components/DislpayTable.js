@@ -47,22 +47,18 @@ export function AdminCompanyDisplayTable(props) {
 			<h2> {props.company.name} </h2>
 			<ul>
 				<li key={0} className='table-key'>
-					<div>
-						<div className='dropdown'></div> {/* fake kebab so we get spacing right */}
-						<span className='employee-name'>Employee Name</span>
-						<span className='employee-weekly-hours'>{getEndOfWeekString(selectedDate.value)}</span>
-					</div>
+					<div className='dropdown'></div> {/* fake kebab so we get spacing right */}
+					<span className='employee-name'>Employee Name</span>
+					<span className='employee-weekly-hours'>{getEndOfWeekString(selectedDate.value)}</span>
 				</li>
 				{claimedList.map((emp,index) => (
 					<EmployeeLine key={index+1} emp={emp} company={props.company} />
 				))}
 
 				<li key={unclaimedList.length + 1} className='table-key' hidden={unclaimedList.length < 1}>
-					<div>
-						<div className='dropdown'></div> {/* fake kebab so we get spacing right */}
-						<span className='employee-name'>Unregistered Employees</span>
-						<span className='employee-weekly-hours'>Code</span>
-					</div>
+					<div className='dropdown'></div> {/* fake kebab so we get spacing right */}
+					<span className='employee-name'>Unregistered Employees</span>
+					<span className='employee-weekly-hours'>Code</span>
 				</li>
 				{unclaimedList.map((emp, index) => (
 					<EmployeeLine key={index+claimedList.length+2} emp={emp} company={props.company} refreshTable={props.refreshTable} />
@@ -81,7 +77,7 @@ const CustomToggle = React.forwardRef(({ children, onClick }, ref) => (
 
 function EmployeeLine(props) {
 	const [blocked, setBlocked] = useState(false);
-	const [hideMore, setHideMore] = useState(true);
+	const [showMore, setShowMore] = useState(false);
 
 	const deleteUser = () => {
 		setBlocked(true);
@@ -110,36 +106,38 @@ function EmployeeLine(props) {
 	}
 
 	const toggleShow = () => {
-		setHideMore(!hideMore);
+		setShowMore(!showMore);
 	}
 
 	return (
 		<li>
 			{/* <span className='kebab'>&#8942;</span> */}
 			<ClickBlocker block={blocked} />
-			<div className='thing-container'>
-				<Dropdown>
-					<Dropdown.Toggle as={CustomToggle}>
-						<span className='kebab'>&#8942;</span>
-					</Dropdown.Toggle>
-					<Dropdown.Menu size="sm" title="">
-						{props.emp.unclaimed ? <></> : <Dropdown.Item onClick={toggleShow}>Edit Hours</Dropdown.Item>}
-						<Dropdown.Item>Edit User</Dropdown.Item>
-						<Dropdown.Item onClick={deleteUser}>Remove Employee</Dropdown.Item>
-					</Dropdown.Menu>
-				</Dropdown>
-				<span className='employee-name'> {props.emp.name} </span>
-				{/* emp.HoursThisWeek is a computed signal */}
-				{ props.emp.unclaimed ?
-					<span className='employee-weekly-hours code'> { props.emp.id } </span> :
-					<span className='employee-weekly-hours'> { props.emp.hoursThisWeek } </span> 
-				}
-			</div>
-			<div className="more-info" hidden={hideMore}>
-				{props.emp.unclaimed ? 
-					<></>: 
-					<HourAdder uid={props.emp.id} blocked={blocked} setBlocked={setBlocked}/>}
-			</div>
+			<Dropdown>
+				<Dropdown.Toggle as={CustomToggle}>
+					<span className='kebab'>&#8942;</span>
+				</Dropdown.Toggle>
+				<Dropdown.Menu size="sm" title="">
+					{props.emp.unclaimed ? <></> : <Dropdown.Item onClick={toggleShow}>Edit Hours</Dropdown.Item>}
+					<Dropdown.Item>Edit User</Dropdown.Item>
+					<Dropdown.Item onClick={deleteUser}>Remove Employee</Dropdown.Item>
+				</Dropdown.Menu>
+			</Dropdown>
+			<span className='employee-name'> {props.emp.name} </span>
+			{/* emp.HoursThisWeek is a computed signal */}
+			{ props.emp.unclaimed ?
+				<span className='employee-weekly-hours code'> { props.emp.id } </span> :
+				<span className='employee-weekly-hours'> { props.emp.hoursThisWeek } </span> 
+			}
+			{props.emp.unclaimed ? 
+				<></> :
+				<ClickBlocker block={showMore} custom={true}>
+					<div className='more-info'>
+						<HourAdder uid={props.emp.id} blocked={blocked} setBlocked={setBlocked}/>
+						<button className='toggler' onClick={toggleShow}>Done</button>
+					</div>
+				</ClickBlocker>
+			}
 		</li>
 	);
 

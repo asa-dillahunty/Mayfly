@@ -13,6 +13,7 @@ function Login(props) {
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
 	const [blocked, setBlocked] = useState(false);
+	const [signup, setSignup]  = useState(false);
 
 	const handleSignIn = async (e) => {
 		e.preventDefault();
@@ -62,6 +63,9 @@ function Login(props) {
 	return (
 		<div className="login-container">
 			<ClickBlocker block={blocked} loading={true} />
+			<ClickBlocker block={signup} custom={true}>
+				<SignUp setCurrPage={props.setCurrPage} cancelFunc={()=>setSignup(false)}/>
+			</ClickBlocker>
 			<div className="login-form">
 				<h1 className="login-title"> 
 					{/* <img src={logo} className="login-logo" alt="logo" />
@@ -87,7 +91,7 @@ function Login(props) {
 						Sign In
 					</button>
 					<p className='signup-p'>Don't have an account?&nbsp;
-						<span onClick={()=>{props.setCurrPage(pageListEnum.SignUp)}}>Sign up!</span>
+						<span onClick={()=>{setSignup(true)}}>Sign up!</span>
 					</p>
 				</form>
 			</div>
@@ -98,7 +102,7 @@ function Login(props) {
 export default Login;
 
 
-export function SignUp (props) {
+function SignUp (props) {
 	const [blocked,setBlocked] = useState(false);
 	const createNewUser = () => {
 		const empName = document.getElementById("user-name").value;
@@ -114,6 +118,7 @@ export function SignUp (props) {
 		createUser(empData)
 			.then( () => {
 				setBlocked(false);
+				props.setCurrPage(pageListEnum.Dashboard);
 			});
 	}
 
@@ -135,7 +140,7 @@ export function SignUp (props) {
 				</div>
 				<div className='button-container'>
 					<button className='submit-button' onClick={createNewUser}>Submit</button>
-					<button className='cancel-button' onClick={() => props.setCurrPage(pageListEnum.Login)}>Cancel</button>
+					<button className='cancel-button' onClick={props.cancelFunc}>Cancel</button>
 				</div>
 			</div>
 		</div>

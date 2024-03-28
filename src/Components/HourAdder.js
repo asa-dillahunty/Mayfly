@@ -1,4 +1,4 @@
-import { selectedDate, setSelectedDate, auth, setHours, getHoursEarlyReturn, } from './firebase';
+import { selectedDate, setSelectedDate, auth, setHours, getHoursEarlyReturn, getHoursThisWeek, } from './firebase';
 import Picker from 'react-mobile-picker'
 import { useState, useEffect } from "react";
 import './HourAdder.css';
@@ -45,11 +45,12 @@ export function HourAdder (props) {
 
 const selections = {
 	hours: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24],
-	minutes: [0,.25,.5,.75],
+	minutes: [0,.5],
 }
 function HourSelector(props) {
 	const [start,setStart] = useState(true);
 	const [hoursWorked, setHoursWorked] = useState(-2);
+	const [hoursThisWeek, setHoursThisWeek] = useState(0);
 	const [pickerValue, setPickerValue] = useState({
 		hours: 0,
 		minutes: 0,
@@ -57,10 +58,23 @@ function HourSelector(props) {
 
 	useEffect(() => {
 		// this should trigger every time the user touches the picker
+		if (pickerValue.hours + pickerValue.minutes > 24) {
+			// someone cannot work more than 24 hours in a day. (Except me. I'm different)
+			setPickerValue({hours:24,minutes:0});
+			return;
+		}
+
 		if (Math.floor(hoursWorked) === pickerValue.hours && 
 			hoursWorked % 1 === pickerValue.minutes) return;
 		setHoursWorked( pickerValue.hours + pickerValue.minutes);
 	}, [pickerValue]);
+
+	const refreshWeeklyHours = () => {
+		getHoursThisWeek(props.uid, selectedDate.value).then((weekHours) => {
+			if (weekHours !== hoursThisWeek)
+			setHoursThisWeek(weekHours);
+		});
+	}
 
 	effect(() => {
 		if (start) setStart(false);
@@ -68,6 +82,7 @@ function HourSelector(props) {
 
 		if (!auth.currentUser) return;
 		const hours = getHoursEarlyReturn(props.uid, selectedDate.value);
+		refreshWeeklyHours();
 		if (hours < 0) return; // we don't have the proper hours yet
 		if (hoursWorked === hours) return;
 		// tell the picker, it will update the hours
@@ -83,6 +98,7 @@ function HourSelector(props) {
 		try {
 			await setHours(props.uid, selectedDate.value, hoursWorked);
 			console.log('Hours data added successfully');
+			refreshWeeklyHours();
 			props.setBlocked(false); // do I need to do this in a .then() ?
 		} catch (error) {
 			console.error('Error adding hours data:', error.message);
@@ -95,7 +111,8 @@ function HourSelector(props) {
 			<ClickBlocker blocked={ props.blocked || props.locked } locked={ props.locked } />
 			<div className="worked-hours-container">
 				<p className="worked-hours-label">Hours Worked:</p>
-				<p className="worked-hours">{ hoursWorked === -1 ? "" : hoursWorked }</p>
+				<p className="worked-hours">{ hoursWorked < 0 ? "" : hoursWorked }</p>
+				<p className="weekly-total">{ hoursThisWeek < .5 ? "" : "Weekly total: " + hoursThisWeek}</p>
 			</div>
 			<div className="killScroll">
 				<Picker value={pickerValue} onChange={setPickerValue}>

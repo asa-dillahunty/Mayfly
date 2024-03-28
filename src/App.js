@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css'; // need this for the react-bootstrap package
 
-import Login, { SignUp } from "./Components/Login";
+import Login from "./Components/Login";
 import Dashboard from './Components/Dashboard';
 import Admin from './Components/Admin';
 import OmniAdmin from './Components/OmniAdmin';
@@ -17,8 +17,6 @@ function App() {
 	switch (currPage) {
 		case pageListEnum.Login:
 			return <Login setCurrPage={setCurrPage} />;
-		case pageListEnum.SignUp:
-			return <SignUp setCurrPage={setCurrPage} />;
 		case pageListEnum.Dashboard:
 			return <Dashboard setCurrPage={setCurrPage} />;
 		case pageListEnum.Admin:
@@ -37,7 +35,6 @@ function App() {
 
 export const pageListEnum = {
 	Login:"login",
-	SignUp:"signup",
 	Dashboard:"dashboard",
 	Admin:"admin",
 	OmniAdmin:"omniAdmin",
