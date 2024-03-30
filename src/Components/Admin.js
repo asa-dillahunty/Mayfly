@@ -40,7 +40,7 @@ function AdminDashboard(props) {
 	);
 }
 
-export function AddEmployeeForm (props) {
+function AddEmployeeForm (props) {
 	const createTempEmployee = () => {
 		const empName = document.getElementById("employee-name").value;
 

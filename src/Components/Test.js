@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 
 import { pageListEnum } from '../App';
 import ClickBlocker from './ClickBlocker';
-import { AddEmployeeForm } from './Admin';
 
 function Test(props) {
 	const [blocked,setBlocked] = useState(false);
@@ -16,7 +15,6 @@ function Test(props) {
 			<button onClick={() => setBlocked(true)}>Test</button>
 			
 			<ClickBlocker custom={true} block={blocked}>
-				<AddEmployeeForm  setBlocked={setBlocked}/>
 			</ClickBlocker>
 		</div>
 	);

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import ClickBlocker from './ClickBlocker';
 
 import './DisplayTable.css';
-import { deleteCompanyEmployee, deleteUnclaimedEmployee, getEndOfWeekString, selectedDate } from './firebase';
+import { auth, createCompanyEmployee, deleteCompanyEmployee, deleteUnclaimedEmployee, getEndOfWeekString, getMyCompanyID, selectedDate } from './firebase';
 
 import Dropdown from 'react-bootstrap/Dropdown';
 import HourAdder from './HourAdder';
@@ -78,6 +78,7 @@ const CustomToggle = React.forwardRef(({ children, onClick }, ref) => (
 function EmployeeLine(props) {
 	const [blocked, setBlocked] = useState(false);
 	const [showMore, setShowMore] = useState(false);
+	const [editUser, setEditUser] = useState(false);
 
 	const deleteUser = () => {
 		setBlocked(true);
@@ -108,18 +109,24 @@ function EmployeeLine(props) {
 	const toggleShow = () => {
 		setShowMore(!showMore);
 	}
+	const toggleEdit = () => {
+		setEditUser(!editUser);
+	}
 
 	return (
 		<li>
 			{/* <span className='kebab'>&#8942;</span> */}
 			<ClickBlocker block={blocked} />
+			<ClickBlocker block={editUser} custom={true}>
+				<EditEmployeeForm setBlocked={setEditUser} refreshTable={props.refreshTable} empID={props.emp.id} />
+			</ClickBlocker>
 			<Dropdown>
 				<Dropdown.Toggle as={CustomToggle}>
 					<span className='kebab'>&#8942;</span>
 				</Dropdown.Toggle>
 				<Dropdown.Menu size="sm" title="">
 					{props.emp.unclaimed ? <></> : <Dropdown.Item onClick={toggleShow}>Edit Hours</Dropdown.Item>}
-					<Dropdown.Item>Edit User</Dropdown.Item>
+					<Dropdown.Item onClick={toggleEdit}>Edit User</Dropdown.Item>
 					<Dropdown.Item onClick={deleteUser}>Remove Employee</Dropdown.Item>
 				</Dropdown.Menu>
 			</Dropdown>
@@ -134,13 +141,52 @@ function EmployeeLine(props) {
 				<ClickBlocker block={showMore} custom={true}>
 					<div className='more-info'>
 						<HourAdder uid={props.emp.id} blocked={blocked} setBlocked={setBlocked}/>
-						<button className='toggler' onClick={toggleShow}>Done</button>
+						<button
+							className='toggler'
+							onClick={
+								() => {
+									props.refreshTable();
+									toggleShow();
+								}}>
+							Done
+						</button>
 					</div>
 				</ClickBlocker>
 			}
 		</li>
 	);
+}
 
+export function EditEmployeeForm (props) {
+	const submitChanges = () => {
+		const empName = document.getElementById("employee-name").value;
+
+		const empData = {
+			name:empName,
+		}
+		
+		getMyCompanyID(props.empID).then((companyID) => {
+			createCompanyEmployee(empData, props.empID, companyID)
+				.then( () => {
+					props.refreshTable().then(() => {
+						props.setBlocked(false)
+					});
+				});
+		});
+	}
+
+	return (
+		<div className='add-employee-form'>
+			<div className='input-container'>
+				<label htmlFor="employee-name">Name:</label>
+				<input id='employee-name' name="employee-name" type='text' autoComplete='off'></input>
+			</div>
+			<div className='button-container'>
+				<button className='submit-button' onClick={submitChanges}>Submit</button>
+				<button className='cancel-button' onClick={() => props.setBlocked(false)}>Cancel</button>
+			</div>
+		</div>
+	);
 }
 
 export function CompanyDisplayTable(props) {

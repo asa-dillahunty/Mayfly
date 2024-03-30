@@ -32,12 +32,15 @@
 
 .add-employee-form > div.input-container {
 	width: 100%;
-	display: flex;
-	justify-content: space-between;
+	text-align: left;
+}
+
+.add-employee-form > div.input-container > label{
+	font-weight: bold;
 }
 
 .add-employee-form > div.input-container > input {
-	width: 60%;
+	width: 100%;
 }
 
 .add-employee-form > div.button-container {
