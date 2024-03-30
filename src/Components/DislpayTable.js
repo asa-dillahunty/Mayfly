@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import ClickBlocker from './ClickBlocker';
 
 import './DisplayTable.css';
-import { auth, createCompanyEmployee, deleteCompanyEmployee, deleteUnclaimedEmployee, getEndOfWeekString, getMyCompanyID, selectedDate } from './firebase';
+import { deleteCompanyEmployee, deleteUnclaimedEmployee, getEndOfWeekString, selectedDate } from './firebase';
 
 import Dropdown from 'react-bootstrap/Dropdown';
 import HourAdder from './HourAdder';
+import EmployeeInfoForm from './EmployeeInfoForm';
 
 function CreateCompanyPopup(props) {
 	const [companyName,setCompanyName] = useState('');
@@ -118,7 +119,7 @@ function EmployeeLine(props) {
 			{/* <span className='kebab'>&#8942;</span> */}
 			<ClickBlocker block={blocked} />
 			<ClickBlocker block={editUser} custom={true}>
-				<EditEmployeeForm setBlocked={setEditUser} refreshTable={props.refreshTable} empID={props.emp.id} />
+				<EmployeeInfoForm setBlocked={setEditUser} refreshTable={props.refreshTable} empID={props.emp.id} companyID={props.company.id} edit />
 			</ClickBlocker>
 			<Dropdown>
 				<Dropdown.Toggle as={CustomToggle}>
@@ -154,38 +155,6 @@ function EmployeeLine(props) {
 				</ClickBlocker>
 			}
 		</li>
-	);
-}
-
-export function EditEmployeeForm (props) {
-	const submitChanges = () => {
-		const empName = document.getElementById("employee-name").value;
-
-		const empData = {
-			name:empName,
-		}
-		
-		getMyCompanyID(props.empID).then((companyID) => {
-			createCompanyEmployee(empData, props.empID, companyID)
-				.then( () => {
-					props.refreshTable().then(() => {
-						props.setBlocked(false)
-					});
-				});
-		});
-	}
-
-	return (
-		<div className='add-employee-form'>
-			<div className='input-container'>
-				<label htmlFor="employee-name">Name:</label>
-				<input id='employee-name' name="employee-name" type='text' autoComplete='off'></input>
-			</div>
-			<div className='button-container'>
-				<button className='submit-button' onClick={submitChanges}>Submit</button>
-				<button className='cancel-button' onClick={() => props.setBlocked(false)}>Cancel</button>
-			</div>
-		</div>
 	);
 }
 
