@@ -25,12 +25,12 @@ details > summary {
 	margin-left: 20px;
 }
 
-ul {
+.company-details > ul {
 	padding: 0;
 	margin: 0;
 }
 
-.company-details li {
+.company-details > ul > li {
 	list-style-type: none;
 	display: flex;
 	flex-direction: row;

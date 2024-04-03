@@ -442,14 +442,4 @@ export function randomString(length) {
 	return result;
 }
 
-// Claim function for employee -> 
-function claimCode(code) {
-	// see if in the unclaimed collection
-	// if not, return or throw some error
-	// grab the companyID from the document
-	// grab the unclaimed document from the employee collection
-	// delete it
-	// 
-}
-
 export default app;

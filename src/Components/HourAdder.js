@@ -95,15 +95,16 @@ function HourSelector(props) {
 	const handleAddHours = async (e) => {
 		e.preventDefault();
 		props.setBlocked(true);
-		try {
-			await setHours(props.uid, selectedDate.value, hoursWorked);
+
+		setHours(props.uid, selectedDate.value, hoursWorked).then(() => {
 			console.log('Hours data added successfully');
 			refreshWeeklyHours();
 			props.setBlocked(false); // do I need to do this in a .then() ?
-		} catch (error) {
-			console.error('Error adding hours data:', error.message);
+		}).catch ((error) => {
+			// console.error('Error adding hours data:', error.message);
+			alert("Error adding hours data: ", error.message);
 			props.setBlocked(false);
-		}
+		});
 	};
 
 	if (props.hide === true) return <div></div>

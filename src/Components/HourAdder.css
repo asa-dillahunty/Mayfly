@@ -3,7 +3,7 @@
 	padding: 20px;
 	border-radius: 5px;
 	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-	width: 300px;
+	width: 320px;
 	text-align: center;
 
 	margin-bottom: 20px;
@@ -12,6 +12,11 @@
 .date-picker-label {
 	display: block;
 	margin-bottom: 10px;
+}
+
+/* This overwrites some default styling in the daypicker npm component */
+.hour-adder-content .rdp { 
+	margin: 0;
 }
 
 .hours-controls {

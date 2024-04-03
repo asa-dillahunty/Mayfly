@@ -1,5 +1,5 @@
 div.blocker {
-	position: absolute;
+	position: fixed;
 	width: 100%;
 	height: 100%;
 	z-index: 10;
@@ -13,10 +13,28 @@ div.blocker {
 
 	top: 0;
 	left: 0;
+
+	overflow: hidden;
 }
 
 div.blocker.fast {
-	animation: appear .2s ease 0s;
+	animation-duration: .2s;
+}
+
+div.blocker.fast > div.childContainer {
+	position: fixed;
+	width: 100%;
+	height: 100%;
+	opacity: 1;
+
+	display: flex;
+	justify-content: center;
+	align-items: center;
+
+	top: 0;
+	left: 0;
+
+	animation: riseUp .5s ease 0s;
 }
 
 div.blocker.loading {
@@ -26,4 +44,9 @@ div.blocker.loading {
 @keyframes appear {
 	0% { opacity: 0; }
 	100% { opacity: 1; }
-} 
+}
+
+@keyframes riseUp {
+	0% { top: 100vh; }
+	100% { top: 0; }
+}
