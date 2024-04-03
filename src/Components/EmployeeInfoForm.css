@@ -14,6 +14,28 @@
 	padding: 7px;
 }
 
+.employee-info-form > form {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}
+
+.employee-info-form > form label {
+	width: 100%;
+	text-align: left;
+	padding-left: 10px;
+}
+
+.employee-info-form .name-input {
+	width: 100%;
+	padding: 10px;
+	margin-bottom: 10px;
+	border: 1px solid #ccc;
+	border-radius: 3px;
+}
+
+
 .employee-info-form > div.input-container {
 	width: 100%;
 	text-align: left;

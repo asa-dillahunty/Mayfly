@@ -13,7 +13,6 @@ function Login(props) {
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
 	const [blocked, setBlocked] = useState(false);
-	const [signup, setSignup]  = useState(false);
 
 	const handleSignIn = async (e) => {
 		e.preventDefault();
@@ -63,9 +62,6 @@ function Login(props) {
 	return (
 		<div className="login-container">
 			<ClickBlocker block={blocked} loading={true} />
-			<ClickBlocker block={signup} custom={true}>
-				<SignUp setCurrPage={props.setCurrPage} cancelFunc={()=>setSignup(false)}/>
-			</ClickBlocker>
 			<div className="login-form">
 				<h1 className="login-title"> 
 					{/* <img src={logo} className="login-logo" alt="logo" />
@@ -91,7 +87,7 @@ function Login(props) {
 						Sign In
 					</button>
 					<p className='signup-p'>Don't have an account?&nbsp;
-						<span onClick={()=>{setSignup(true)}}>Sign up!</span>
+						<span onClick={()=>{props.setCurrPage(pageListEnum.Signup)}}>Sign up!</span>
 					</p>
 				</form>
 			</div>
@@ -102,17 +98,18 @@ function Login(props) {
 export default Login;
 
 
-function SignUp (props) {
-	const [blocked,setBlocked] = useState(false);
-	const createNewUser = () => {
-		const empName = document.getElementById("user-name").value;
-		const empUsername = document.getElementById("user-username").value;
-		const empPassword = document.getElementById("user-password").value;
+export function Signup (props) {
+	const [email, setEmail] = useState('');
+	const [password, setPassword] = useState('');
+	const [confirmPassword, setConfirmPassword] = useState('');
+	const [blocked, setBlocked] = useState(false);
+	const createNewUser = (e) => {
+		e.preventDefault();
+		setBlocked(true);
 
 		const empData = {
-			name:empName,
-			username:empUsername,
-			password:empPassword
+			username:email,
+			password:password
 		}
 		console.log(empData);
 		createUser(empData)
@@ -123,25 +120,43 @@ function SignUp (props) {
 	}
 
 	return (
-		<div className="signup-container">
+		<div className="login-container">
 			<ClickBlocker block={blocked} loading={true} />
-			<div className='add-user-form'>
-				<div className='input-container'>
-					<label htmlFor="user-name">Name:</label>
-					<input id='user-name' name="user-name" type='text'></input>
-				</div>
-				<div className='input-container'>
-					<label htmlFor="user-username">Username:</label>
-					<input id='user-username' name="user-username" type='text'></input>
-				</div>
-				<div className='input-container'>
-					<label htmlFor="user-password">Password:</label>
-					<input id='user-password' name="user-password" type='text'></input>
-				</div>
-				<div className='button-container'>
-					<button className='submit-button' onClick={createNewUser}>Submit</button>
-					<button className='cancel-button' onClick={props.cancelFunc}>Cancel</button>
-				</div>
+			<div className="login-form">
+				<h1 className="login-title"> 
+					{/* <img src={logo} className="login-logo" alt="logo" />
+					<span className='title'>ayfly</span> Login */}
+					Sign Up for <span className='title'>Mayfly</span>
+				</h1>
+				<form onSubmit={createNewUser}>
+					<input
+						type="username"
+						className="login-input"
+						placeholder="Username"
+						value={email}
+						onChange={(e) => setEmail(e.target.value)}
+					/>
+					<input
+						type="password"
+						className="login-input"
+						placeholder="Create Password"
+						value={password}
+						onChange={(e) => setPassword(e.target.value)}
+					/>
+					<input
+						type="password"
+						className="login-input"
+						placeholder="Confirm Password"
+						value={confirmPassword}
+						onChange={(e) => setConfirmPassword(e.target.value)}
+					/>
+					<button type="submit" className="login-button" disabled={blocked}>
+						Sign Up
+					</button>
+					<p className='signup-p'>Already have an account?&nbsp;
+						<span onClick={()=>{props.setCurrPage(pageListEnum.Login)}}>Login</span>
+					</p>
+				</form>
 			</div>
 		</div>
 	);

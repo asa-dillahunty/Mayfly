@@ -119,7 +119,14 @@ function EmployeeLine(props) {
 			{/* <span className='kebab'>&#8942;</span> */}
 			<ClickBlocker block={blocked} />
 			<ClickBlocker block={editUser} custom={true}>
-				<EmployeeInfoForm setBlocked={setEditUser} refreshTable={props.refreshTable} empID={props.emp.id} companyID={props.company.id} edit />
+				<EmployeeInfoForm 
+					setBlocked={setEditUser}
+					refreshTable={props.refreshTable}
+					empID={props.emp.id}
+					companyID={props.company.id}
+					edit
+					fn={props.emp.firstName}
+					ln={props.emp.lastName} />
 			</ClickBlocker>
 			<Dropdown>
 				<Dropdown.Toggle as={CustomToggle}>

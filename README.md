@@ -1,7 +1,7 @@
 <h1 align='center'>Mayfly is a custom built time sheet application</h1>
 It is designed specifically to handle pay periods of a week and to only work some of the time
 <a href="https://mayfly.asadillahunty.com">
-	<img alt='Deployed Status' src='https://github.com/asa-dillahunty/Mayfly/workflows/Deploy%20to%20Firebase%20Hosting%20on%20merge/badge.svg'>
+	<img alt='Deployed Status' src='https://github.com/asa-dillahunty/Mayfly/workflows/Deploy%20to%20Firebase/badge.svg'>
 </a>
 <h2 align='left'>Technology Used:</h2>
 <p align='center'>
