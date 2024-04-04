@@ -24,14 +24,14 @@ exports.createEmployee = functions.https.onCall(async (data, context) => {
 		// 	throw new functions.https.HttpsError('permission-denied', 'Only admins can create users');
 		// }
 		// Extract data from request
-		const { email, phoneNumber, password} = data;
+		const { email, phoneNumber } = data;
 
 		// Create user
 		let userRecord;
 		if (email) {
-			userRecord = await admin.auth().createUser({ email, password });
+			userRecord = await admin.auth().createUser({ email });
 		} else if (phoneNumber) {
-			userRecord = await admin.auth().createUser({ phoneNumber, password });
+			userRecord = await admin.auth().createUser({ phoneNumber });
 		} else {
 			throw new functions.https.HttpsError('invalid-argument', 'Email or phone number is required');
 		}
@@ -47,7 +47,7 @@ exports.createEmployee = functions.https.onCall(async (data, context) => {
 		// 	phoneNumber: userRecord.phoneNumber,
 		// });
 
-		return { success: true };
+		return { success: true, empID: userRecord.uid };
 	} catch (error) {
 		throw new functions.https.HttpsError('internal', 'Error creating user', error);
 	}

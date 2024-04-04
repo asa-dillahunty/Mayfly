@@ -1,4 +1,4 @@
-import { createCompanyEmployee, createUnclaimedEmployee } from "./firebase";
+import { createCompanyEmployee, createEmployeeAuth, createUnclaimedEmployee } from "./firebase";
 
 import './EmployeeInfoForm.css';
 import { useState } from "react";
@@ -13,6 +13,15 @@ function EmployeeInfoForm (props) {
 
 	const [firstName, setFirstName] = useState(fn);
 	const [lastName, setLastName] = useState(ln);
+	const [email, setEmail] = useState("");
+	const [password, setPassword] = useState("");
+	const [confirmPassword, setConfirmPassword] = useState("");
+
+	const cancelForm = (e) => {
+		e.preventDefault();
+		props.setBlocked(false);
+	}
+
 	const submitChanges = (e) => {
 		e.preventDefault();
 		// TODO: 
@@ -23,6 +32,9 @@ function EmployeeInfoForm (props) {
 			name:firstName+" "+lastName,
 			firstName:firstName,
 			lastName:lastName
+		}
+		if (email) {
+			empData.email = email;
 		}
 		
 		// if edit -> create company employee
@@ -36,7 +48,7 @@ function EmployeeInfoForm (props) {
 				});
 		}
 		else if (props.add) {
-			createUnclaimedEmployee(empData, props.companyID)
+			createEmployeeAuth(empData, props.companyID)
 				.then( () => {
 					props.refreshTable().then(() => {
 						props.setBlocked(false)
@@ -70,11 +82,22 @@ function EmployeeInfoForm (props) {
 					value={lastName}
 					onChange={(e) => setLastName(e.target.value)}
 				/>
+				{!props.add ? "" : 
+				<>
+					<label htmlFor="employee-email">Email:</label>
+					<input
+						type="email"
+						className="name-input"
+						placeholder="Email"
+						value={email}
+						onChange={(e) => setEmail(e.target.value)}
+					/>
+				</>}
+				<div className='button-container'>
+					<button className='submit-button' onClick={submitChanges}>Submit</button>
+					<button className='cancel-button' onClick={cancelForm}>Cancel</button>
+				</div>
 			</form>
-			<div className='button-container'>
-				<button className='submit-button' onClick={submitChanges}>Submit</button>
-				<button className='cancel-button' onClick={() => props.setBlocked(false)}>Cancel</button>
-			</div>
 		</div>
 	);
 }

@@ -1,10 +1,10 @@
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { getFirestore, doc, setDoc, getDoc, getDocs, addDoc, collection, deleteDoc } from "firebase/firestore";
 import { initializeApp } from "firebase/app";
 import { signal } from '@preact/signals-react';
 import 'firebase/auth';
 import 'firebase/functions';
-import { getFunctions } from "firebase/functions";
+import { getFunctions, httpsCallable } from "firebase/functions";
 import { pageListEnum } from "../App";
 
 // Your web app's Firebase configuration
@@ -18,6 +18,15 @@ const firebaseConfig = {
 	appId: "1:785639513587:web:8d6c676586571a19228686",
 	measurementId: "G-J8SZNH25ZJ"
 };
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const functions = getFunctions(app);
+const createEmp = httpsCallable(functions, 'createEmployee');
+
+// Initialize Firebase Authentication and get a reference to the service
+export const auth = getAuth(app);
+export const db = getFirestore(app);
 
 const COMPANY_LIST_COLLECTION_NAME = "CompanyList";
 const UNCLAIMED_LIST_COLLECTION_NAME = "UnclaimedList"
@@ -117,13 +126,6 @@ export function getEndOfWeekString(selectedDate) {
 	// why % 100 ? grabs last two digits of the year
 	return (finalDay.getMonth()+1) + "/" + finalDay.getDate() + "/" + (finalDay.getFullYear() % 100);
 }
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);  
-  
-// Initialize Firebase Authentication and get a reference to the service
-export const auth = getAuth(app);
-export const db = getFirestore(app);
 
 export async function setHours(userID,date,hours) {
 	const docName = buildDocName(date);
@@ -415,6 +417,22 @@ export async function deleteUnclaimedEmployee(claimCode, companyID) {
 	const docRef = doc(db, UNCLAIMED_LIST_COLLECTION_NAME, claimCode);
 	await deleteDoc(docRef);
 	await deleteCompanyEmployee(claimCode, companyID);
+}
+
+export async function createEmployeeAuth(empData, companyID) {
+	const email = empData.email
+	const result = await createEmp({email});
+	console.log(result);
+	if (!result.success) alert("That defo failed");
+
+	// need to return the employee's ID as well
+	createCompanyEmployee(empData, result.empID, companyID);
+	setMyCompany(result.empID, companyID)
+}
+
+export async function resetPassword(email) {
+	const result = sendPasswordResetEmail(auth, email);
+	return result;
 }
 
 export async function getClaimCodeInfo(claimCode) {
