@@ -12,6 +12,12 @@
     ],
     "rewrites": [
       {
+        "source": "/api/createEmployee",
+        "function": {
+          "functionId": "createEmployee"
+        }
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }
