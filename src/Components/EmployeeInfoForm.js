@@ -24,6 +24,7 @@ function EmployeeInfoForm (props) {
 
 	const submitChanges = (e) => {
 		e.preventDefault();
+		props.setBlocked(true);
 		// TODO: 
 		// 	do some checking on the data gathered from the form
 		//	Edit needs to check if a user is "unclaimed" and persist that property
@@ -94,8 +95,8 @@ function EmployeeInfoForm (props) {
 					/>
 				</>}
 				<div className='button-container'>
-					<button className='submit-button' onClick={submitChanges}>Submit</button>
-					<button className='cancel-button' onClick={cancelForm}>Cancel</button>
+					<button className='submit-button' onClick={submitChanges} disabled={props.blocked}>Submit</button>
+					<button className='cancel-button' onClick={cancelForm} disabled={props.blocked}>Cancel</button>
 				</div>
 			</form>
 		</div>

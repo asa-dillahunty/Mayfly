@@ -335,7 +335,7 @@ export async function getCompanyEmployee(company_ID, empID) {
 
 export async function getCompany(company_ID) {
 	if (company_ID === "") return { name:"Major Error Occurred"};
-	const docRef = doc(db, COMPANY_LIST_COLLECTION_NAME, company_ID);	
+	const docRef = doc(db, COMPANY_LIST_COLLECTION_NAME, company_ID);
 	const docSnap = await getDoc(docRef);
 
 	const employeeCollection = collection(db, COMPANY_LIST_COLLECTION_NAME + '/' + company_ID + '/' + COMPANY_EMPLOYEE_COLLECTION);
@@ -422,12 +422,12 @@ export async function deleteUnclaimedEmployee(claimCode, companyID) {
 export async function createEmployeeAuth(empData, companyID) {
 	const email = empData.email
 	const result = await createEmp({email});
-	console.log(result);
-	if (!result.success) alert("That defo failed");
+	console.log(result.data);
+	if (!result.data.success) alert("That defo failed");
 
 	// need to return the employee's ID as well
-	createCompanyEmployee(empData, result.empID, companyID);
-	setMyCompany(result.empID, companyID)
+	createCompanyEmployee(empData, result.data.empID, companyID);
+	setMyCompany(result.data.empID, companyID)
 }
 
 export async function resetPassword(email) {
