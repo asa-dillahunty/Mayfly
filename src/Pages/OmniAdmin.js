@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { auth, createCompany, deleteCache, getCompanies, makeAdmin, performLogout } from '../lib/firebase';
+import { auth, createCompany, deleteCache, getCompanies, getCompany, makeAdmin, performLogout } from '../lib/firebase';
 // import { format } from 'date-fns';
 // import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
@@ -18,9 +18,26 @@ function OmniAdminDashboard(props) {
 		const companiesCollectionSnapshot = await getCompanies();
 		console.log(companiesCollectionSnapshot);
 		
-		const updatedCompanies = companiesCollectionSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-		setCompanies(updatedCompanies);
-		console.log(updatedCompanies);
+		const promiseCompanies = await Promise.all(
+			companiesCollectionSnapshot.docs.map( async (doc) => {
+
+				return await fetchCompanyData({ id: doc.id, ...doc.data() });
+			} 
+			)
+		);
+		await Promise.all(promiseCompanies);
+
+		// const updatedCompanies = promiseCompanies.map(item => ({ item.Object}));
+		setCompanies(promiseCompanies);
+	};
+
+	const fetchCompanyData = async (data) => {
+		console.log(data)
+		const companyObj = await getCompany(data.id);
+		companyObj.id = data.id;
+		companyObj.name = data.name;
+		console.log(companyObj);
+		return companyObj;
 	};
 
 	const addCompany = (company) => {

@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { signInWithEmailAndPassword } from "firebase/auth";
 
 
-import { auth, getIsAdmin, createUser, resetPassword } from '../lib/firebase';
+import { auth, getIsAdmin, createUser, resetPassword, getIsOmniAdmin } from '../lib/firebase';
 import './Login.css';
 import logo from '../MayflyLogo.png';
 import ClickBlocker from '../Components/ClickBlocker';
@@ -50,11 +50,13 @@ function Login(props) {
 	});
 
 	const navigateUser = async () => {
-		const isAdmin = await getIsAdmin(auth.currentUser.uid)
+		const isOmniAdmin = await getIsOmniAdmin(auth.currentUser.uid);
+		const isAdmin = await getIsAdmin(auth.currentUser.uid);
 		// if 'Asa' -> navigate to OmniAdmin Dashboard
 		// props.setCurrPage(pageListEnum.OmniAdmin);
 		// if admin -> navigate to admin dashboard
-		if (isAdmin === true) props.setCurrPage(pageListEnum.Admin);
+		if (isOmniAdmin === true) props.setCurrPage(pageListEnum.OmniAdmin);
+		else if (isAdmin === true) props.setCurrPage(pageListEnum.Admin);
 		else props.setCurrPage(pageListEnum.Dashboard);
 		// could this result in a component attempting to be updated when it is unmounted?
 	}

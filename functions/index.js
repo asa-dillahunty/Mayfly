@@ -37,6 +37,12 @@ exports.createAdminUser = functions.https.onCall(async (data, context) => {
 		}
 		await admin.auth().setCustomUserClaims(userRecord.uid, { admin: true });
 
+		await admin.firestore().collection(userRecord.uid).doc("Administrative_Data").set({
+			"isAdmin":true,
+			"omniAdmin":false,
+			"company":companyID
+		});
+
 		return { success: true, empID: userRecord.uid };
 	} catch (error) {
 		throw new functions.https.HttpsError('internal', 'Error creating user', error);
@@ -49,7 +55,7 @@ exports.createEmployee = functions.https.onCall(async (data, context) => {
 		if (!context.auth || !context.auth.token.admin) {
 			throw new functions.https.HttpsError('permission-denied', 'Only admins can create users');
 		}
-		const { email, phoneNumber } = data;
+		const { email, phoneNumber, companyID } = data;
 		
 		let userRecord;
 		if (email) {
@@ -59,6 +65,12 @@ exports.createEmployee = functions.https.onCall(async (data, context) => {
 		} else {
 			throw new functions.https.HttpsError('invalid-argument', 'Email or phone number is required');
 		}
+
+		await admin.firestore().collection(userRecord.uid).doc("Administrative_Data").set({
+			"isAdmin":false,
+			"omniAdmin":false,
+			"company":companyID
+		});
 
 		return { success: true, empID: userRecord.uid };
 	} catch (error) {

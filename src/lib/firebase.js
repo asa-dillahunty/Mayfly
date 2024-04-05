@@ -285,6 +285,12 @@ export async function getIsAdmin(uid) {
 	else return false;
 }
 
+export async function getIsOmniAdmin(uid) {
+	const adminData = await getAdminData(uid);
+	if (adminData) return adminData.omniAdmin === true;
+	else return false;
+}
+
 // uid - userID
 // cid - company ID
 export async function setMyCompany(uid,cid) {
@@ -299,9 +305,7 @@ export async function setMyCompany(uid,cid) {
 }
 
 export async function getMyCompanyID(userID) {
-	console.log("userID",userID);
 	const adminData = await getAdminData(userID);
-	console.log(adminData);
 	if (adminData) return adminData.company;
 	else return undefined;
 }

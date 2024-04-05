@@ -215,6 +215,10 @@ function DisplayTable(props) {
 	// const removeItem = (id) => {
 	// 	setItems(items.filter(item => item.id !== id));
 	// };
+	console.log("At Display Table. View the Items: ");
+	console.log(props.displayItems);
+	if (props.displayItems) console.log(props.displayItems[0]);
+	if (props.displayItems) console.log(props.displayItems[0].name);
 
 	return (
 		<div>
@@ -228,7 +232,7 @@ function DisplayTable(props) {
 			<ul>
 				{props.displayItems.map(item => (
 					<li key={"companies"+item.id}>
-						<CompanyDisplayTable company={item} />
+						<AdminCompanyDisplayTable company={item} />
 					</li>
 				))}
 			</ul>
