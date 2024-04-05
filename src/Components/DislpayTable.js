@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import ClickBlocker from './ClickBlocker';
 
 import './DisplayTable.css';
-import { deleteCompanyEmployee, deleteUnclaimedEmployee, getEndOfWeekString, selectedDate } from './firebase';
+import { deleteCompanyEmployee, deleteUnclaimedEmployee, getEndOfWeekString, selectedDate } from '../lib/firebase';
 
 import Dropdown from 'react-bootstrap/Dropdown';
 import HourAdder from './HourAdder';

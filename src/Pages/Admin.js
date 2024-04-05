@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { auth, deleteCache, getCompany, getMyCompanyID, performLogout, createUnclaimedEmployee, createUser } from './firebase';
+import { auth, deleteCache, getCompany, getMyCompanyID, performLogout, createUnclaimedEmployee, createUser } from '../lib/firebase';
 import './Admin.css';
-import { AdminCompanyDisplayTable } from './DislpayTable';
-import ClickBlocker from './ClickBlocker';
-import EmployeeInfoForm from './EmployeeInfoForm';
+import { AdminCompanyDisplayTable } from '../Components/DislpayTable';
+import ClickBlocker from '../Components/ClickBlocker';
+import EmployeeInfoForm from '../Components/EmployeeInfoForm';
 
 function AdminDashboard(props) {
 	const [companyData, setCompanyData] = useState({});

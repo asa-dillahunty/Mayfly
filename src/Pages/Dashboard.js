@@ -1,12 +1,12 @@
 // Dashboard.js
 import React, { useEffect, useState } from 'react';
-import { auth, deleteCache, getMyCompanyID, performLogout, setMyCompany, getClaimCodeInfo, createCompanyEmployee, deleteUnclaimedEmployee, getCompanyEmployee } from './firebase';
+import { auth, deleteCache, getMyCompanyID, performLogout, setMyCompany, getClaimCodeInfo, createCompanyEmployee, deleteUnclaimedEmployee, getCompanyEmployee } from '../lib/firebase';
 // import { format } from 'date-fns';
 // import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 import './Dashboard.css';
-import HourAdder from './HourAdder';
-import ClickBlocker from './ClickBlocker';
+import HourAdder from '../Components/HourAdder';
+import ClickBlocker from '../Components/ClickBlocker';
 
 const claimedStateEnum = {
 	loading:1,

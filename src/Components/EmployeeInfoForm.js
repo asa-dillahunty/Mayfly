@@ -1,4 +1,4 @@
-import { createCompanyEmployee, createEmployeeAuth, createUnclaimedEmployee } from "./firebase";
+import { createCompanyEmployee, createEmployeeAuth, createUnclaimedEmployee } from "../lib/firebase";
 
 import './EmployeeInfoForm.css';
 import { useState } from "react";

@@ -3,10 +3,10 @@ import React, { useEffect, useState } from 'react';
 import { signInWithEmailAndPassword } from "firebase/auth";
 
 
-import { auth, getIsAdmin, createUser, resetPassword } from './firebase';
+import { auth, getIsAdmin, createUser, resetPassword } from '../lib/firebase';
 import './Login.css';
 import logo from '../MayflyLogo.png';
-import ClickBlocker from './ClickBlocker';
+import ClickBlocker from '../Components/ClickBlocker';
 import { pageListEnum } from '../App';
 
 function Login(props) {

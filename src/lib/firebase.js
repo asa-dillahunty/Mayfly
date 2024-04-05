@@ -423,11 +423,11 @@ export async function createEmployeeAuth(empData, companyID) {
 	const email = empData.email
 	const result = await createEmp({email});
 	console.log(result.data);
-	if (!result.data.success) alert("That defo failed");
+	if (!result.data.success) alert("Failed to create user");
 
 	// need to return the employee's ID as well
 	createCompanyEmployee(empData, result.data.empID, companyID);
-	setMyCompany(result.data.empID, companyID)
+	setMyCompany(result.data.empID, companyID);
 }
 
 export async function resetPassword(email) {

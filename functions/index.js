@@ -17,12 +17,12 @@ const admin = require('firebase-admin');
 
 admin.initializeApp();
 
-exports.createEmployee = functions.https.onCall(async (data, context) => {
+exports.createAdminUser = functions.https.onCall(async (data, context) => {
 	try {
 		// Check if the request is made by an admin
-		// if (!context.auth) {
-		// 	throw new functions.https.HttpsError('permission-denied', 'Only admins can create users');
-		// }
+		if (!context.auth || context.auth.token.omniAdmin) {
+			throw new functions.https.HttpsError('permission-denied', 'Only Asa can create admin users');
+		}
 		// Extract data from request
 		const { email, phoneNumber } = data;
 
@@ -35,17 +35,30 @@ exports.createEmployee = functions.https.onCall(async (data, context) => {
 		} else {
 			throw new functions.https.HttpsError('invalid-argument', 'Email or phone number is required');
 		}
+		await admin.auth().setCustomUserClaims(userRecord.uid, { admin: true });
 
-		// Optionally, assign custom claims for admin users
-		// For example:
-		// await admin.auth().setCustomUserClaims(userRecord.uid, { admin: false });
+		return { success: true, empID: userRecord.uid };
+	} catch (error) {
+		throw new functions.https.HttpsError('internal', 'Error creating user', error);
+	}
+});
 
-		// // Save user data to Firestore
-		// await admin.firestore().collection('employees').doc(userRecord.uid).set({
-		// 	// Add any additional user data here
-		// 	email: userRecord.email,
-		// 	phoneNumber: userRecord.phoneNumber,
-		// });
+exports.createEmployee = functions.https.onCall(async (data, context) => {
+	try {
+		// Check if the request is made by an admin
+		if (!context.auth || !context.auth.token.admin) {
+			throw new functions.https.HttpsError('permission-denied', 'Only admins can create users');
+		}
+		const { email, phoneNumber } = data;
+		
+		let userRecord;
+		if (email) {
+			userRecord = await admin.auth().createUser({ email });
+		} else if (phoneNumber) {
+			userRecord = await admin.auth().createUser({ phoneNumber });
+		} else {
+			throw new functions.https.HttpsError('invalid-argument', 'Email or phone number is required');
+		}
 
 		return { success: true, empID: userRecord.uid };
 	} catch (error) {

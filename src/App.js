@@ -3,12 +3,10 @@ import React, { useState } from 'react';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css'; // need this for the react-bootstrap package
 
-import Login, { PasswordReset, Signup } from "./Components/Login";
-import Dashboard from './Components/Dashboard';
-import Admin from './Components/Admin';
-import OmniAdmin from './Components/OmniAdmin';
-import Lost from './Components/Lost';
-import Test from './Components/Test'
+import Login, { PasswordReset, Signup } from "./Pages/Login";
+import Dashboard from './Pages/Dashboard';
+import Admin from './Pages/Admin';
+import OmniAdmin from './Pages/OmniAdmin';
 
 
 function App() {
@@ -28,9 +26,6 @@ function App() {
 		case pageListEnum.OmniAdmin:
 			return <OmniAdmin setCurrPage={setCurrPage} />;
 		case pageListEnum.Test:
-			return <Test setCurrPage={setCurrPage} />;
-		case pageListEnum.Lost:
-			return <Lost setCurrPage={setCurrPage} />;
 
 		default:
 			return <Login setCurrPage={setCurrPage} />;
@@ -43,8 +38,6 @@ export const pageListEnum = {
 	Dashboard:"dashboard",
 	Admin:"admin",
 	OmniAdmin:"omniAdmin",
-	Lost:"lost",
-	Test:"test",
 	Reset:"reset"
 }
 

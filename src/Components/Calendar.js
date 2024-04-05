@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { DayPicker } from 'react-day-picker';
 
 import './Calendar.css';
-import { auth, selectedDate, setSelectedDate, currentDate, getHoursSignal } from './firebase';
+import { auth, selectedDate, setSelectedDate, currentDate, getHoursSignal } from '../lib/firebase';
 import { effect } from '@preact/signals-react';
 
 export const WEEK_VIEW = 0;

@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { auth, createCompany, deleteCache, getCompanies, makeAdmin, performLogout } from './firebase';
+import { auth, createCompany, deleteCache, getCompanies, makeAdmin, performLogout } from '../lib/firebase';
 // import { format } from 'date-fns';
 // import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 import './OmniAdmin.css';
-import DisplayTable from './DislpayTable';
+import DisplayTable from '../Components/DislpayTable';
 
 
 function OmniAdminDashboard(props) {
