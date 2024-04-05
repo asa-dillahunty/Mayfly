@@ -424,8 +424,8 @@ export async function deleteUnclaimedEmployee(claimCode, companyID) {
 }
 
 export async function createEmployeeAuth(empData, companyID) {
-	const email = empData.email
-	const result = await createEmp({email});
+	const data = {email:empData.email, companyID};
+	const result = await createEmp(data);
 	console.log(result.data);
 	if (!result.data.success) alert("Failed to create user");
 

@@ -14,17 +14,25 @@
 
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
+const ADMIN_DOC_NAME = "Administrative_Data";
 
 admin.initializeApp();
 
 exports.createAdminUser = functions.https.onCall(async (data, context) => {
 	try {
 		// Check if the request is made by an admin
-		if (!context.auth || context.auth.token.omniAdmin) {
+		if (!context.auth) {
+			throw new functions.https.HttpsError('permission-denied', 'Only Asa can create admin users');
+		}
+		const adminDataDocRef = admin.firestore().collection(context.auth.uid).doc(ADMIN_DOC_NAME);
+		const adminDataDocSnapshot = await adminDataDocRef.get();
+		const adminIsOmniAdmin = adminDataDocSnapshot.data().omniAdmin;
+
+		if (!adminIsOmniAdmin) {
 			throw new functions.https.HttpsError('permission-denied', 'Only Asa can create admin users');
 		}
 		// Extract data from request
-		const { email, phoneNumber } = data;
+		const { email, phoneNumber, companyID } = data;
 
 		// Create user
 		let userRecord;
@@ -35,9 +43,8 @@ exports.createAdminUser = functions.https.onCall(async (data, context) => {
 		} else {
 			throw new functions.https.HttpsError('invalid-argument', 'Email or phone number is required');
 		}
-		await admin.auth().setCustomUserClaims(userRecord.uid, { admin: true });
 
-		await admin.firestore().collection(userRecord.uid).doc("Administrative_Data").set({
+		await admin.firestore().collection(userRecord.uid).doc(ADMIN_DOC_NAME).set({
 			"isAdmin":true,
 			"omniAdmin":false,
 			"company":companyID
@@ -52,9 +59,18 @@ exports.createAdminUser = functions.https.onCall(async (data, context) => {
 exports.createEmployee = functions.https.onCall(async (data, context) => {
 	try {
 		// Check if the request is made by an admin
-		if (!context.auth || !context.auth.token.admin) {
-			throw new functions.https.HttpsError('permission-denied', 'Only admins can create users');
+		if (!context.auth) {
+			throw new functions.https.HttpsError('permission-denied', 'not authenticated');
 		}
+		const userDataDocRef = admin.firestore().collection(context.auth.uid).doc(ADMIN_DOC_NAME);
+		const userDataDocSnapshot = await userDataDocRef.get();
+		const userIsAdmin = userDataDocSnapshot.data().isAdmin;
+		const userIsOmniAdmin = userDataDocSnapshot.data().omniAdmin;
+
+		if (!context.auth || !(userIsAdmin || userIsOmniAdmin)) {
+			throw new functions.https.HttpsError('permission-denied', 'Only Admins can create users');
+		}
+
 		const { email, phoneNumber, companyID } = data;
 		
 		let userRecord;
@@ -66,7 +82,7 @@ exports.createEmployee = functions.https.onCall(async (data, context) => {
 			throw new functions.https.HttpsError('invalid-argument', 'Email or phone number is required');
 		}
 
-		await admin.firestore().collection(userRecord.uid).doc("Administrative_Data").set({
+		await admin.firestore().collection(userRecord.uid).doc(ADMIN_DOC_NAME).set({
 			"isAdmin":false,
 			"omniAdmin":false,
 			"company":companyID

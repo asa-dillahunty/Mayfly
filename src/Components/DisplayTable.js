@@ -44,7 +44,7 @@ export function AdminCompanyDisplayTable(props) {
 		return(<></>);
 	}
 	return (
-		<div className='company-details'>
+		<div className='company-display-table'>
 			<h2> {props.company.name} </h2>
 			<ul>
 				<li key={0} className='table-key'>
@@ -166,26 +166,16 @@ function EmployeeLine(props) {
 }
 
 export function CompanyDisplayTable(props) {
+	const [blocked, setBlocked] = useState(false);
 
 	return (
 		<details className='company-details'>
 			<summary> {props.company.name} </summary>
-			<details className='admin-details'>
-				<summary>Admins</summary>
-				<ul>
-					{props.company.admins.map((emp,index) => (
-						<li key={"admins"+index}>{ emp } <button>Remove EMP</button></li>
-					))}
-				</ul>
-			</details>
-			<details className='employee-details'>
-				<summary>Employees</summary>
-				<ul>
-					{props.company.employees.map((emp,index) => (
-						<li key={"emps"+index}>{ emp } <button>Remove EMP</button></li>
-					))}
-				</ul>
-			</details>
+			<AdminCompanyDisplayTable company={props.company} refreshTable={props.refreshTable} />
+			<button className="add-emp" onClick={() => { setBlocked(true); }}>Add Employee</button>
+			<ClickBlocker custom={true} block={blocked}>
+				<EmployeeInfoForm setBlocked={setBlocked} refreshTable={props.refreshTable} companyID={props.company.id} add/>
+			</ClickBlocker>
 			<button onClick={() => props.onDelete(props.company)}>Delete Company</button>
 		</details>
 	)
@@ -212,35 +202,29 @@ function DisplayTable(props) {
 	const onCancel = () => {
 		toggleCreateVisible();
 	};
+
+	const tempDelete = (companyID) => {
+		console.log(companyID);
+	}
 	// const removeItem = (id) => {
 	// 	setItems(items.filter(item => item.id !== id));
 	// };
 
 	return (
-		<div>
-			<input
-				type="text"
-				value={inputValue}
-				onChange={(e) => setInputValue(e.target.value)}
-				placeholder="Enter item..."
-			/>
-			<button onClick={addItem}>Add</button>
+		<div className='display-table'>
 			<ul>
 				{props.displayItems.map(item => (
 					<li key={"companies"+item.id}>
-						<AdminCompanyDisplayTable company={item} />
+						<CompanyDisplayTable company={item} onDelete={tempDelete} refreshTable={props.refreshTable}/>
 					</li>
 				))}
 			</ul>
 			
 			<button className='popup-trigger' onClick={toggleCreateVisible}>Create Company</button>
 			{/* <CreateCompanyPopup Visible={createVisible} toggleVisible={toggleCreateVisible} /> */}
-			<ClickBlocker 
-				block={createVisible}
-				custom={true} 
-				customContent={ <CreateCompanyPopup onAdd={tempAdd} onCancel={onCancel} /> }
-			/>
-
+			<ClickBlocker block={createVisible} custom={true} >
+				<CreateCompanyPopup onAdd={tempAdd} onCancel={onCancel} />
+			</ClickBlocker>
 		</div>
 	);
 }

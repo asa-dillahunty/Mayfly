@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { auth, createCompany, deleteCache, getCompanies, getCompany, makeAdmin, performLogout } from '../lib/firebase';
+import { getCompanies, getCompany, performLogout } from '../lib/firebase';
 // import { format } from 'date-fns';
 // import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 import './OmniAdmin.css';
-import DisplayTable from '../Components/DislpayTable';
+import DisplayTable from '../Components/DisplayTable';
 
 
 function OmniAdminDashboard(props) {
@@ -66,13 +66,8 @@ function OmniAdminDashboard(props) {
 					- some kind of display of hours worked recently
 					- option to add new users */}
 				<p>Admin Dashboard!</p>
-				<button onClick={() => {makeAdmin( auth.currentUser.uid )}}>Make Me Admin</button>
-				<br/>
-				<button onClick={ getCompanies }>Get Companies!</button>
-				<br/>
-				<button onClick={() => {createCompany("Epic")}}>Add Company</button>
 
-				<DisplayTable displayItems={companies} onAdd={addCompany} onDelete={deleteCompany} refresh={fetchCompanies} />
+				<DisplayTable displayItems={companies} onAdd={addCompany} onDelete={deleteCompany} refreshTable={fetchCompanies} />
 			</div>
 		</div>
 	);

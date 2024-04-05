@@ -37,6 +37,8 @@ function EmployeeInfoForm (props) {
 		if (email) {
 			empData.email = email;
 		}
+
+		console.log("Sending: ",empData);
 		
 		// if edit -> create company employee
 		// if add -> create Unclaimed Employee
@@ -49,11 +51,17 @@ function EmployeeInfoForm (props) {
 				});
 		}
 		else if (props.add) {
+			console.log("adding");
 			createEmployeeAuth(empData, props.companyID)
 				.then( () => {
+					console.log("in the then");
 					props.refreshTable().then(() => {
 						props.setBlocked(false)
 					});
+				}).catch ((e) => {
+					console.log("in the catch");
+					console.log(e);
+					console.error(e.message);
 				});
 		}
 		else {

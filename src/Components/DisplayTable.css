@@ -1,18 +1,19 @@
 details > summary {
 	font-weight: bold;
-}
-
-.company-details {
 	text-align: left;
-	/* background-color: gainsboro; */
-	/* padding: 0 20px 0 20px; */
+	list-style: none;
+	padding-left: 10px;
 }
 
-.company-details > h2 {
+.company-display-table {
+	text-align: left;
+}
+
+.company-display-table > h2 {
 	text-align: center;
 }
 
-.company-details > button {
+.company-display-table > button {
 	margin: 20px;
 }
 
@@ -25,19 +26,19 @@ details > summary {
 	margin-left: 20px;
 }
 
-.company-details > ul {
+.company-display-table > ul {
 	padding: 0;
 	margin: 0;
 }
 
-.company-details > ul > li {
+.company-display-table > ul > li {
 	list-style-type: none;
 	display: flex;
 	flex-direction: row;
 	width: 100%;
 }
 
-.company-details > ul > li span {
+.company-display-table > ul > li span {
 	/* border: 3px solid black; */
 	display: inline-block;
 	padding-top: 5px;
@@ -61,14 +62,14 @@ span.employee-weekly-hours {
 	text-align: center;
 }
 
-.company-details .dropdown {
+.company-display-table .dropdown {
 	width: 5%;
 
 	padding: 0;
 	margin: 0;
 }
 
-.company-details .kebab-container {
+.company-display-table .kebab-container {
 	width: 100%;
 	height: 100%;
 
@@ -85,7 +86,7 @@ span.employee-weekly-hours {
 	text-decoration: none;
 }
 
-.company-details span.kebab {
+.company-display-table span.kebab {
 	font-weight: bold;
 	text-align: center;
 
@@ -94,19 +95,19 @@ span.employee-weekly-hours {
 	margin: 0;
 }
 
-.company-details li.table-key {
+.company-display-table li.table-key {
 	border-bottom: 3px solid black;
 	margin-top: 40px;
 }
 
-.company-details li div.more-info {
+.company-display-table li div.more-info {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
 }
 
-.company-details li div.more-info > button.toggler {
+.company-display-table li div.more-info > button.toggler {
 	background-color: var(--accent);
 	border-radius: 3px;
 	
@@ -116,4 +117,19 @@ span.employee-weekly-hours {
 
 	color: var(--background);
 	font-weight: bold;
+}
+
+.display-table > ul {
+	padding: 0;
+	margin: 0;
+	list-style-type: none;
+}
+
+.display-table > ul > li {
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	margin-bottom: 20px;
+}
+
+.display-table > ul > li .company-display-table > h2 {
+	font-size: 30px;
 }

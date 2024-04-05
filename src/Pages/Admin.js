@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { auth, deleteCache, getCompany, getMyCompanyID, performLogout, createUnclaimedEmployee, createUser } from '../lib/firebase';
 import './Admin.css';
-import { AdminCompanyDisplayTable } from '../Components/DislpayTable';
+import { AdminCompanyDisplayTable } from '../Components/DisplayTable';
 import ClickBlocker from '../Components/ClickBlocker';
 import EmployeeInfoForm from '../Components/EmployeeInfoForm';
 
