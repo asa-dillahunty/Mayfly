@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import ClickBlocker from './ClickBlocker';
 
 import './DisplayTable.css';
-import { deleteCompanyEmployee, deleteUnclaimedEmployee, getEndOfWeekString, selectedDate } from '../lib/firebase';
+import { deleteCompanyEmployee, deleteUnclaimedEmployee, getEndOfWeekString, getStartOfWeekString, selectedDate, setSelectedDate } from '../lib/firebase';
 
 import Dropdown from 'react-bootstrap/Dropdown';
 import HourAdder from './HourAdder';
@@ -32,6 +32,19 @@ function CreateCompanyPopup(props) {
 }
 
 export function AdminCompanyDisplayTable(props) {
+
+	// jumps selectedDate a week forward
+	const jumpForward = () => {
+		setSelectedDate( new Date(selectedDate.value.getFullYear(), selectedDate.value.getMonth(), selectedDate.value.getDate() + 7) );
+		props.refreshTable();
+	}
+
+	// jumps selectedDate a week forward
+	const jumpBackward = () => {
+		setSelectedDate( new Date(selectedDate.value.getFullYear(), selectedDate.value.getMonth(), selectedDate.value.getDate() - 7) );
+		props.refreshTable();
+	}
+
 	let claimedList;
 	let unclaimedList;
 	if (props.company && props.company.employees) {
@@ -48,9 +61,12 @@ export function AdminCompanyDisplayTable(props) {
 			<h2> {props.company.name} </h2>
 			<ul>
 				<li key={0} className='table-key'>
-					<div className='dropdown'></div> {/* fake kebab so we get spacing right */}
-					<span className='employee-name'>Employee Name</span>
-					<span className='employee-weekly-hours'>{getEndOfWeekString(selectedDate.value)}</span>
+					{/* <div className='dropdown'></div> fake kebab so we get spacing right */}
+					<span className='date-row'>
+						<button onClick={jumpBackward}>&#x2BC7;</button>
+						<span className='week-string'>{getStartOfWeekString(selectedDate.value)}&nbsp;&nbsp;&nbsp;&#x2015;&nbsp;&nbsp;&nbsp;{getEndOfWeekString(selectedDate.value)}</span>
+						<button onClick={jumpForward}>&#x2BC8;</button>
+					</span>
 				</li>
 				{claimedList.map((emp,index) => (
 					<EmployeeLine key={index+1} emp={emp} company={props.company} refreshTable={props.refreshTable} />

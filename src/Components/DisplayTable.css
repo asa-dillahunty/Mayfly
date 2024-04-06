@@ -91,13 +91,38 @@ span.employee-weekly-hours {
 	text-align: center;
 
 	/* font-size: 23px; */
-	padding: 0;
+	/* padding: 0px 2px; */
+	/* border-radius: 5px; */
 	margin: 0;
+	/* text-shadow: 0px 0px 3px black; */
+	/* box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); */
 }
 
 .company-display-table li.table-key {
 	border-bottom: 3px solid black;
 	margin-top: 40px;
+}
+
+.company-display-table li.table-key > .date-row {
+	width: 100%;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+.company-display-table li.table-key > .date-row button {
+	border: none;
+	border-radius: 5px;
+	background-color: var(--background);
+	height: fit-content;
+	/* padding: 5px 7px 5px 7px; */
+	background-color: #f2f2f2;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	/* color: var(--primary); */
+	font-size: 24px;
+}
+
+.company-display-table li.table-key > .date-row span.week-string {
+	font-size: 20px;
 }
 
 .company-display-table li div.more-info {
@@ -131,5 +156,5 @@ span.employee-weekly-hours {
 }
 
 .display-table > ul > li .company-display-table > h2 {
-	font-size: 30px;
+	display: none;
 }

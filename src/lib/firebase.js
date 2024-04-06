@@ -33,13 +33,18 @@ const UNCLAIMED_LIST_COLLECTION_NAME = "UnclaimedList"
 const ADMIN_DOC_NAME = "Administrative_Data";
 const COMPANY_EMPLOYEE_COLLECTION = "Employees";
 const daysInChunk = 7;
+const startOfPayPeriod = 4; // Thursday
 export const FAKE_EMAIL_EXTENSION = "@dillahuntyfarms.com";
 
 export const selectedDate = signal(new Date(new Date().toDateString()));
+export const currentWeek = signal(buildDocName(selectedDate.value));
 export const setSelectedDate = (date) => {
 	selectedDate.value = date;
+	const currWeek = buildDocName(selectedDate.value);
+	if (currentWeek !== currWeek) currentWeek.value = currWeek;
 }
 export const currentDate = signal(new Date(new Date().toDateString()));
+
 export const refreshCurrentDate = () => {
 	currentDate.value = new Date(new Date().toDateString());
 }
@@ -72,7 +77,6 @@ function deleteObjMembers(obj) {
 /**
  * This function does a lot of math. Is this something I want to cache? #dynamicProgramming
  */
-const startOfPayPeriod = 4; // Thursday
 function getWeek(selectedDatetime) {
 	// get the first day of the year of the pay period (Thursday)
 	const selectedDateUTC = Date.UTC(selectedDatetime.getFullYear(),selectedDatetime.getMonth(),selectedDatetime.getDate());
@@ -117,9 +121,17 @@ export function getWeekSpanString(selectedDate) {
 	return (firstDay.getMonth()+1) + "/" + firstDay.getDate() + " - " + (finalDay.getMonth()+1) + "/" + finalDay.getDate();
 }
 
+export function getStartOfWeekString(selectedDate) {
+	let firstDay = new Date(selectedDate.getTime());
+	while (firstDay.getDay() !== startOfPayPeriod) {
+		firstDay.setDate(firstDay.getDate() - 1);
+	} 
+	return (firstDay.getMonth()+1) + "/" + firstDay.getDate() + "/" + (firstDay.getFullYear() % 100);
+}
+
 export function getEndOfWeekString(selectedDate) {
 	let finalDay = new Date(selectedDate.getTime());
-	while (finalDay.getDay() !== startOfPayPeriod) {
+	while (finalDay.getDay() !== startOfPayPeriod - 1 ) {
 		finalDay.setDate(finalDay.getDate() + 1)
 	}
 	// why + 1 ? date.getMonth() starts at 0 for January
@@ -337,7 +349,7 @@ export async function getCompanyEmployee(company_ID, empID) {
 	}
 }
 
-export async function getCompany(company_ID) {
+export async function getCompany(company_ID, docName) {
 	if (company_ID === "") return { name:"Major Error Occurred"};
 	const docRef = doc(db, COMPANY_LIST_COLLECTION_NAME, company_ID);
 	const docSnap = await getDoc(docRef);
@@ -345,9 +357,9 @@ export async function getCompany(company_ID) {
 	const employeeCollection = collection(db, COMPANY_LIST_COLLECTION_NAME + '/' + company_ID + '/' + COMPANY_EMPLOYEE_COLLECTION);
 	const docListSnapshot = await getDocs(employeeCollection);
 	const docList = docListSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })); // this gives an array of employee objects with ID as a field
-	const docName = buildDocName(currentDate.value);
+	
 	for (let i=0;i<docList.length;i++) {
-		docList[i].hoursThisWeek = await getHoursThisWeek(docList[i].id, currentDate.value, docName);
+		docList[i].hoursThisWeek = await getHoursThisWeek(docList[i].id, selectedDate.value, docName);
 	}
 	const companyData = docSnap.data();
 	companyData.employees = docList;

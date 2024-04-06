@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { getCompanies, getCompany, performLogout } from '../lib/firebase';
+import { currentWeek, getCompanies, getCompany, performLogout } from '../lib/firebase';
 // import { format } from 'date-fns';
 // import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 import './OmniAdmin.css';
 import DisplayTable from '../Components/DisplayTable';
+import { effect } from '@preact/signals-react';
 
 
 function OmniAdminDashboard(props) {
@@ -20,10 +21,8 @@ function OmniAdminDashboard(props) {
 		
 		const promiseCompanies = await Promise.all(
 			companiesCollectionSnapshot.docs.map( async (doc) => {
-
 				return await fetchCompanyData({ id: doc.id, ...doc.data() });
-			} 
-			)
+			})
 		);
 		await Promise.all(promiseCompanies);
 
@@ -33,7 +32,7 @@ function OmniAdminDashboard(props) {
 
 	const fetchCompanyData = async (data) => {
 		console.log(data)
-		const companyObj = await getCompany(data.id);
+		const companyObj = await getCompany(data.id, currentWeek.value);
 		companyObj.id = data.id;
 		companyObj.name = data.name;
 		console.log(companyObj);

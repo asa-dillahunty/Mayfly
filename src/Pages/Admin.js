@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { auth, deleteCache, getCompany, getMyCompanyID, performLogout, createUnclaimedEmployee, createUser } from '../lib/firebase';
+import { auth, deleteCache, getCompany, getMyCompanyID, performLogout, createUnclaimedEmployee, createUser, currentWeek } from '../lib/firebase';
 import './Admin.css';
 import { AdminCompanyDisplayTable } from '../Components/DisplayTable';
 import ClickBlocker from '../Components/ClickBlocker';
 import EmployeeInfoForm from '../Components/EmployeeInfoForm';
+import { effect } from '@preact/signals-react';
 
 function AdminDashboard(props) {
 	const [companyData, setCompanyData] = useState({});
@@ -11,7 +12,7 @@ function AdminDashboard(props) {
 
 	const fetchCompany = async () => {
 		const companyID = await getMyCompanyID(auth.currentUser.uid);
-		const companyObj = await getCompany(companyID);
+		const companyObj = await getCompany(companyID, currentWeek.value);
 		companyObj.id = companyID;
 		console.log(companyObj);
 		setCompanyData(companyObj);
