@@ -3,7 +3,7 @@ rules_version = '2';
 service cloud.firestore {
 	match /databases/{database}/documents {
 
-		match /{userId}/Admin_Details {
+		match /{userId}/Administrative_Data {
 			allow read, write: if isAsa();
 			allow write: if isUsersAdmin(userId) && !('isAdmin' in request.resource.data) && !('omniAdmin' in request.resource.data);
 			allow read: if request.auth.uid == userId || isUsersAdmin(userId);

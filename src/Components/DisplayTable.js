@@ -105,22 +105,13 @@ function EmployeeLine(props) {
 			return;
 		}
 
-		if (props.emp.unclaimed) {
-			deleteUnclaimedEmployee(props.emp.id, props.company.id)
-				.then(() => {
-					props.refreshTable().then(() => {
-						setBlocked(false);
-					});
+		
+		deleteCompanyEmployee(props.emp.id, props.company.id)
+			.then(() => {
+				props.refreshTable().then(() => {
+					setBlocked(false);
 				});
-		}
-		else {
-			deleteCompanyEmployee(props.emp.id, props.company.id)
-				.then(() => {
-					props.refreshTable().then(() => {
-						setBlocked(false);
-					});
-				});
-		}
+			});
 	}
 
 	const toggleShow = () => {
