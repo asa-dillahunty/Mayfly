@@ -71,3 +71,10 @@
 	background-color: var(--accent);
 	color: var(--background);
 }
+
+.checkbox-container {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+}

@@ -14,12 +14,15 @@ function EmployeeInfoForm (props) {
 	const [firstName, setFirstName] = useState(fn);
 	const [lastName, setLastName] = useState(ln);
 	const [email, setEmail] = useState("");
-	const [password, setPassword] = useState("");
-	const [confirmPassword, setConfirmPassword] = useState("");
+	const [isAdmin, setIsAdmin] = useState(false);
 
 	const cancelForm = (e) => {
 		e.preventDefault();
 		props.setBlocked(false);
+	}
+
+	const toggleIsAdmin = (e) => {
+		setIsAdmin(document.getElementById("admin-checkbox").checked);
 	}
 
 	const submitChanges = (e) => {
@@ -102,6 +105,12 @@ function EmployeeInfoForm (props) {
 						onChange={(e) => setEmail(e.target.value)}
 					/>
 				</>}
+				{!props.admin ? "" :
+					<div className="checkbox-container">
+						<input type="checkbox" id="admin-checkbox" name="isAdmin" onChange={(e) => toggleIsAdmin(e)} />
+						<label htmlFor="isAdmin">Is Admin?</label>
+					</div>
+				}
 				<div className='button-container'>
 					<button className='submit-button' onClick={submitChanges} disabled={props.blocked}>Submit</button>
 					<button className='cancel-button' onClick={cancelForm} disabled={props.blocked}>Cancel</button>

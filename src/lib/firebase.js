@@ -36,14 +36,11 @@ const daysInChunk = 7;
 const startOfPayPeriod = 4; // Thursday
 export const FAKE_EMAIL_EXTENSION = "@dillahuntyfarms.com";
 
+export const currentDate = signal(new Date(new Date().toDateString()));
 export const selectedDate = signal(new Date(new Date().toDateString()));
-export const currentWeek = signal(buildDocName(selectedDate.value));
 export const setSelectedDate = (date) => {
 	selectedDate.value = date;
-	const currWeek = buildDocName(selectedDate.value);
-	if (currentWeek !== currWeek) currentWeek.value = currWeek;
 }
-export const currentDate = signal(new Date(new Date().toDateString()));
 
 export const refreshCurrentDate = () => {
 	currentDate.value = new Date(new Date().toDateString());
@@ -241,17 +238,16 @@ export function getHoursSignal(userID,date,docName) {
 	return firebaseSignalCache[userID][docName][date.getDay()];
 }
 
-export async function getHoursThisWeek(userID,date,docName) {
+export async function getHoursThisWeek(userID, date, docName) {
 	if (arguments.length === 2) docName = buildDocName(date);
 	if (!userID) return 0;
 
-	let totalHours = 0;
-	let currDay = getStartOfPayPeriod(date);
+	if (!firebaseCache[userID] || !firebaseCache[userID][docName]) await getHours(userID, date, docName);
 	
-	do {
-		currDay.setDate(currDay.getDate() + 1);
-		totalHours += await getHours(userID,currDay,docName);
-	} while (currDay.getDay() !== startOfPayPeriod)
+	let totalHours = 0;
+	for (var day in firebaseCache[userID][docName]) {
+		totalHours += firebaseCache[userID][docName][day].hours;
+	}
 	return totalHours;
 }
 
@@ -322,6 +318,12 @@ export async function getMyCompanyID(userID) {
 	else return undefined;
 }
 
+export async function getIsHidden(userID) {
+	const adminData = await getAdminData(userID);
+	if (adminData) return adminData.hidden === true;
+	else return false;
+}
+
 export async function getAdminData(uid) {
 	if (!uid || uid === '') return {};
 	if (!firebaseCache[uid] || !firebaseCache[uid][ADMIN_DOC_NAME]) {
@@ -349,8 +351,28 @@ export async function getCompanyEmployee(company_ID, empID) {
 	}
 }
 
+export async function getCompanyFromCache(company_ID) {
+	if (company_ID === "") return { name:"Major Error Occurred"};
+	const docName = buildDocName(selectedDate.value);
+	// TODO: maybe add some awaiting here
+	if (!firebaseCache[COMPANY_LIST_COLLECTION_NAME] || !firebaseCache[COMPANY_LIST_COLLECTION_NAME][company_ID]) return await getCompany(company_ID, docName);
+
+	// else data should all be cached
+	const empList = firebaseCache[COMPANY_LIST_COLLECTION_NAME][company_ID][COMPANY_EMPLOYEE_COLLECTION];
+
+	// force an update on the hours ( should still grab them from that cache, no worries)
+	for (let i=0;i<empList.length;i++) {
+		empList[i].hoursThisWeek = await getHoursThisWeek(empList[i].id, selectedDate.value, docName);
+		empList[i].hidden = await getIsHidden(empList[i].id);
+	}
+	const companyData = firebaseCache[COMPANY_LIST_COLLECTION_NAME][company_ID];
+	companyData.employees = empList;
+	return companyData;
+}
+
 export async function getCompany(company_ID, docName) {
 	if (company_ID === "") return { name:"Major Error Occurred"};
+	console.log("pulling company data");
 	const docRef = doc(db, COMPANY_LIST_COLLECTION_NAME, company_ID);
 	const docSnap = await getDoc(docRef);
 
@@ -358,8 +380,14 @@ export async function getCompany(company_ID, docName) {
 	const docListSnapshot = await getDocs(employeeCollection);
 	const docList = docListSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })); // this gives an array of employee objects with ID as a field
 	
+	// cache this ^
+	if (!firebaseCache[COMPANY_LIST_COLLECTION_NAME]) firebaseCache[COMPANY_LIST_COLLECTION_NAME] = {};
+	firebaseCache[COMPANY_LIST_COLLECTION_NAME][company_ID] = docSnap.data();
+	firebaseCache[COMPANY_LIST_COLLECTION_NAME][company_ID][COMPANY_EMPLOYEE_COLLECTION] = docList;
+
 	for (let i=0;i<docList.length;i++) {
 		docList[i].hoursThisWeek = await getHoursThisWeek(docList[i].id, selectedDate.value, docName);
+		docList[i].hidden = await getIsHidden(docList[i].id);
 	}
 	const companyData = docSnap.data();
 	companyData.employees = docList;

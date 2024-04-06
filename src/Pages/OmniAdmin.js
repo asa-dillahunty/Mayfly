@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { currentWeek, getCompanies, getCompany, performLogout } from '../lib/firebase';
+import { getCompanies, getCompany, performLogout } from '../lib/firebase';
 // import { format } from 'date-fns';
 // import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
@@ -32,7 +32,7 @@ function OmniAdminDashboard(props) {
 
 	const fetchCompanyData = async (data) => {
 		console.log(data)
-		const companyObj = await getCompany(data.id, currentWeek.value);
+		const companyObj = await getCompany(data.id);
 		companyObj.id = data.id;
 		companyObj.name = data.name;
 		console.log(companyObj);
@@ -66,7 +66,13 @@ function OmniAdminDashboard(props) {
 					- option to add new users */}
 				<p>Admin Dashboard!</p>
 
-				<DisplayTable displayItems={companies} onAdd={addCompany} onDelete={deleteCompany} refreshTable={fetchCompanies} />
+				<DisplayTable
+					displayItems={companies}
+					onAdd={addCompany}
+					onDelete={deleteCompany}
+					refreshTable={fetchCompanies}
+					addAdmins
+					/>
 			</div>
 		</div>
 	);

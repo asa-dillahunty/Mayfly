@@ -63,9 +63,9 @@ export function AdminCompanyDisplayTable(props) {
 				<li key={0} className='table-key'>
 					{/* <div className='dropdown'></div> fake kebab so we get spacing right */}
 					<span className='date-row'>
-						<button onClick={jumpBackward}>&#x2BC7;</button>
+						<button onClick={jumpBackward}>&#10148;</button>
 						<span className='week-string'>{getStartOfWeekString(selectedDate.value)}&nbsp;&nbsp;&nbsp;&#x2015;&nbsp;&nbsp;&nbsp;{getEndOfWeekString(selectedDate.value)}</span>
-						<button onClick={jumpForward}>&#x2BC8;</button>
+						<button onClick={jumpForward}>&#10148;</button>
 					</span>
 				</li>
 				{claimedList.map((emp,index) => (
@@ -104,7 +104,6 @@ function EmployeeLine(props) {
 			setBlocked(false);
 			return;
 		}
-
 		
 		deleteCompanyEmployee(props.emp.id, props.company.id)
 			.then(() => {
@@ -121,6 +120,7 @@ function EmployeeLine(props) {
 		setEditUser(!editUser);
 	}
 
+	if (props.emp.hidden) return <></>;
 	return (
 		<li>
 			{/* <span className='kebab'>&#8942;</span> */}
@@ -181,7 +181,7 @@ export function CompanyDisplayTable(props) {
 			<AdminCompanyDisplayTable company={props.company} refreshTable={props.refreshTable} />
 			<button className="add-emp" onClick={() => { setBlocked(true); }}>Add Employee</button>
 			<ClickBlocker custom={true} block={blocked}>
-				<EmployeeInfoForm setBlocked={setBlocked} refreshTable={props.refreshTable} companyID={props.company.id} add/>
+				<EmployeeInfoForm setBlocked={setBlocked} refreshTable={props.refreshTable} companyID={props.company.id} add admin={props.addAdmins}/>
 			</ClickBlocker>
 			<button onClick={() => props.onDelete(props.company)}>Delete Company</button>
 		</details>
@@ -222,7 +222,7 @@ function DisplayTable(props) {
 			<ul>
 				{props.displayItems.map(item => (
 					<li key={"companies"+item.id}>
-						<CompanyDisplayTable company={item} onDelete={tempDelete} refreshTable={props.refreshTable}/>
+						<CompanyDisplayTable company={item} onDelete={tempDelete} refreshTable={props.refreshTable} addAdmins={props.addAdmins}/>
 					</li>
 				))}
 			</ul>

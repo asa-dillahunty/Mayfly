@@ -109,6 +109,7 @@ span.employee-weekly-hours {
 	justify-content: space-between;
 	align-items: center;
 }
+
 .company-display-table li.table-key > .date-row button {
 	border: none;
 	border-radius: 5px;
@@ -157,4 +158,16 @@ span.employee-weekly-hours {
 
 .display-table > ul > li .company-display-table > h2 {
 	display: none;
+}
+
+.company-display-table li.table-key > .date-row > button {
+	font-family: var(--titleFont);
+}
+.company-display-table li.table-key > .date-row > button:hover {
+	color: var(--accent);
+}
+
+/* flip the left arrow */
+.company-display-table li.table-key > .date-row > button:nth-child(1) {
+	transform: scaleX(-1);
 }
