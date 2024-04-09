@@ -2,22 +2,28 @@ import { useState } from 'react';
 import { DayPicker } from 'react-day-picker';
 
 import './Calendar.css';
-import { auth, selectedDate, setSelectedDate, currentDate, getHoursSignal } from '../lib/firebase';
+import { auth, selectedDate, setSelectedDate, currentDate, getHoursSignal, refreshCurrentDate } from '../lib/firebase';
 import { effect } from '@preact/signals-react';
 
 export const WEEK_VIEW = 0;
 export const MONTH_VIEW = 1;
 export const DAYS_DISPLAYED = 8;
 
+document.addEventListener('visibilitychange', function () {
+	refreshCurrentDate();
+});
+
 const DateArray = [];
+// var count = 0;
 const buildDateArray = () => {
+	// count++;
 	DateArray.length = 0;
 	let temp;
 	for (var i=0;i<DAYS_DISPLAYED;i++) {
 		temp = new Date(new Date().setDate(currentDate.value.getDate() - i));
 		DateArray.push(new Date(temp.toDateString()));
 	}
-	console.log("Date Array Built: ", DateArray);
+	// console.log("Date Array Built: ", DateArray, count);
 }
 buildDateArray();
 
@@ -50,6 +56,9 @@ function DateCell(props) {
 
 function Calendar(props) {
 	// should only run on mount (depend)
+	effect(() => {
+		buildDateArray(currentDate.value);
+	});
 
 	if (props.view === WEEK_VIEW) {
 		return <div className='carouselWrapper' dir="rtl">
