@@ -56,6 +56,18 @@ export const performLogout = async (navigate) => {
 	}
 };
 
+export const navigateUser = async (uid, setPage) => {
+	const isOmniAdmin = await getIsOmniAdmin(uid);
+	const isAdmin = await getIsAdmin(uid);
+	// if 'Asa' -> navigate to OmniAdmin Dashboard
+	// props.setCurrPage(pageListEnum.OmniAdmin);
+	// if admin -> navigate to admin dashboard
+	if (isOmniAdmin === true) setPage(pageListEnum.OmniAdmin);
+	else if (isAdmin === true) setPage(pageListEnum.Admin);
+	else setPage(pageListEnum.Dashboard);
+	// could this result in a component attempting to be updated when it is unmounted?
+}
+
 const firebaseCache = {};
 const firebaseSignalCache = {};
 export function deleteCache() {
@@ -242,11 +254,12 @@ export async function getHoursThisWeek(userID, date, docName) {
 	if (arguments.length === 2) docName = buildDocName(date);
 	if (!userID) return 0;
 
-	if (!firebaseCache[userID] || !firebaseCache[userID][docName]) await getHours(userID, date, docName);
+	if (!firebaseCache[userID] || !firebaseCache[userID][docName] || firebaseCache[userID][docName]["awaiting"]) await getHours(userID, date, docName);
 	
 	let totalHours = 0;
 	for (var day in firebaseCache[userID][docName]) {
-		totalHours += firebaseCache[userID][docName][day].hours;
+		if (firebaseCache[userID][docName][day].hours)
+			totalHours += firebaseCache[userID][docName][day].hours;
 	}
 	return totalHours;
 }
@@ -277,9 +290,15 @@ function fillWeekCache(week) {
 // cid - company ID
 export async function makeAdmin(uid,cid) {
 	const docRef = doc(db, uid, ADMIN_DOC_NAME);
-	// const docSnap = await getDoc(docRef);
 
-	setDoc(docRef, {"isAdmin":true,"company":cid}).then((_value) => {
+	console.log(firebaseCache[uid][ADMIN_DOC_NAME]);
+	// grab current data from cache
+	const adminData = await getAdminData(uid);
+	adminData.isAdmin = true;
+	// does this auto update the cache?
+	console.log(firebaseCache[uid][ADMIN_DOC_NAME]);
+
+	setDoc(docRef, adminData).then((_value) => {
 		// Todo:
 		//	- if fail do something
 
@@ -361,17 +380,21 @@ export async function getCompanyFromCache(company_ID) {
 	const empList = firebaseCache[COMPANY_LIST_COLLECTION_NAME][company_ID][COMPANY_EMPLOYEE_COLLECTION];
 
 	// force an update on the hours ( should still grab them from that cache, no worries)
-	for (let i=0;i<empList.length;i++) {
-		empList[i].hoursThisWeek = await getHoursThisWeek(empList[i].id, selectedDate.value, docName);
-		empList[i].hidden = await getIsHidden(empList[i].id);
+	// console.log(empList);
+	// console.log(firebaseCache);
+	for (var emp in empList) {
+		empList[emp].hoursThisWeek = await getHoursThisWeek(empList[emp].id, selectedDate.value, docName);
+		empList[emp].hidden = await getIsHidden(empList[emp].id);
 	}
 	const companyData = firebaseCache[COMPANY_LIST_COLLECTION_NAME][company_ID];
-	companyData.employees = empList;
+	companyData[COMPANY_EMPLOYEE_COLLECTION] = empList;
+	console.log(companyData);
 	return companyData;
 }
 
 export async function getCompany(company_ID, docName) {
 	if (company_ID === "") return { name:"Major Error Occurred"};
+	if (!docName) docName = buildDocName(selectedDate.value);
 	console.log("pulling company data");
 	const docRef = doc(db, COMPANY_LIST_COLLECTION_NAME, company_ID);
 	const docSnap = await getDoc(docRef);
@@ -385,12 +408,15 @@ export async function getCompany(company_ID, docName) {
 	firebaseCache[COMPANY_LIST_COLLECTION_NAME][company_ID] = docSnap.data();
 	firebaseCache[COMPANY_LIST_COLLECTION_NAME][company_ID][COMPANY_EMPLOYEE_COLLECTION] = docList;
 
-	for (let i=0;i<docList.length;i++) {
-		docList[i].hoursThisWeek = await getHoursThisWeek(docList[i].id, selectedDate.value, docName);
-		docList[i].hidden = await getIsHidden(docList[i].id);
+	for (let i=0; i<docList.length; i++) {
+		const emp = docList[i];
+		emp.hoursThisWeek = await getHoursThisWeek(emp.id, selectedDate.value, docName);
+		emp.hidden = await getIsHidden(emp.id);
 	}
+
 	const companyData = docSnap.data();
-	companyData.employees = docList;
+	companyData.Employees = docList;
+	console.log(companyData);
 	return companyData;
 }
 
@@ -418,6 +444,8 @@ export async function createCompanyEmployee(empData, empID, companyID) {
 	await setDoc(doc(db, COMPANY_LIST_COLLECTION_NAME + '/' + companyID + '/' + COMPANY_EMPLOYEE_COLLECTION, empID), {
 		...empData
 	});
+	// update cache
+	firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][COMPANY_EMPLOYEE_COLLECTION][empID] = empData;
 }
 
 export async function deleteCompanyEmployee(empID, companyID) {
@@ -467,11 +495,15 @@ export async function createEmployeeAuth(empData, companyID) {
 	const data = {email:empData.email, companyID};
 	const result = await createEmp(data);
 	console.log(result.data);
-	if (!result.data.success) alert("Failed to create user");
+	if (!result.data.success) {
+		alert("Failed to create user");
+	}
 
 	// need to return the employee's ID as well
 	createCompanyEmployee(empData, result.data.empID, companyID);
 	setMyCompany(result.data.empID, companyID);
+	// update the cache
+	getCompany(companyID);
 }
 
 export async function resetPassword(email) {

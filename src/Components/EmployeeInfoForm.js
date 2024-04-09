@@ -1,4 +1,5 @@
-import { createCompanyEmployee, createEmployeeAuth, createUnclaimedEmployee } from "../lib/firebase";
+import { createCompanyEmployee, createEmployeeAuth, createUnclaimedEmployee, getCompany } from "../lib/firebase";
+import ClickBlocker from "./ClickBlocker";
 
 import './EmployeeInfoForm.css';
 import { useState } from "react";
@@ -15,10 +16,11 @@ function EmployeeInfoForm (props) {
 	const [lastName, setLastName] = useState(ln);
 	const [email, setEmail] = useState("");
 	const [isAdmin, setIsAdmin] = useState(false);
+	const [blocked, setBlocked] = useState(false);
 
 	const cancelForm = (e) => {
 		e.preventDefault();
-		props.setBlocked(false);
+		props.setFormOpen(false);
 	}
 
 	const toggleIsAdmin = (e) => {
@@ -27,7 +29,7 @@ function EmployeeInfoForm (props) {
 
 	const submitChanges = (e) => {
 		e.preventDefault();
-		props.setBlocked(true);
+		setBlocked(true);
 		// TODO: 
 		// 	do some checking on the data gathered from the form
 		//	Edit needs to check if a user is "unclaimed" and persist that property
@@ -48,8 +50,9 @@ function EmployeeInfoForm (props) {
 		if (props.edit)  {
 			createCompanyEmployee(empData, props.empID, props.companyID)
 				.then( () => {
-					props.refreshTable().then(() => {
-						props.setBlocked(false)
+					props.deepRefresh().then(() => {
+						setBlocked(false);
+						props.setFormOpen(false);
 					});
 				});
 		}
@@ -58,25 +61,30 @@ function EmployeeInfoForm (props) {
 			createEmployeeAuth(empData, props.companyID)
 				.then( () => {
 					console.log("in the then");
-					props.refreshTable().then(() => {
-						props.setBlocked(false)
+					props.deepRefresh().then(() => {
+						setBlocked(false);
+						props.setFormOpen(false);
 					});
 				}).catch ((e) => {
 					console.log("in the catch");
 					console.log(e);
 					console.error(e.message);
+					alert("Failed to add user");
+					props.setFormOpen(false);
 				});
 		}
 		else {
 			console.log("Error: did nothing");
 		}
+		// fix the cache
 	}
 
 	return (
 		<div className='employee-info-form'>
-			<h1 className="login-title"> 
+			<h1 className="login-title">
 				{props.edit ? "Edit Employee Info" : "Create New Employee"}
 			</h1>
+			<ClickBlocker block={blocked} loading/>
 			<form onSubmit={submitChanges}>
 				<label htmlFor="employee-first-name">First Name:</label>
 				<input

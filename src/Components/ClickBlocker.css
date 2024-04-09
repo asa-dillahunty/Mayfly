@@ -45,6 +45,31 @@ div.blocker.loading {
 	position: relative;
 }
 
+.confirm-container {
+	background-color: var(--background);
+	display: flex;
+	flex-direction: column;
+	width: 300px;
+	padding: 10px;
+	align-items: center;
+	justify-content: center;
+	border-radius: 5px;
+}
+
+.confirm-container .button-container button {
+	border-radius: 5px;
+	margin: 8px;
+	padding: 5px 7px;
+	font-weight: bold;
+	color: var(--background);
+}
+.confirm-container .button-container button.confirm {
+	background-color: var(--primary);
+}
+.confirm-container .button-container button.cancel {
+	background-color: var(--accent);
+}
+
 @keyframes appear {
 	0% { opacity: 0; }
 	100% { opacity: 1; }

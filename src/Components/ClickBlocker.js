@@ -16,6 +16,21 @@ function ClickBlocker(props) {
 						</div> 
 					</div>);
 		}
+		else if (props.confirm) {
+			return (
+				<div className='blocker fast'>
+					<div className='childContainer'>
+						<div className='confirm-container'>
+							<p className='confirm-message'>{props.message}</p>
+							<div className='button-container'>
+								<button onClick={props.onConfirm} className='confirm'>Confirm</button>
+								<button onClick={props.onCancel} className='cancel'>Cancel</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			)
+		}
 		else return ( <div className="blocker"></div> );
 	else return <></>
 }

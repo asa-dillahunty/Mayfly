@@ -26,40 +26,17 @@ function Login(props) {
 		// Todo:
 		// 	- check if admin 
 			signInWithEmailAndPassword(auth, email, password)
-				.then((userCredential) => {
+				.then(() => {
 					// Signed in
-					// const user = userCredential.user;
-					// console.log("User Data:");
-					// console.log(user);
-					// console.log("User Data Over:");
-					navigateUser().then(() =>
-						setBlocked(false)
-					);
+					// Should trigger a listener implemented in App.js
 				})
 				.catch((error) => {
 					// const errorCode = error.code;
 					const errorMessage = error.message;
 					alert("Failed to sign in: " + errorMessage);
 					setBlocked(false);
-				});
-		
+				});	
 	};
-
-	useEffect(() => {
-		if (auth.currentUser) navigateUser();
-	});
-
-	const navigateUser = async () => {
-		const isOmniAdmin = await getIsOmniAdmin(auth.currentUser.uid);
-		const isAdmin = await getIsAdmin(auth.currentUser.uid);
-		// if 'Asa' -> navigate to OmniAdmin Dashboard
-		// props.setCurrPage(pageListEnum.OmniAdmin);
-		// if admin -> navigate to admin dashboard
-		if (isOmniAdmin === true) props.setCurrPage(pageListEnum.OmniAdmin);
-		else if (isAdmin === true) props.setCurrPage(pageListEnum.Admin);
-		else props.setCurrPage(pageListEnum.Dashboard);
-		// could this result in a component attempting to be updated when it is unmounted?
-	}
 
 	return (
 		<div className="login-container">

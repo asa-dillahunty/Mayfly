@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import ClickBlocker from './ClickBlocker';
 
 import './DisplayTable.css';
-import { deleteCompanyEmployee, deleteUnclaimedEmployee, getEndOfWeekString, getStartOfWeekString, selectedDate, setSelectedDate } from '../lib/firebase';
+import { deleteCompanyEmployee, deleteUnclaimedEmployee, getEndOfWeekString, getStartOfWeekString, makeAdmin, selectedDate, setSelectedDate } from '../lib/firebase';
 
 import Dropdown from 'react-bootstrap/Dropdown';
 import HourAdder from './HourAdder';
@@ -47,11 +47,11 @@ export function AdminCompanyDisplayTable(props) {
 
 	let claimedList;
 	let unclaimedList;
-	if (props.company && props.company.employees) {
-		claimedList = props.company.employees.filter( emp => !emp.unclaimed );
-		unclaimedList = props.company.employees.filter( emp => emp.unclaimed );
+	if (props.company && props.company.Employees) {
+		claimedList = props.company.Employees.filter( emp => !emp.unclaimed );
+		unclaimedList = props.company.Employees.filter( emp => emp.unclaimed );
 	}
-	if (!props.company || !props.company.employees) {
+	if (!props.company || !props.company.Employees) {
 		// TODO:
 		// 	return a skeleton
 		return(<></>);
@@ -78,7 +78,7 @@ export function AdminCompanyDisplayTable(props) {
 					<span className='employee-weekly-hours'>Code</span>
 				</li>
 				{unclaimedList.map((emp, index) => (
-					<EmployeeLine key={index+claimedList.length+2} emp={emp} company={props.company} refreshTable={props.refreshTable} />
+					<EmployeeLine key={index+claimedList.length+2} emp={emp} company={props.company} refreshTable={props.refreshTable} admin={props.admin}/>
 				))}
 			</ul>
 		</div>
@@ -96,19 +96,14 @@ function EmployeeLine(props) {
 	const [blocked, setBlocked] = useState(false);
 	const [showMore, setShowMore] = useState(false);
 	const [editUser, setEditUser] = useState(false);
+	const [confirmDelete, setConfirmDelete] = useState(false);
 
+	
 	const deleteUser = () => {
-		setBlocked(true);
-		const ans = window.confirm(`You want to remove ${props.emp.name} from ${props.company.name}? This action cannot be undone.`);
-		if (!ans) {
-			setBlocked(false);
-			return;
-		}
-		
 		deleteCompanyEmployee(props.emp.id, props.company.id)
 			.then(() => {
 				props.refreshTable().then(() => {
-					setBlocked(false);
+					setConfirmDelete(false);
 				});
 			});
 	}
@@ -125,7 +120,7 @@ function EmployeeLine(props) {
 		<li>
 			{/* <span className='kebab'>&#8942;</span> */}
 			<ClickBlocker block={blocked} />
-			<ClickBlocker block={editUser} custom={true}>
+			<ClickBlocker block={editUser}>
 				<EmployeeInfoForm 
 					setBlocked={setEditUser}
 					refreshTable={props.refreshTable}
@@ -135,6 +130,12 @@ function EmployeeLine(props) {
 					fn={props.emp.firstName}
 					ln={props.emp.lastName} />
 			</ClickBlocker>
+			<ClickBlocker 
+				block={confirmDelete}
+				confirm message={`You want to remove ${props.emp.name} from ${props.company.name}? This action cannot be undone.`}
+				onConfirm={deleteUser}
+				onCancel={()=>setConfirmDelete(false)}
+				/>
 			<Dropdown>
 				<Dropdown.Toggle as={CustomToggle}>
 					<span className='kebab'>&#8942;</span>
@@ -142,7 +143,8 @@ function EmployeeLine(props) {
 				<Dropdown.Menu size="sm" title="">
 					{props.emp.unclaimed ? <></> : <Dropdown.Item onClick={toggleShow}>Edit Hours</Dropdown.Item>}
 					<Dropdown.Item onClick={toggleEdit}>Edit User</Dropdown.Item>
-					<Dropdown.Item onClick={deleteUser}>Remove Employee</Dropdown.Item>
+					<Dropdown.Item onClick={()=>setConfirmDelete(true)}>Remove Employee</Dropdown.Item>
+					{!props.adminAble ? <></> : <Dropdown.Item onClick={()=>{makeAdmin(props.emp.id)}}>Make Admin</Dropdown.Item>}
 				</Dropdown.Menu>
 			</Dropdown>
 			<span className='employee-name'> {props.emp.name} </span>
@@ -178,7 +180,7 @@ export function CompanyDisplayTable(props) {
 	return (
 		<details className='company-details'>
 			<summary> {props.company.name} </summary>
-			<AdminCompanyDisplayTable company={props.company} refreshTable={props.refreshTable} />
+			<AdminCompanyDisplayTable company={props.company} refreshTable={props.refreshTable} adminAble={props.addAdmins} />
 			<button className="add-emp" onClick={() => { setBlocked(true); }}>Add Employee</button>
 			<ClickBlocker custom={true} block={blocked}>
 				<EmployeeInfoForm setBlocked={setBlocked} refreshTable={props.refreshTable} companyID={props.company.id} add admin={props.addAdmins}/>

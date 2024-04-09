@@ -2,45 +2,41 @@ rules_version = '2';
 
 service cloud.firestore {
 	match /databases/{database}/documents {
-
-		match /{userId}/Administrative_Data {
-			allow read, write: if isAsa();
+	
+		match /{userId}/Admin_Details {
 			allow write: if isUsersAdmin(userId) && !('isAdmin' in request.resource.data) && !('omniAdmin' in request.resource.data);
 			allow read: if request.auth.uid == userId || isUsersAdmin(userId);
 		}
 
 		match /CompanyList/{companyId} {
-			allow read, write: if isAsa();
 			allow read, write: if isSenderAdmin() && companyId == getCompanyID(request.auth.uid);
 		}
-
+		
 		match /CompanyList/{companyId}/Employees/{empId} {
-			allow read, write: if isAsa();
 			allow read, write: if isSenderAdmin() && companyId == getCompanyID(request.auth.uid);
 		}
-
+		
 		match /{userId}/{document} {
-			allow read, write: if isAsa();
 			allow read: if request.auth.uid == userId || isUsersAdmin(userId);
 			allow write: if (request.auth.uid == userId && document != 'Administrative_Data') || isUsersAdmin(userId) && !('isAdmin' in request.resource.data);
 		}
-
+	
 		match /{document=**} {
 			allow read, write: if isAsa();
 		}
-
+		
 		function getCompanyID(userID) {
 			return get(/databases/$(database)/documents/$(userID)/Administrative_Data).data.company;
 		}
-
+		
 		function isSenderAdmin() {
 			return get(/databases/$(database)/documents/$(request.auth.uid)/Administrative_Data).data.isAdmin == true;
 		}
-
+	
 		function isAsa() {
 			return get(/databases/$(database)/documents/$(request.auth.uid)/Administrative_Data).data.omniAdmin == true;
 		}
-
+		
 		function isUsersAdmin(userID) {
 			let adminCompanyID = getCompanyID(request.auth.uid);
 			let userCompanyID = getCompanyID(userID);

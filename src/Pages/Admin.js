@@ -21,6 +21,15 @@ function AdminDashboard(props) {
 		setCompanyData(companyObj);
 		setBlocked(false);
 	};
+
+	const deepRefresh = async() => {
+		setBlocked(true);
+		const companyID = await getMyCompanyID(auth.currentUser.uid);
+		const companyObj = await getCompany(companyID);
+		companyObj.id = companyID;
+		setCompanyData(companyObj);
+		setBlocked(false);
+	}
 	
 	useEffect(() => {
 		console.log("Fetching Company Data");
@@ -38,9 +47,9 @@ function AdminDashboard(props) {
 			<div className="dashboard-content contain-click-blocker">
 				<ClickBlocker block={blocked} loading/>
 				<AdminCompanyDisplayTable company={companyData} refreshTable={fetchCompany}/>
-				<button className="add-emp" onClick={() => { setBlocked(true); }}>Add Employee</button>
+				<button className="add-emp" onClick={() => { setInfoFormOpen(true); }}>Add Employee</button>
 				<ClickBlocker custom={true} block={infoFormOpen}>
-					<EmployeeInfoForm setBlocked={setInfoFormOpen} refreshTable={fetchCompany} companyID={companyData.id} add/>
+					<EmployeeInfoForm setFormOpen={setInfoFormOpen} refreshTable={fetchCompany} deepRefresh={deepRefresh} companyID={companyData.id} add/>
 				</ClickBlocker>
 			</div>
 		</div>
