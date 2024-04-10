@@ -6,8 +6,7 @@
 	justify-content: center;
 	min-height: 100vh;
 	font-family: Arial, sans-serif;
-	/* background-color: #1f1f1f; */
-	background-color: #f7f7f7;
+	background-color: var(--backgroundTwo);
 	position: relative;
 
 	/* this serves to push the hour adder down some, since it was actually weird for it to be dead center */

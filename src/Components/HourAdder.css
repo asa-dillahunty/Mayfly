@@ -1,5 +1,5 @@
 .hour-adder-content {
-	background-color: #fff;
+	background-color: var(--background);
 	padding: 20px;
 	border-radius: 5px;
 	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -91,7 +91,7 @@
 	width: 50%;
 	margin: auto;
 
-	background-color: #f1f1f1;
+	background-color: var(--backgroundThree);
 	border-radius: 5px;
 	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 	touch-action: none;

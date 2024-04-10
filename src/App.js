@@ -22,10 +22,15 @@ function App() {
 		const unsubscribe = onAuthStateChanged(auth, user => {
 			setUser(user);
 			// in case user is logging out
-			if (auth.currentUser)
+			if (auth.currentUser) {
 				navigateUser(auth.currentUser.uid, setCurrPage).then(()=>{
 					setLoading(false);
 				});
+			}
+			else {
+				setCurrPage(pageListEnum.Login);
+				setLoading(false);
+			}
 		});
 	
 		return () => unsubscribe();

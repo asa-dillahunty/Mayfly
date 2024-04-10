@@ -1,5 +1,5 @@
 import { getAuth, createUserWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
-import { getFirestore, doc, setDoc, getDoc, getDocs, addDoc, collection, deleteDoc } from "firebase/firestore";
+import { getFirestore, doc, setDoc, getDoc, getDocs, addDoc, collection, deleteDoc, updateDoc } from "firebase/firestore";
 import { initializeApp } from "firebase/app";
 import { signal } from '@preact/signals-react';
 import 'firebase/auth';
@@ -186,7 +186,7 @@ export function getHoursEarlyReturn(userID,date,docName) {
 }
 
 export async function getHours(userID,date,docName) {
-	// console.log("getting hours");
+	// console.log("getting hours", userID, docName);
 	if (arguments.length === 2) docName = buildDocName(date);
 	
 	if (!userID) return;
@@ -324,10 +324,13 @@ export async function setMyCompany(uid,cid) {
 	const docRef = doc(db, uid, ADMIN_DOC_NAME);
 	// const docSnap = await getDoc(docRef);
 
-	setDoc(docRef, {"company":cid}).then((_value) => {
+	await updateDoc(docRef, {"company":cid}).then((_value) => {
 		// Todo:
 		//	- if fail do something
 		// update cache
+	}).catch((e)=>{
+		console.log("Cannot update companyID",e,e.message);
+		console.error(e.message);
 	});
 }
 
@@ -388,7 +391,6 @@ export async function getCompanyFromCache(company_ID) {
 	}
 	const companyData = firebaseCache[COMPANY_LIST_COLLECTION_NAME][company_ID];
 	companyData[COMPANY_EMPLOYEE_COLLECTION] = empList;
-	console.log(companyData);
 	return companyData;
 }
 
@@ -398,7 +400,6 @@ export async function getCompany(company_ID, docName) {
 	console.log("pulling company data");
 	const docRef = doc(db, COMPANY_LIST_COLLECTION_NAME, company_ID);
 	const docSnap = await getDoc(docRef);
-
 	const employeeCollection = collection(db, COMPANY_LIST_COLLECTION_NAME + '/' + company_ID + '/' + COMPANY_EMPLOYEE_COLLECTION);
 	const docListSnapshot = await getDocs(employeeCollection);
 	const docList = docListSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })); // this gives an array of employee objects with ID as a field
@@ -416,7 +417,6 @@ export async function getCompany(company_ID, docName) {
 
 	const companyData = docSnap.data();
 	companyData.Employees = docList;
-	console.log(companyData);
 	return companyData;
 }
 
@@ -454,7 +454,8 @@ export async function deleteCompanyEmployee(empID, companyID) {
 
 	// grab the employee's collection -> delete their administrative_data
 	const empDocRef = doc(db, empID, ADMIN_DOC_NAME);
-	await deleteDoc(empDocRef);
+	await updateDoc(empDocRef, {"company":""})
+	// await deleteDoc(empDocRef);
 
 }
 
@@ -494,16 +495,15 @@ export async function deleteUnclaimedEmployee(claimCode, companyID) {
 export async function createEmployeeAuth(empData, companyID) {
 	const data = {email:empData.email, companyID};
 	const result = await createEmp(data);
-	console.log(result.data);
 	if (!result.data.success) {
 		alert("Failed to create user");
-	}
+	} else console.log(result.data);
 
 	// need to return the employee's ID as well
-	createCompanyEmployee(empData, result.data.empID, companyID);
-	setMyCompany(result.data.empID, companyID);
+	await createCompanyEmployee(empData, result.data.empID, companyID);
+	// await setMyCompany(result.data.empID, companyID);
 	// update the cache
-	getCompany(companyID);
+	await getCompany(companyID);
 }
 
 export async function resetPassword(email) {

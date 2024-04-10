@@ -26,7 +26,7 @@
 }
 
 .date {
-	background-color: #f1f1f1;
+	background-color: var(--backgroundThree);
 	border: 2px solid black;
 	min-width: 80px;
 	transition: all .25s;

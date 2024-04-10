@@ -15,7 +15,9 @@ function AdminDashboard(props) {
 		// this needs to somehow wait for selected date to update first
 		// update state! must somehow trigger an update in signals state
 		setBlocked(true);
+		console.log("here");
 		const companyID = await getMyCompanyID(auth.currentUser.uid);
+		console.log("here2");
 		const companyObj = await getCompanyFromCache(companyID);
 		companyObj.id = companyID;
 		setCompanyData(companyObj);
