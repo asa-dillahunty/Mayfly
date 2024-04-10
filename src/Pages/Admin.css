@@ -13,3 +13,7 @@ div.dashboard-content {
 .dashboard-content button.add-emp {
 	margin-top: 20px;
 }
+
+.dashboard-content.skeleton {
+	padding: 0;
+}

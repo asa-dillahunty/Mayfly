@@ -53,7 +53,15 @@ function EmployeeInfoForm (props) {
 					props.deepRefresh().then(() => {
 						setBlocked(false);
 						props.setFormOpen(false);
+					}).catch((_e) => {
+						alert(`Error Code 3372. Error loading table. Please refresh the page.`);
+						setBlocked(false);
+						props.setFormOpen(false);
 					});
+				}).catch((_e) => {
+					alert(`Error Code 6450. Failed to create ${props.empID}. Please refresh the page.`);
+					setBlocked(false);
+					props.setFormOpen(false);
 				});
 		}
 		else if (props.add) {
@@ -64,13 +72,18 @@ function EmployeeInfoForm (props) {
 					props.deepRefresh().then(() => {
 						setBlocked(false);
 						props.setFormOpen(false);
+					}).catch((_e) => {
+						alert(`Error Code 3373. Error loading table. Please refresh the page.`)
+						setBlocked(false);
+						props.setFormOpen(false);
 					});
 				}).catch ((e) => {
 					console.log("in the catch");
 					console.log(e);
-					console.error(e.message);
-					alert("Failed to add user");
+					setBlocked(false);
 					props.setFormOpen(false);
+					console.error(e.message);
+					alert("Failed to add user: " + e.message);
 				});
 		}
 		else {

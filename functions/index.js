@@ -93,3 +93,35 @@ exports.createEmployee = functions.https.onCall(async (data, context) => {
 		throw new functions.https.HttpsError('internal', 'Error creating user', error);
 	}
 });
+
+exports.removeEmployeeCompany = functions.https.onCall(async (data,context) => {
+	try {
+		if (!context.auth) {
+			throw new functions.https.HttpsError('permission-denied', 'not authenticated');
+		}
+		const requesterDataDocRef = admin.firestore().collection(context.auth.uid).doc(ADMIN_DOC_NAME);
+		const requesterDataDocSnapshot = await requesterDataDocRef.get();
+		const requesterIsAdmin = requesterDataDocSnapshot.data().isAdmin;
+		const requesterIsOmniAdmin = requesterDataDocSnapshot.data().omniAdmin;
+		const requesterCompanyID =  requesterDataDocSnapshot.data().company;
+
+		const userDataDocRef = admin.firestore().collection(context.auth.uid).doc(ADMIN_DOC_NAME);
+		const userDataDocSnapshot = await userDataDocRef.get();
+		const userCompanyID = userDataDocSnapshot.data().company;
+
+		if (!context.auth || !(requesterIsAdmin || requesterIsOmniAdmin)) {
+			throw new functions.https.HttpsError('permission-denied', 'Only Admins can create users');
+		}
+
+		if (userCompanyID !== requesterCompanyID) {
+			throw new functions.https.HttpsError("permission-denied","Admin of different company");
+		}
+
+		await admin.firestore().collection(data.uid).doc(ADMIN_DOC_NAME).update({
+			"company":""
+		});
+		return { success: true };
+	} catch (error) {
+		throw new functions.https.HttpsError('internal', 'Error removing user information', error);
+	}
+});

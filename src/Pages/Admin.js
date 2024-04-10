@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { auth, deleteCache, getCompany, getMyCompanyID, performLogout, createUnclaimedEmployee, createUser, getCompanyFromCache } from '../lib/firebase';
 import './Admin.css';
-import { AdminCompanyDisplayTable } from '../Components/DisplayTable';
+import { AdminCompanyDisplayTable, DisplayTableSkeleton } from '../Components/DisplayTable';
 import ClickBlocker from '../Components/ClickBlocker';
 import EmployeeInfoForm from '../Components/EmployeeInfoForm';
 import { effect } from '@preact/signals-react';
 
 function AdminDashboard(props) {
 	const [companyData, setCompanyData] = useState({});
+	const [initialLoad, setInitialLoad] = useState(true);
 	const [infoFormOpen, setInfoFormOpen] = useState(false);
 	const [blocked, setBlocked] = useState(false);
 
@@ -15,9 +16,7 @@ function AdminDashboard(props) {
 		// this needs to somehow wait for selected date to update first
 		// update state! must somehow trigger an update in signals state
 		setBlocked(true);
-		console.log("here");
 		const companyID = await getMyCompanyID(auth.currentUser.uid);
-		console.log("here2");
 		const companyObj = await getCompanyFromCache(companyID);
 		companyObj.id = companyID;
 		setCompanyData(companyObj);
@@ -35,9 +34,27 @@ function AdminDashboard(props) {
 	
 	useEffect(() => {
 		console.log("Fetching Company Data");
-		fetchCompany();
+		fetchCompany().then(() => {
+			setInitialLoad(false);
+		});
 	}, []);
+
 	
+	if (initialLoad) {
+		return (
+			<div className="dashboard-container">
+				<div className="dashboard-header">
+					<h1>Mayfly</h1>
+					<button className="dashboard-logout" onClick={() => performLogout(props.setCurrPage)}>
+						Log Out
+					</button>
+				</div>
+				<div className="dashboard-content contain-click-blocker skeleton">
+					<DisplayTableSkeleton />
+				</div>
+			</div>
+		);
+	}
 	return (
 		<div className="dashboard-container">
 			<div className="dashboard-header">

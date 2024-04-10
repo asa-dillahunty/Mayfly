@@ -88,6 +88,9 @@ export function PasswordReset (props) {
 			.then( () => {
 				setBlocked(false);
 				props.setCurrPage(pageListEnum.Login);
+			}).catch((e)=>{
+				alert("Failed to reset password: " + e.message);
+				setBlocked(false);
 			});
 	}
 
@@ -138,6 +141,9 @@ export function Signup (props) {
 			.then( () => {
 				setBlocked(false);
 				props.setCurrPage(pageListEnum.Dashboard);
+			}).catch((e) => {
+				alert("Failed to create new user: " + e.message);
+				setBlocked(false);
 			});
 	}
 

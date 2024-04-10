@@ -23,6 +23,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const functions = getFunctions(app);
 const createEmp = httpsCallable(functions, 'createEmployee');
+const deleteEmpCompany = httpsCallable(functions, 'removeEmployeeCompany');
 
 // Initialize Firebase Authentication and get a reference to the service
 export const auth = getAuth(app);
@@ -160,13 +161,10 @@ export async function setHours(userID,date,hours) {
 	savedData[date.getDay()] = {
 		hours:hours
 	};
-	setDoc(doc(db, userID, docName), savedData).then((_value) => {
-		// Todo:
-		//	- if fail do something
+	await setDoc(doc(db, userID, docName), savedData);
 
-		// update the firebase signal cache thing
-		getHoursSignal(userID,date,docName).value = hours;
-	});
+	// update the firebase signal cache thing
+	getHoursSignal(userID,date,docName).value = hours;
 }
 
 export function getHoursEarlyReturn(userID,date,docName) {
@@ -298,12 +296,9 @@ export async function makeAdmin(uid,cid) {
 	// does this auto update the cache?
 	console.log(firebaseCache[uid][ADMIN_DOC_NAME]);
 
-	setDoc(docRef, adminData).then((_value) => {
+	await setDoc(docRef, adminData);
 		// Todo:
-		//	- if fail do something
-
-		alert("succeeded (probably)");
-	});
+		//	update cache
 }
 
 export async function getIsAdmin(uid) {
@@ -324,14 +319,10 @@ export async function setMyCompany(uid,cid) {
 	const docRef = doc(db, uid, ADMIN_DOC_NAME);
 	// const docSnap = await getDoc(docRef);
 
-	await updateDoc(docRef, {"company":cid}).then((_value) => {
-		// Todo:
-		//	- if fail do something
-		// update cache
-	}).catch((e)=>{
-		console.log("Cannot update companyID",e,e.message);
-		console.error(e.message);
-	});
+	await updateDoc(docRef, {"company":cid})
+	// Currently not possible with permissions for anyone but Asa
+	// Todo:
+	// update cache
 }
 
 export async function getMyCompanyID(userID) {
@@ -452,9 +443,14 @@ export async function deleteCompanyEmployee(empID, companyID) {
 	const docRef = doc(db, COMPANY_LIST_COLLECTION_NAME + '/' + companyID + '/' + COMPANY_EMPLOYEE_COLLECTION, empID)
 	await deleteDoc(docRef);
 
+	const data = {uid:empID};
+	const result = await deleteCompanyEmployee(data);
+	if (!result.data.success) {
+		alert("Failed to remove emp company data");
+	} else console.log(result.data);
 	// grab the employee's collection -> delete their administrative_data
-	const empDocRef = doc(db, empID, ADMIN_DOC_NAME);
-	await updateDoc(empDocRef, {"company":""})
+	// const empDocRef = doc(db, empID, ADMIN_DOC_NAME);
+	// await updateDoc(empDocRef, {"company":""})
 	// await deleteDoc(empDocRef);
 
 }

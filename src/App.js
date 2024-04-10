@@ -25,6 +25,8 @@ function App() {
 			if (auth.currentUser) {
 				navigateUser(auth.currentUser.uid, setCurrPage).then(()=>{
 					setLoading(false);
+				}).catch((_e)=>{
+					alert(`Error code 4573. This should never happen. Please refresh the page`);
 				});
 			}
 			else {

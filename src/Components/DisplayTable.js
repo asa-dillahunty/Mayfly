@@ -31,6 +31,56 @@ function CreateCompanyPopup(props) {
 	);
 }
 
+export function DisplayTableSkeleton() {
+	return (
+		<div className='company-display-table skeleton'>
+			<div className="shimmer-box"></div>
+			<h2></h2>
+			<ul>
+				<li className='table-key'>
+					{/* <div className='dropdown'></div> fake kebab so we get spacing right */}
+					<span className='date-row'>
+						<button disabled>&#10148;</button>
+						<span className='week-string'>{getStartOfWeekString(selectedDate.value)}&nbsp;&nbsp;&nbsp;&#x2015;&nbsp;&nbsp;&nbsp;{getEndOfWeekString(selectedDate.value)}</span>
+						<button disabled>&#10148;</button>
+					</span>
+				</li>
+				<li>
+					<span className='kebab'></span>
+					<span className='employee-name'></span>
+					<span className='employee-weekly-hours'></span>
+				</li>
+				<li>
+					<span className='kebab'></span>
+					<span className='employee-name'></span>
+					<span className='employee-weekly-hours'></span> 
+				</li>
+				<li>
+					<span className='kebab'></span>
+					<span className='employee-name'></span>
+					<span className='employee-weekly-hours'></span> 
+				</li>
+				<li>
+					<span className='kebab'></span>
+					<span className='employee-name'></span>
+					<span className='employee-weekly-hours'></span> 
+				</li>
+				<li>
+					<span className='kebab'></span>
+					<span className='employee-name'></span>
+					<span className='employee-weekly-hours'></span> 
+				</li>
+				<li>
+					<span className='kebab'></span>
+					<span className='employee-name'></span>
+					<span className='employee-weekly-hours'></span> 
+				</li>
+			</ul>
+		</div>
+	);
+
+}
+
 export function AdminCompanyDisplayTable(props) {
 
 	// jumps selectedDate a week forward
@@ -51,11 +101,7 @@ export function AdminCompanyDisplayTable(props) {
 		claimedList = props.company.Employees.filter( emp => !emp.unclaimed );
 		unclaimedList = props.company.Employees.filter( emp => emp.unclaimed );
 	}
-	if (!props.company || !props.company.Employees) {
-		// TODO:
-		// 	return a skeleton
-		return(<></>);
-	}
+
 	return (
 		<div className='company-display-table'>
 			<h2> {props.company.name} </h2>
@@ -104,7 +150,13 @@ function EmployeeLine(props) {
 			.then(() => {
 				props.refreshTable().then(() => {
 					setConfirmDelete(false);
+				}).catch((_e) => {
+					alert(`Error Code 0012. Please refresh the page.`)
+					setConfirmDelete(false);
 				});
+			}).catch((_e) => {
+				alert(`Error Code 7982. Failed to delete ${props.emp.id}. Please refresh the page.`)
+				setConfirmDelete(false);
 			});
 	}
 
@@ -120,9 +172,9 @@ function EmployeeLine(props) {
 		<li>
 			{/* <span className='kebab'>&#8942;</span> */}
 			<ClickBlocker block={blocked} />
-			<ClickBlocker block={editUser}>
+			<ClickBlocker block={editUser} custom>
 				<EmployeeInfoForm 
-					setBlocked={setEditUser}
+					setFormOpen={setEditUser}
 					refreshTable={props.refreshTable}
 					empID={props.emp.id}
 					companyID={props.company.id}
@@ -132,7 +184,9 @@ function EmployeeLine(props) {
 			</ClickBlocker>
 			<ClickBlocker 
 				block={confirmDelete}
-				confirm message={`You want to remove ${props.emp.name} from ${props.company.name}? This action cannot be undone.`}
+				confirm
+				message={`Are you sure you want to remove ${props.emp.name} from ${props.company.name}?`}
+				messageEmphasized={"This action cannot be undone."}
 				onConfirm={deleteUser}
 				onCancel={()=>setConfirmDelete(false)}
 				/>

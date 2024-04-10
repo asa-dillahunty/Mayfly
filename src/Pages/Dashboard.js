@@ -23,6 +23,9 @@ function Dashboard(props) {
 		setBlocked(true);
 		performLogout(props.setCurrPage).then(() => {
 			setBlocked(false);
+		}).catch((_e)=> {
+			console.log("this should never happen");
+			console.error("Error code 7034");
 		});
 	};
 
@@ -32,6 +35,8 @@ function Dashboard(props) {
 		getMyCompanyID(auth.currentUser.uid).then((companyID) => {
 			if (companyID !== undefined) setClaimedState(claimedStateEnum.claimed);
 			else setClaimedState(claimedStateEnum.unclaimed);
+		}).catch((_e) => {
+			alert("Error code 5549. Please refresh");
 		});
 	});
 

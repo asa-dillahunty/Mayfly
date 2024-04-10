@@ -19,20 +19,27 @@ function ClickBlocker(props) {
 		else if (props.confirm) {
 			return (
 				<div className='blocker fast'>
-					<div className='childContainer'>
-						<div className='confirm-container'>
-							<p className='confirm-message'>{props.message}</p>
-							<div className='button-container'>
-								<button onClick={props.onConfirm} className='confirm'>Confirm</button>
-								<button onClick={props.onCancel} className='cancel'>Cancel</button>
-							</div>
-						</div>
-					</div>
+					<ConfirmDialog {...props} />
 				</div>
 			)
 		}
 		else return ( <div className="blocker"></div> );
 	else return <></>
+}
+
+function ConfirmDialog(props) {
+	return (
+		<div className='childContainer'>
+			<div className='confirm-container'>
+				<p className='confirm-message'>{props.message}</p>
+				{props.messageEmphasized ? <p className='confirm-message-emphasized'>{props.messageEmphasized}</p> : <></> }
+				<div className='button-container'>
+					<button onClick={props.onConfirm} className='confirm'>Confirm</button>
+					<button onClick={props.onCancel} className='cancel'>Cancel</button>
+				</div>
+			</div>
+		</div>
+	);
 }
 
 export default ClickBlocker;

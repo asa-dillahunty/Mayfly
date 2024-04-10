@@ -3,7 +3,7 @@ import { DayPicker } from 'react-day-picker';
 
 import './Calendar.css';
 import { auth, selectedDate, setSelectedDate, currentDate, getHoursSignal, refreshCurrentDate } from '../lib/firebase';
-import { effect } from '@preact/signals-react';
+import { effect, signal } from '@preact/signals-react';
 
 export const WEEK_VIEW = 0;
 export const MONTH_VIEW = 1;
@@ -11,27 +11,32 @@ export const DAYS_DISPLAYED = 8;
 
 document.addEventListener('visibilitychange', function () {
 	refreshCurrentDate();
+	refreshDateArray();
+	console.log("refreshed date array");
 });
 
-const DateArray = [];
-// var count = 0;
 const buildDateArray = () => {
-	// count++;
-	DateArray.length = 0;
+	const dateArray = [];
+	dateArray.length = 0;
 	let temp;
 	for (var i=0;i<DAYS_DISPLAYED;i++) {
 		temp = new Date(new Date().setDate(currentDate.value.getDate() - i));
-		DateArray.push(new Date(temp.toDateString()));
+		dateArray.push(new Date(temp.toDateString()));
 	}
-	// console.log("Date Array Built: ", DateArray, count);
+	return dateArray;
 }
-buildDateArray();
+
+const refreshDateArray = () => {
+	CalendarDates.value = buildDateArray();
+}
+const CalendarDates = signal(buildDateArray());
 
 
 const ABBREVIATIONS = [ "Sun","Mon","Tue","Wed","Thu","Fri","Sat" ];
 function DateCell(props) {
 	const [isSelected, setIsSelected] = useState(false);
 	const selectedThisDateCell = () => {
+		setIsSelected(true); // do immediately for responsive behavior
 		props.onDayClick(props.date);
 	}
 
@@ -55,18 +60,13 @@ function DateCell(props) {
 }
 
 function Calendar(props) {
-	// should only run on mount (depend)
-	effect(() => {
-		buildDateArray(currentDate.value);
-	});
-
 	if (props.view === WEEK_VIEW) {
 		return <div className='carouselWrapper' dir="rtl">
 			<table className="dateCarousel">
 				<tbody>
 					<tr>
 						{/* I bet this is horrible for performance */}
-						{ DateArray.map((currDate,i) => 
+						{ CalendarDates.value.map((currDate,i) => 
 							<DateCell
 								uid={props.uid}
 								key={i}

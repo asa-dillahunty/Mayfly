@@ -69,11 +69,9 @@ function HourSelector(props) {
 		setHoursWorked( pickerValue.hours + pickerValue.minutes);
 	}, [pickerValue]);
 
-	const refreshWeeklyHours = () => {
-		getHoursThisWeek(props.uid, selectedDate.value).then((weekHours) => {
-			if (weekHours !== hoursThisWeek)
-			setHoursThisWeek(weekHours);
-		});
+	const refreshWeeklyHours = async () => {
+		const weekHours = await getHoursThisWeek(props.uid, selectedDate.value)
+		if (weekHours !== hoursThisWeek) setHoursThisWeek(weekHours);
 	}
 
 	effect(() => {
@@ -98,11 +96,15 @@ function HourSelector(props) {
 
 		setHours(props.uid, selectedDate.value, hoursWorked).then(() => {
 			console.log('Hours data added successfully');
-			refreshWeeklyHours();
-			props.setBlocked(false); // do I need to do this in a .then() ?
+			refreshWeeklyHours().then(()=> {
+				props.setBlocked(false);
+			}).catch((_e)=>{
+				alert(`Error Code 1921. Failed to get hours. Please refresh the page.`);
+				props.setBlocked(false);
+			});
 		}).catch ((error) => {
 			// console.error('Error adding hours data:', error.message);
-			alert("Error adding hours data: ", error.message);
+			alert("Please refresh. Error adding hours data: ", error.message);
 			props.setBlocked(false);
 		});
 	};
