@@ -444,15 +444,20 @@ export async function deleteCompanyEmployee(empID, companyID) {
 	await deleteDoc(docRef);
 
 	const data = {uid:empID};
-	const result = await deleteCompanyEmployee(data);
+	const result = await deleteEmpCompany(data);
 	if (!result.data.success) {
 		alert("Failed to remove emp company data");
-	} else console.log(result.data);
+	}
+
+	// remove them from the cache
+	const oldCache = firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][COMPANY_EMPLOYEE_COLLECTION];
+	const newCache = oldCache.filter((emp) => emp.id !== empID);
+	firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][COMPANY_EMPLOYEE_COLLECTION] = newCache;
+
 	// grab the employee's collection -> delete their administrative_data
 	// const empDocRef = doc(db, empID, ADMIN_DOC_NAME);
 	// await updateDoc(empDocRef, {"company":""})
 	// await deleteDoc(empDocRef);
-
 }
 
 export async function createUnclaimedEmployee(employeeData, companyID) {
