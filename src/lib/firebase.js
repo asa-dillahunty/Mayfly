@@ -1,4 +1,4 @@
-import { getAuth, createUserWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword, sendPasswordResetEmail, sendSignInLinkToEmail } from "firebase/auth";
 import { getFirestore, doc, setDoc, getDoc, getDocs, addDoc, collection, deleteDoc, updateDoc } from "firebase/firestore";
 import { initializeApp } from "firebase/app";
 import { signal } from '@preact/signals-react';
@@ -504,7 +504,7 @@ export async function deleteUnclaimedEmployee(claimCode, companyID) {
 }
 
 export async function createEmployeeAuth(empData, companyID) {
-	const data = {email:empData.email, companyID};
+	const data = {email: empData.email, companyID, name: empData.name};
 	const result = await createEmp(data);
 	if (!result.data.success) {
 		alert("Failed to create user");
@@ -512,6 +512,12 @@ export async function createEmployeeAuth(empData, companyID) {
 
 	// need to return the employee's ID as well
 	await createCompanyEmployee(empData, result.data.empID, companyID);
+
+	const actionCodeSettings = {
+		url: 'https://mayfly.asadillahunty.com/',
+		handleCodeInApp: true
+	}
+	await sendSignInLinkToEmail(auth, empData.email, actionCodeSettings);
 	// await setMyCompany(result.data.empID, companyID);
 	// update the cache
 	await getCompany(companyID);

@@ -17,16 +17,20 @@ function App() {
 	const [loading, setLoading] = useState(true);
 	const [resetToken, setResetToken] = useState(null);
 
-
 	useEffect(() => {
 		const urlParams = new URLSearchParams(window.location.search);
-		const token = urlParams.get('token');
-		if (token) {
-			console.log(token);
+		const token = urlParams.get('oobCode');
+		const mode = urlParams.get('mode');
+		console.log(mode);
+		if (token && mode === "resetPassword") {
 			setLoading(false);
 			setResetToken(token);
 			setCurrPage(pageListEnum.Reset);
 			return;
+		} else if (token && mode === "signIn") {
+			setLoading(false);
+			setResetToken(token);
+			setCurrPage(pageListEnum.SignInToken);
 		}
 		const unsubscribe = onAuthStateChanged(auth, _user => {
 			// in case user is logging out
@@ -38,7 +42,7 @@ function App() {
 				});
 			}
 			else {
-				setCurrPage(pageListEnum.Login);
+				// setCurrPage(pageListEnum.Login);
 				setLoading(false);
 			}
 		});
@@ -55,7 +59,9 @@ function App() {
 		case pageListEnum.Forgot:
 			return <ForgotPassword setCurrPage={setCurrPage} />
 		case pageListEnum.Reset:
-			return <PasswordReset setCurrPage={setCurrPage} token={resetToken} />;
+			return <PasswordReset setCurrPage={setCurrPage} token={resetToken} reset/>;
+		case pageListEnum.SignInToken:
+			return <PasswordReset setCurrPage={setCurrPage} token={resetToken} reset={false} />
 		case pageListEnum.Dashboard:
 			return <Dashboard setCurrPage={setCurrPage} />;
 		case pageListEnum.Admin:
@@ -75,6 +81,7 @@ export const pageListEnum = {
 	Admin:"admin",
 	OmniAdmin:"omniAdmin",
 	Reset:"reset",
+	SignInToken:"signInToken",
 	Forgot:"forgot",
 }
 

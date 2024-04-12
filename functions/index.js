@@ -72,14 +72,11 @@ exports.createEmployee = functions.https.onCall(async (data, context) => {
 		}
 
 		const { email, companyID } = data;
-		const actionCodeSettings = {
-			url: 'https://mayfly.asadillahunty.com/',
-			handleCodeInApp: true
-		};
+		const userRecord = await admin.auth().createUser({ email });
+
 		// this should send the user an email with link to set up their password
 		// it should look something like this:
 		// 		https://mayfly.asadillahunty.com/?token={TOKEN_STRING}
-		await admin.auth().generatePasswordResetLink(email, actionCodeSettings);
 
 		await admin.firestore().collection(userRecord.uid).doc(ADMIN_DOC_NAME).set({
 			"isAdmin":false,
@@ -89,7 +86,7 @@ exports.createEmployee = functions.https.onCall(async (data, context) => {
 
 		return { success: true, empID: userRecord.uid };
 	} catch (error) {
-		throw new functions.https.HttpsError('internal', 'Error creating user', error);
+		throw new functions.https.HttpsError('internal', 'Error creating user: ' + error.message, error);
 	}
 });
 
