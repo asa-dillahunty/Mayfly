@@ -55,7 +55,7 @@ export default function PasswordReset (props) {
 				}, 1000);
 			} else {
 				await signInWithEmailLink(auth, email, window.location.href);
-				await updatePassword(auth, password);
+				await updatePassword(auth.currentUser, password);
 				setBlocked(false);
 				// we do this instead of set curr page to get rid of url parameters
 				// we do that because I am afraid of users bookmarking a page with
