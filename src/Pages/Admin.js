@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { auth, deleteCache, getCompany, getMyCompanyID, performLogout, createUnclaimedEmployee, createUser, getCompanyFromCache } from '../lib/firebase';
+import { auth, deleteCache, getCompany, getMyCompanyID, performLogout, getCompanyFromCache, selectedDate, decrementDate } from '../lib/firebase';
 import './Admin.css';
 import { AdminCompanyDisplayTable, DisplayTableSkeleton } from '../Components/DisplayTable';
 import ClickBlocker from '../Components/ClickBlocker';
 import EmployeeInfoForm from '../Components/EmployeeInfoForm';
-import { effect } from '@preact/signals-react';
 
 function AdminDashboard(props) {
 	const [companyData, setCompanyData] = useState({});
@@ -34,6 +33,9 @@ function AdminDashboard(props) {
 	
 	useEffect(() => {
 		console.log("Fetching Company Data");
+		// 4 is start of pay period. This is done because if it's the start of the pay period
+		// you probably wanted to see last week's data
+		if (selectedDate.value.getDay() === 4) decrementDate(selectedDate.value);
 		fetchCompany().then(() => {
 			setInitialLoad(false);
 		});

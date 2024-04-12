@@ -65,6 +65,11 @@
 	height: 35px;
 }
 
+.login-container div.error-message {
+	color: rgb(187, 0, 0);
+	font-size: 12px;
+}
+
 .signup-p {
 	text-align: center;
 	margin: auto;

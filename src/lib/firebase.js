@@ -47,6 +47,16 @@ export const refreshCurrentDate = () => {
 	currentDate.value = new Date(new Date().toDateString());
 }
 
+export const incrementDate = (thisDate) => {
+	thisDate.setDate(thisDate.getDate() + 1);
+	return thisDate;
+}
+
+export const decrementDate = (thisDate) => {
+	thisDate.setDate(thisDate.getDate() - 1);
+	return thisDate;
+}
+
 export const performLogout = async (navigate) => {
 	try {
 		deleteCache();

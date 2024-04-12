@@ -3,24 +3,32 @@ import React, { useEffect, useState } from 'react';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css'; // need this for the react-bootstrap package
 
-import Login, { PasswordReset, Signup } from "./Pages/Login";
+import Login, { ForgotPassword, Signup } from "./Pages/Login";
 import Dashboard from './Pages/Dashboard';
 import Admin from './Pages/Admin';
 import OmniAdmin from './Pages/OmniAdmin';
-import { auth, getIsAdmin, getIsOmniAdmin, navigateUser } from './lib/firebase';
+import { auth, currentDate, incrementDate, navigateUser } from './lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import ClickBlocker from './Components/ClickBlocker';
-
+import PasswordReset from './Pages/PasswordReset';
 
 function App() {
 	const [currPage, setCurrPage] = useState(pageListEnum.Login);
-	const [user, setUser] = useState(null);
 	const [loading, setLoading] = useState(true);
+	const [resetToken, setResetToken] = useState(null);
 
 
 	useEffect(() => {
-		const unsubscribe = onAuthStateChanged(auth, user => {
-			setUser(user);
+		const urlParams = new URLSearchParams(window.location.search);
+		const token = urlParams.get('token');
+		if (token) {
+			console.log(token);
+			setLoading(false);
+			setResetToken(token);
+			setCurrPage(pageListEnum.Reset);
+			return;
+		}
+		const unsubscribe = onAuthStateChanged(auth, _user => {
 			// in case user is logging out
 			if (auth.currentUser) {
 				navigateUser(auth.currentUser.uid, setCurrPage).then(()=>{
@@ -36,7 +44,7 @@ function App() {
 		});
 	
 		return () => unsubscribe();
-	}, [auth]);
+	}, []);
 
 	if (loading) return <ClickBlocker loading block/>
 	switch (currPage) {
@@ -44,15 +52,16 @@ function App() {
 			return <Login setCurrPage={setCurrPage} />;
 		case pageListEnum.Signup:
 			return <Signup setCurrPage={setCurrPage} />
+		case pageListEnum.Forgot:
+			return <ForgotPassword setCurrPage={setCurrPage} />
 		case pageListEnum.Reset:
-			return <PasswordReset setCurrPage={setCurrPage} />;
+			return <PasswordReset setCurrPage={setCurrPage} token={resetToken} />;
 		case pageListEnum.Dashboard:
 			return <Dashboard setCurrPage={setCurrPage} />;
 		case pageListEnum.Admin:
 			return <Admin setCurrPage={setCurrPage} />;
 		case pageListEnum.OmniAdmin:
 			return <OmniAdmin setCurrPage={setCurrPage} />;
-		case pageListEnum.Test:
 
 		default:
 			return <Login setCurrPage={setCurrPage} />;
@@ -65,16 +74,8 @@ export const pageListEnum = {
 	Dashboard:"dashboard",
 	Admin:"admin",
 	OmniAdmin:"omniAdmin",
-	Reset:"reset"
-}
-
-function LoadingPage() {
-	return (
-		<div className='loading-page'>
-			<ClickBlocker loading block/>
-		</div>
-	);
-
+	Reset:"reset",
+	Forgot:"forgot",
 }
 
 // signInWithEmailAndPassword(auth, email, password)

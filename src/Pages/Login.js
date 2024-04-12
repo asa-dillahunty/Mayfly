@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { signInWithEmailAndPassword } from "firebase/auth";
 
 
-import { auth, getIsAdmin, createUser, resetPassword, getIsOmniAdmin } from '../lib/firebase';
+import { auth, createUser, resetPassword } from '../lib/firebase';
 import './Login.css';
 import logo from '../MayflyLogo.png';
 import ClickBlocker from '../Components/ClickBlocker';
@@ -23,19 +23,17 @@ function Login(props) {
 	}
 
 	const attemptSignIn = async () => {
-		// Todo:
-		// 	- check if admin 
-			signInWithEmailAndPassword(auth, email, password)
-				.then(() => {
-					// Signed in
-					// Should trigger a listener implemented in App.js
-				})
-				.catch((error) => {
-					// const errorCode = error.code;
-					const errorMessage = error.message;
-					alert("Failed to sign in: " + errorMessage);
-					setBlocked(false);
-				});	
+		signInWithEmailAndPassword(auth, email, password)
+			.then(() => {
+				// Signed in
+				// Should trigger a listener implemented in App.js
+			})
+			.catch((error) => {
+				// const errorCode = error.code;
+				const errorMessage = error.message;
+				alert("Failed to sign in: " + errorMessage);
+				setBlocked(false);
+			});	
 	};
 
 	return (
@@ -66,7 +64,7 @@ function Login(props) {
 						Sign In
 					</button>
 					<p className='signup-p'>
-						<span onClick={()=>{props.setCurrPage(pageListEnum.Reset)}}>Forgot your password?</span>
+						<span onClick={()=>{props.setCurrPage(pageListEnum.Forgot)}}>Forgot your password?</span>
 					</p>
 				</form>
 			</div>
@@ -76,7 +74,7 @@ function Login(props) {
 
 export default Login;
 
-export function PasswordReset (props) {
+export function ForgotPassword (props) {
 	const [email, setEmail] = useState('');
 	const [blocked, setBlocked] = useState(false);
 

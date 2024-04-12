@@ -71,16 +71,15 @@ exports.createEmployee = functions.https.onCall(async (data, context) => {
 			throw new functions.https.HttpsError('permission-denied', 'Only Admins can create users');
 		}
 
-		const { email, phoneNumber, companyID } = data;
-		
-		let userRecord;
-		if (email) {
-			userRecord = await admin.auth().createUser({ email });
-		} else if (phoneNumber) {
-			userRecord = await admin.auth().createUser({ phoneNumber });
-		} else {
-			throw new functions.https.HttpsError('invalid-argument', 'Email or phone number is required');
-		}
+		const { email, companyID } = data;
+		const actionCodeSettings = {
+			url: 'https://mayfly.asadillahunty.com/',
+			handleCodeInApp: true
+		};
+		// this should send the user an email with link to set up their password
+		// it should look something like this:
+		// 		https://mayfly.asadillahunty.com/?token={TOKEN_STRING}
+		await admin.auth().generatePasswordResetLink(email, actionCodeSettings);
 
 		await admin.firestore().collection(userRecord.uid).doc(ADMIN_DOC_NAME).set({
 			"isAdmin":false,

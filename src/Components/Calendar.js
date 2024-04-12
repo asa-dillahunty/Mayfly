@@ -1,19 +1,13 @@
-import { useState } from 'react';
+import { useLayoutEffect, useState } from 'react';
 import { DayPicker } from 'react-day-picker';
 
 import './Calendar.css';
-import { auth, selectedDate, setSelectedDate, currentDate, getHoursSignal, refreshCurrentDate } from '../lib/firebase';
+import { auth, selectedDate, currentDate, getHoursSignal, refreshCurrentDate } from '../lib/firebase';
 import { effect, signal } from '@preact/signals-react';
 
 export const WEEK_VIEW = 0;
 export const MONTH_VIEW = 1;
 export const DAYS_DISPLAYED = 8;
-
-document.addEventListener('visibilitychange', function () {
-	refreshCurrentDate();
-	refreshDateArray();
-	console.log("refreshed date array");
-});
 
 const buildDateArray = () => {
 	const dateArray = [];
@@ -60,6 +54,18 @@ function DateCell(props) {
 }
 
 function Calendar(props) {
+	const onVisibilityChange = () => {
+		if (document.visibilityState !== 'visible') return;
+		refreshCurrentDate();
+		refreshDateArray();
+		console.log("refreshed date array");
+	}
+
+	useLayoutEffect(() => {
+		document.addEventListener('visibilitychange',onVisibilityChange);
+		return () => document.removeEventListener("visibilitychange",onVisibilityChange);
+	}, []);
+
 	if (props.view === WEEK_VIEW) {
 		return <div className='carouselWrapper' dir="rtl">
 			<table className="dateCarousel">
