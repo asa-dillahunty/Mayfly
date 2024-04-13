@@ -36,6 +36,7 @@ const COMPANY_EMPLOYEE_COLLECTION = "Employees";
 const daysInChunk = 7;
 const startOfPayPeriod = 4; // Thursday
 export const FAKE_EMAIL_EXTENSION = "@dillahuntyfarms.com";
+export const ABBREVIATIONS = [ "Sun","Mon","Tue","Wed","Thu","Fri","Sat" ];
 
 export const currentDate = signal(new Date(new Date().toDateString()));
 export const selectedDate = signal(new Date(new Date().toDateString()));
@@ -272,6 +273,21 @@ export async function getHoursThisWeek(userID, date, docName) {
 	return totalHours;
 }
 
+export async function getHoursList(userID, date, docName) {
+	const hoursList = [];
+	if (arguments.length === 2) docName = buildDocName(date);
+	if (!userID) return 0;
+
+	if (!firebaseCache[userID] || !firebaseCache[userID][docName] || firebaseCache[userID][docName]["awaiting"]) await getHours(userID, date, docName);
+	
+	for (let day=0;day<7;day++) {
+		if (firebaseCache[userID][docName][day].hours)
+			hoursList[day] = firebaseCache[userID][docName][day].hours;
+		else hoursList[day] = 0;
+	}
+	return hoursList;
+}
+
 export function buildDocName(date) {
 	// console.log("here is the date",date);
 	// if (date === undefined) return "";
@@ -388,6 +404,7 @@ export async function getCompanyFromCache(company_ID) {
 	// console.log(firebaseCache);
 	for (var emp in empList) {
 		empList[emp].hoursThisWeek = await getHoursThisWeek(empList[emp].id, selectedDate.value, docName);
+		empList[emp].hoursList = await getHoursList(empList[emp].id, selectedDate.value, docName);
 		empList[emp].hidden = await getIsHidden(empList[emp].id);
 	}
 	const companyData = firebaseCache[COMPANY_LIST_COLLECTION_NAME][company_ID];
@@ -413,6 +430,7 @@ export async function getCompany(company_ID, docName) {
 	for (let i=0; i<docList.length; i++) {
 		const emp = docList[i];
 		emp.hoursThisWeek = await getHoursThisWeek(emp.id, selectedDate.value, docName);
+		emp.hoursList = await getHoursList(emp.id, selectedDate.value, docName);
 		emp.hidden = await getIsHidden(emp.id);
 	}
 

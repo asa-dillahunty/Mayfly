@@ -77,6 +77,7 @@ export default Login;
 export function ForgotPassword (props) {
 	const [email, setEmail] = useState('');
 	const [blocked, setBlocked] = useState(false);
+	const [completed, setCompleted] = useState(true);
 
 	const handleReset = (e) => {
 		e.preventDefault();
@@ -84,14 +85,29 @@ export function ForgotPassword (props) {
 
 		resetPassword(email)
 			.then( () => {
+				setCompleted(true);
 				setBlocked(false);
-				props.setCurrPage(pageListEnum.Login);
 			}).catch((e)=>{
 				alert("Failed to reset password: " + e.message);
 				setBlocked(false);
 			});
 	}
 
+	if (completed) {
+		return (
+			<div className='login-container return-to-login'>
+				<div className='login-form'>
+					<h1 className='login-title'>
+						<span className='title'>Mayfly</span>
+						<br /> Reset Complete!
+					</h1>
+					<button type="submit" className="login-button" disabled={blocked} onClick={()=>props.setCurrPage(pageListEnum.Login)}>
+						Return to Login
+					</button>
+				</div>
+			</div>
+		);
+	}
 	return (
 		<div className="login-container">
 			<ClickBlocker block={blocked} loading={true} />

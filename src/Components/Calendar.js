@@ -2,7 +2,7 @@ import { useLayoutEffect, useState } from 'react';
 import { DayPicker } from 'react-day-picker';
 
 import './Calendar.css';
-import { auth, selectedDate, currentDate, getHoursSignal, refreshCurrentDate } from '../lib/firebase';
+import { auth, selectedDate, currentDate, getHoursSignal, refreshCurrentDate, ABBREVIATIONS } from '../lib/firebase';
 import { effect, signal } from '@preact/signals-react';
 
 export const WEEK_VIEW = 0;
@@ -26,7 +26,6 @@ const refreshDateArray = () => {
 const CalendarDates = signal(buildDateArray());
 
 
-const ABBREVIATIONS = [ "Sun","Mon","Tue","Wed","Thu","Fri","Sat" ];
 function DateCell(props) {
 	const [isSelected, setIsSelected] = useState(false);
 	const selectedThisDateCell = () => {

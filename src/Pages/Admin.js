@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { auth, deleteCache, getCompany, getMyCompanyID, performLogout, getCompanyFromCache, selectedDate, decrementDate } from '../lib/firebase';
+import { auth, deleteCache, getCompany, getMyCompanyID, performLogout, getCompanyFromCache, selectedDate, decrementDate, buildDocName, ABBREVIATIONS, getStartOfWeekString, getEndOfWeekString } from '../lib/firebase';
 import './Admin.css';
 import { AdminCompanyDisplayTable, DisplayTableSkeleton } from '../Components/DisplayTable';
 import ClickBlocker from '../Components/ClickBlocker';
 import EmployeeInfoForm from '../Components/EmployeeInfoForm';
+import jsPDF from 'jspdf';
 
 function AdminDashboard(props) {
 	const [companyData, setCompanyData] = useState({});
@@ -29,7 +30,33 @@ function AdminDashboard(props) {
 		companyObj.id = companyID;
 		setCompanyData(companyObj);
 		setBlocked(false);
-	}
+	};
+
+	const createPrintable = () => {
+		const newDoc = new jsPDF();
+
+		for (let i=0; i<companyData.Employees.length; i++) {
+			newDoc.text(`${companyData.Employees[i].name}     ${getStartOfWeekString(selectedDate.value)}   -   ${getEndOfWeekString(selectedDate.value)}`, 10, 40 * (i+1) - 20);
+			
+			for (let j=0; j<companyData.Employees[i].hoursList.length; j++) {
+				newDoc.text(`${ABBREVIATIONS[(j+4)%7]}`, 
+					15 + 15*(j+1), 40*(i+1) - 10
+				);
+			}
+
+			newDoc.text("Total", 30 + 15 * 8, 40*(i+1) - 10);
+
+			for (let j=0; j<companyData.Employees[i].hoursList.length; j++) {
+				newDoc.text(`${companyData.Employees[i].hoursList[(j+4)%7]}`, 
+					15 + 15*(j+1), 40*(i+1)
+				);
+			}
+
+			newDoc.text(`${companyData.Employees[i].hoursThisWeek}`, 30 + 15 * 8, 40*(i+1));
+		}
+		
+		newDoc.save(`${companyData.name}-hours-week-${buildDocName(selectedDate.value)}.pdf`);
+	};
 	
 	useEffect(() => {
 		console.log("Fetching Company Data");
@@ -69,6 +96,7 @@ function AdminDashboard(props) {
 				<ClickBlocker block={blocked} loading/>
 				<AdminCompanyDisplayTable company={companyData} refreshTable={fetchCompany}/>
 				<button className="add-emp" onClick={() => { setInfoFormOpen(true); }}>Add Employee</button>
+				<button className="add-emp" onClick={ createPrintable }>Print Hours</button>
 				<ClickBlocker custom={true} block={infoFormOpen}>
 					<EmployeeInfoForm setFormOpen={setInfoFormOpen} refreshTable={fetchCompany} deepRefresh={deepRefresh} companyID={companyData.id} add/>
 				</ClickBlocker>

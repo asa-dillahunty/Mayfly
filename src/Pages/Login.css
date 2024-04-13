@@ -57,6 +57,13 @@
 	cursor: pointer;
 }
 
+.return-to-login .login-form {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+}
+
 .login-button:hover {
 	background-color: var(--secondary);
 }

@@ -48,19 +48,22 @@ export default function PasswordReset (props) {
 				// wait a second so the user can see it was a success then move to login
 				setTimeout(function() {
 					setBlocked(false);
-					// we do this instead of set curr page to get rid of url parameters
+					// replace state to get rid of url parameters
 					// we do that because I am afraid of users bookmarking a page with
 					//	and indefinitely being directed to the wrong page
-					window.location.href = "./";
+					window.history.replaceState(null, '', window.location.pathname);
+					props.setCurrPage(pageListEnum.Login);
 				}, 1000);
 			} else {
 				await signInWithEmailLink(auth, email, window.location.href);
 				await updatePassword(auth.currentUser, password);
 				setBlocked(false);
-				// we do this instead of set curr page to get rid of url parameters
+
+				// replace state to get rid of url parameters
 				// we do that because I am afraid of users bookmarking a page with
 				//	and indefinitely being directed to the wrong page
-				window.location.href = "./";
+				window.history.replaceState(null, '', window.location.pathname);
+				props.setCurrPage(pageListEnum.Dashboard);
 			}
 
 		} catch (error) {
