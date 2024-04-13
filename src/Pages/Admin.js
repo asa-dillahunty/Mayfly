@@ -5,6 +5,7 @@ import { AdminCompanyDisplayTable, DisplayTableSkeleton } from '../Components/Di
 import ClickBlocker from '../Components/ClickBlocker';
 import EmployeeInfoForm from '../Components/EmployeeInfoForm';
 import jsPDF from 'jspdf';
+import logo from '../MayflyLogo.png';
 
 function AdminDashboard(props) {
 	const [companyData, setCompanyData] = useState({});
@@ -34,25 +35,32 @@ function AdminDashboard(props) {
 
 	const createPrintable = () => {
 		const newDoc = new jsPDF();
+		const logoPrint = new Image();
+		logoPrint.src = logo;
 
+		let height = -1;
 		for (let i=0; i<companyData.Employees.length; i++) {
-			newDoc.text(`${companyData.Employees[i].name}     ${getStartOfWeekString(selectedDate.value)}   -   ${getEndOfWeekString(selectedDate.value)}`, 10, 40 * (i+1) - 20);
-			
+			if (companyData.Employees[i].hidden) continue;
+
+			height++;
+			newDoc.text(`${companyData.Employees[i].name}     ${getStartOfWeekString(selectedDate.value)}   -   ${getEndOfWeekString(selectedDate.value)}`, 10, 40 * (height+1) - 20);
+			newDoc.addImage(logoPrint, 'png', 175, 40 * (height+1) - 20, 20, 20)
+
 			for (let j=0; j<companyData.Employees[i].hoursList.length; j++) {
 				newDoc.text(`${ABBREVIATIONS[(j+4)%7]}`, 
-					15 + 15*(j+1), 40*(i+1) - 10
+					15 + 15*(j+1), 40*(height+1) - 10
 				);
 			}
 
-			newDoc.text("Total", 30 + 15 * 8, 40*(i+1) - 10);
+			newDoc.text("Total", 30 + 15 * 8, 40*(height+1) - 10);
 
 			for (let j=0; j<companyData.Employees[i].hoursList.length; j++) {
 				newDoc.text(`${companyData.Employees[i].hoursList[(j+4)%7]}`, 
-					15 + 15*(j+1), 40*(i+1)
+					15 + 15*(j+1), 40*(height+1)
 				);
 			}
 
-			newDoc.text(`${companyData.Employees[i].hoursThisWeek}`, 30 + 15 * 8, 40*(i+1));
+			newDoc.text(`${companyData.Employees[i].hoursThisWeek}`, 30 + 15 * 8, 40*(height+1));
 		}
 		
 		newDoc.save(`${companyData.name}-hours-week-${buildDocName(selectedDate.value)}.pdf`);
