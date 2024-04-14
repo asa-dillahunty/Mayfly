@@ -7,6 +7,7 @@ import ClickBlocker from "./ClickBlocker";
 
 import Calendar from './Calendar';
 import { WEEK_VIEW, MONTH_VIEW } from './Calendar';
+import { AiOutlineSnippets } from 'react-icons/ai';
 
 export function HourAdder (props) {
 	const [calendarView, setCalendarView] = useState( WEEK_VIEW );
@@ -48,7 +49,8 @@ const selections = {
 	minutes: [0,.5],
 }
 function HourSelector(props) {
-	const [start,setStart] = useState(true);
+	const [start, setStart] = useState(true);
+	const [notes, setNotes] = useState(false);
 	const [hoursWorked, setHoursWorked] = useState(-2);
 	const [hoursThisWeek, setHoursThisWeek] = useState(0);
 	const [pickerValue, setPickerValue] = useState({
@@ -111,7 +113,12 @@ function HourSelector(props) {
 
 	if (props.hide === true) return <div></div>
 	else return <div className="hours-and-picker-container">
-			<ClickBlocker blocked={ props.blocked || props.locked } locked={ props.locked } />
+			<ClickBlocker block={ props.blocked || props.locked } locked={ props.locked } />
+			<ClickBlocker block={ notes } custom >
+				<input />
+				yeah it's up
+				<button onClick={()=>setNotes(false)}>lcose</button>
+			</ClickBlocker>
 			<div className="worked-hours-container">
 				<p className="worked-hours-label">Hours Worked:</p>
 				<p className="worked-hours">{ hoursWorked < 0 ? "" : hoursWorked }</p>
@@ -136,7 +143,20 @@ function HourSelector(props) {
 					))}
 				</Picker>
 			</div>
-			<button className="add-hours-button" onClick={handleAddHours} disabled={props.blocked}>Add Hours</button>
+			<div className='add-hours-button-container'>
+				<button
+					className="add-hours-button"
+					onClick={handleAddHours}
+					disabled={props.blocked}>
+						Add Hours
+				</button>
+				<button
+					className="add-notes-button"
+					onClick={()=>setNotes(true)}
+					disabled={props.blocked}>
+						<AiOutlineSnippets />
+				</button>
+			</div>
 		</div>
 }
 
