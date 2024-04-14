@@ -6,6 +6,7 @@ import ClickBlocker from '../Components/ClickBlocker';
 import EmployeeInfoForm from '../Components/EmployeeInfoForm';
 import jsPDF from 'jspdf';
 import logo from '../MayflyLogo.png';
+import { AiFillPlusCircle, AiFillPrinter, AiOutlinePrinter } from "react-icons/ai";
 
 function AdminDashboard(props) {
 	const [companyData, setCompanyData] = useState({});
@@ -44,7 +45,7 @@ function AdminDashboard(props) {
 
 			height++;
 			newDoc.text(`${companyData.Employees[i].name}     ${getStartOfWeekString(selectedDate.value)}   -   ${getEndOfWeekString(selectedDate.value)}`, 10, 40 * (height+1) - 20);
-			newDoc.addImage(logoPrint, 'png', 175, 40 * (height+1) - 20, 20, 20)
+			// newDoc.addImage(logoPrint, 'png', 175, 40 * (height+1) - 20, 20, 20)
 
 			for (let j=0; j<companyData.Employees[i].hoursList.length; j++) {
 				newDoc.text(`${ABBREVIATIONS[(j+4)%7]}`, 
@@ -103,8 +104,17 @@ function AdminDashboard(props) {
 			<div className="dashboard-content contain-click-blocker">
 				<ClickBlocker block={blocked} loading/>
 				<AdminCompanyDisplayTable company={companyData} refreshTable={fetchCompany}/>
-				<button className="add-emp" onClick={() => { setInfoFormOpen(true); }}>Add Employee</button>
-				<button className="add-emp" onClick={ createPrintable }>Print Hours</button>
+
+				<div className='admin-button-container'>
+					<button className="add-emp" onClick={() => { setInfoFormOpen(true); }}>
+						<AiFillPlusCircle />
+						Add Employee
+					</button>
+					<button className='print-table' onClick={ createPrintable }>
+						<AiOutlinePrinter className="print-table" />
+					</button>
+				</div>
+					
 				<ClickBlocker custom={true} block={infoFormOpen}>
 					<EmployeeInfoForm setFormOpen={setInfoFormOpen} refreshTable={fetchCompany} deepRefresh={deepRefresh} companyID={companyData.id} add/>
 				</ClickBlocker>

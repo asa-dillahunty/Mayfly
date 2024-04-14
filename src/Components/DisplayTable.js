@@ -7,6 +7,7 @@ import { deleteCompanyEmployee, deleteUnclaimedEmployee, getEndOfWeekString, get
 import Dropdown from 'react-bootstrap/Dropdown';
 import HourAdder from './HourAdder';
 import EmployeeInfoForm from './EmployeeInfoForm';
+import { AiFillLeftSquare, AiFillRightSquare, AiOutlineMore } from 'react-icons/ai';
 
 function CreateCompanyPopup(props) {
 	const [companyName,setCompanyName] = useState('');
@@ -40,9 +41,9 @@ export function DisplayTableSkeleton() {
 				<li className='table-key'>
 					{/* <div className='dropdown'></div> fake kebab so we get spacing right */}
 					<span className='date-row'>
-						<button disabled>&#10148;</button>
+						<button disabled><AiFillLeftSquare /></button>
 						<span className='week-string'>{getStartOfWeekString(selectedDate.value)}&nbsp;&nbsp;&nbsp;&#x2015;&nbsp;&nbsp;&nbsp;{getEndOfWeekString(selectedDate.value)}</span>
-						<button disabled>&#10148;</button>
+						<button disabled><AiFillRightSquare /></button>
 					</span>
 				</li>
 				<li>
@@ -109,9 +110,9 @@ export function AdminCompanyDisplayTable(props) {
 				<li key={0} className='table-key'>
 					{/* <div className='dropdown'></div> fake kebab so we get spacing right */}
 					<span className='date-row'>
-						<button onClick={jumpBackward}>&#10148;</button>
+						<AiFillLeftSquare className='week-button' onClick={jumpBackward}/>
 						<span className='week-string'>{getStartOfWeekString(selectedDate.value)}&nbsp;&nbsp;&nbsp;&#x2015;&nbsp;&nbsp;&nbsp;{getEndOfWeekString(selectedDate.value)}</span>
-						<button onClick={jumpForward}>&#10148;</button>
+						<AiFillRightSquare className='week-button' onClick={jumpForward}/>
 					</span>
 				</li>
 				{claimedList.map((emp,index) => (
@@ -195,7 +196,7 @@ function EmployeeLine(props) {
 				/>
 			<Dropdown>
 				<Dropdown.Toggle as={CustomToggle}>
-					<span className='kebab'>&#8942;</span>
+					<span className='kebab'><AiOutlineMore /></span>
 				</Dropdown.Toggle>
 				<Dropdown.Menu size="sm" title="">
 					{props.emp.unclaimed ? <></> : <Dropdown.Item onClick={toggleShow}>Edit Hours</Dropdown.Item>}

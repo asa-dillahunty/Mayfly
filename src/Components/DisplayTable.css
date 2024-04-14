@@ -111,18 +111,19 @@ span.employee-weekly-hours {
 	align-items: center;
 }
 
-.company-display-table li.table-key > .date-row button {
+.company-display-table li.table-key > .date-row > .week-button {
 	border: none;
-	border-radius: 5px;
-	background-color: var(--background);
-	height: fit-content;
-	width: min-content;
-	padding: 0px 5px;
-	/* padding: 5px 7px 5px 7px; */
-	background-color: var(--backgroundThree);
-	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-	/* color: var(--primary); */
-	font-size: 24px;
+	border-radius: 3px;
+	padding: 0;
+	/* box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); */
+	/* text-shadow: 0 2px 4px rgba(0, 0, 0);
+	filter: drop-shadow(0px 2px 4px rgb(0 0 0 / 0.2));  */
+	color: var(--text);
+	font-size: 32px;
+}
+.company-display-table li.table-key > .date-row > .week-button:hover {
+	color: var(--accent);
+	cursor: pointer;
 }
 
 .company-display-table li.table-key > .date-row span.week-string {
@@ -162,18 +163,6 @@ span.employee-weekly-hours {
 
 .display-table > ul > li .company-display-table > h2 {
 	display: none;
-}
-
-.company-display-table li.table-key > .date-row > button {
-	font-family: var(--titleFont);
-}
-.company-display-table li.table-key > .date-row > button:hover {
-	color: var(--accent);
-}
-
-/* flip the left arrow */
-.company-display-table li.table-key > .date-row > button:nth-child(1) {
-	transform: scaleX(-1);
 }
 
 /** Skeleton Styling **/
