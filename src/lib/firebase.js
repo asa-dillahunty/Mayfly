@@ -235,6 +235,15 @@ export async function getHours(userID,date,docName) {
 	return 0;
 }
 
+export function clearHoursCache(userID,date,docName) {
+	if (arguments.length === 2) docName = buildDocName(date);
+	if (arguments.length === 1 && firebaseCache[userID]) delete firebaseCache[userID];
+	if (!userID) return;
+	
+	if (firebaseCache[userID] && firebaseCache[userID][docName] && !firebaseCache[userID][docName]["awaiting"])
+		delete firebaseCache[userID][docName];
+}
+
 export function getHoursSignal(userID,date,docName) {
 	if (arguments.length === 2) docName = buildDocName(date);
 	

@@ -115,9 +115,7 @@ function HourSelector(props) {
 	else return <div className="hours-and-picker-container">
 			<ClickBlocker block={ props.blocked || props.locked } locked={ props.locked } />
 			<ClickBlocker block={ notes } custom >
-				<input />
-				yeah it's up
-				<button onClick={()=>setNotes(false)}>lcose</button>
+				<NotesForm setBlocked={setNotes} />
 			</ClickBlocker>
 			<div className="worked-hours-container">
 				<p className="worked-hours-label">Hours Worked:</p>
@@ -158,6 +156,31 @@ function HourSelector(props) {
 				</button>
 			</div>
 		</div>
+}
+
+function NotesForm(props) {
+	const [notes, setNotes] = useState(false);
+	const submitChanges = (e) => {
+
+	}
+
+	const cancelForm = (e) => {
+		e.preventDefault();
+		props.setBlocked(false)
+	}
+
+	return (
+		<form onSubmit={submitChanges}>
+			<label htmlFor="notes-area">First Name:</label>
+			<textarea
+				className="name-input"
+				placeholder="Notes"
+				value={props.notes}
+				onChange={(e) => setNotes(e.target.value)}
+			/>
+			<button onClick={cancelForm}>Cancel</button>
+		</form>
+	);
 }
 
 export default HourAdder;
