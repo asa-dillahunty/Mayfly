@@ -235,6 +235,26 @@ export async function getHours(userID,date,docName) {
 	return 0;
 }
 
+export async function getUserNotes(userID,date,docName) {
+	if (arguments.length === 2) docName = buildDocName(date);
+	// if the cache exists, just grab the notes, otherwise call getHours
+	if (firebaseCache[userID] && firebaseCache[userID][docName])
+		return firebaseCache[userID][docName][date.getDay()].notes;
+	
+	await getHours(userID,date,docName);
+	return firebaseCache[userID][docName][date.getDay()].notes;
+}
+
+export async function setUserNotes(userID,date,notes,docName) {
+	if (arguments.length === 3) docName = buildDocName(date);
+
+	if (!firebaseCache[userID]) firebaseCache[userID]={};
+	var savedData = firebaseCache[userID][docName];
+	fillWeekCache(savedData);
+	savedData[date.getDay()].notes = notes;
+	await setDoc(doc(db, userID, docName), savedData);
+}
+
 export function clearHoursCache(userID,date,docName) {
 	if (arguments.length === 2) docName = buildDocName(date);
 	if (arguments.length === 1 && firebaseCache[userID]) delete firebaseCache[userID];

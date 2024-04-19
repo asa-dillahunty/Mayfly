@@ -123,3 +123,52 @@
 	cursor: pointer;
 	font-size: 20px;
 }
+
+form.add-notes-form {
+	background-color: var(--background);
+	display: flex;
+	flex-direction: column;
+
+	padding: 20px;
+	border-radius: 5px;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+	width: 340px;
+}
+
+form.add-notes-form > textarea.notes-input {
+	width: 100%;
+	padding: 10px;
+	margin-bottom: 10px;
+	border: 1px solid #ccc;
+	border-radius: 3px;
+
+	height: 60vh;
+	resize: none;
+
+	background-attachment: local;
+	background-image:
+		linear-gradient(to right, white 10px, transparent 10px),
+		linear-gradient(to left, white 10px, transparent 10px),
+		repeating-linear-gradient(white, white 30px, #ccc 30px, #ccc 31px, white 31px);
+	line-height: 31px;
+	padding: 8px 10px;
+}
+
+form.add-notes-form > div.button-container > button {
+	margin: 0 10px 0 10px;
+	padding: 5px 10px 5px 10px;
+	border-radius: 3px;
+
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+form.add-notes-form > div > .submit-button {
+	background-color: var(--primary);
+	color: var(--background);
+}
+
+form.add-notes-form > div > .cancel-button {
+	background-color: var(--accent);
+	color: var(--background);
+}

@@ -138,7 +138,7 @@ function Dashboard(props) {
 						Log Out
 					</button>
 				</div>
-				<HourAdder uid={auth.currentUser.uid} blocked={blocked} setBlocked={setBlocked} />
+				<HourAdder showNotes uid={auth.currentUser.uid} blocked={blocked} setBlocked={setBlocked} />
 			</div>
 		);
 	}

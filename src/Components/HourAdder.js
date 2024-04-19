@@ -1,4 +1,4 @@
-import { selectedDate, setSelectedDate, auth, setHours, getHoursEarlyReturn, getHoursThisWeek, } from '../lib/firebase';
+import { selectedDate, setSelectedDate, auth, setHours, getHoursEarlyReturn, getHoursThisWeek, getUserNotes, setUserNotes, } from '../lib/firebase';
 import Picker from 'react-mobile-picker'
 import { useState, useEffect } from "react";
 import './HourAdder.css';
@@ -38,7 +38,8 @@ export function HourAdder (props) {
 					uid={props.uid}
 					blocked={props.blocked}
 					setBlocked={props.setBlocked}
-					locked={outsidePayPeriod}/>
+					locked={outsidePayPeriod}
+					showNotes={props.showNotes === true}/>
 			</div>
 		</div>
 	);
@@ -112,10 +113,11 @@ function HourSelector(props) {
 	};
 
 	if (props.hide === true) return <div></div>
-	else return <div className="hours-and-picker-container">
+	else return (
+		<div className="hours-and-picker-container">
 			<ClickBlocker block={ props.blocked || props.locked } locked={ props.locked } />
 			<ClickBlocker block={ notes } custom >
-				<NotesForm setBlocked={setNotes} />
+				<NotesForm setBlocked={setNotes} uid={props.uid} date={selectedDate.value} />
 			</ClickBlocker>
 			<div className="worked-hours-container">
 				<p className="worked-hours-label">Hours Worked:</p>
@@ -148,37 +150,67 @@ function HourSelector(props) {
 					disabled={props.blocked}>
 						Add Hours
 				</button>
-				<button
-					className="add-notes-button"
-					onClick={()=>setNotes(true)}
-					disabled={props.blocked}>
-						<AiOutlineSnippets />
-				</button>
+				{ props.showNotes ? (
+					<button
+						className="add-notes-button"
+						onClick={()=>setNotes(true)}
+						disabled={props.blocked}>
+							<AiOutlineSnippets />
+					</button>
+				) : "" }
 			</div>
 		</div>
+	)
 }
 
-function NotesForm(props) {
-	const [notes, setNotes] = useState(false);
-	const submitChanges = (e) => {
+function NotesForm({setBlocked, uid, date}) {
+	const [myNotes, setMyNotes] = useState("");
+	const [initialLoad, setInitialLoad] = useState(true);
+	const [isLoading, setIsLoading] = useState(false);
 
+	const submitChanges = (e) => {
+		console.log(myNotes);
+		e.preventDefault();
+		setIsLoading(true);
+		setUserNotes(uid,date,myNotes).then(()=>{
+				setIsLoading(false);
+				setBlocked(false);
+			}).catch((e)=>{
+				alert("Failed to save notes: "+e.message);
+				setIsLoading(false);
+			});
 	}
 
 	const cancelForm = (e) => {
 		e.preventDefault();
-		props.setBlocked(false)
+		setBlocked(false)
 	}
 
+	useEffect(() => {
+		if (!initialLoad) return;
+		getUserNotes(uid,date).then((userNotes)=>{
+			setMyNotes(userNotes);
+			setInitialLoad(false);
+		}).catch((e)=>{
+			alert("Failed to get notes. Please refresh: "+e.message);
+			setInitialLoad(false);
+		});
+	});
+
 	return (
-		<form onSubmit={submitChanges}>
-			<label htmlFor="notes-area">First Name:</label>
+		<form className="add-notes-form" onSubmit={submitChanges}>
+			<ClickBlocker block={ isLoading || initialLoad } loading />
 			<textarea
-				className="name-input"
+				name='notes-area'
+				className="notes-input"
 				placeholder="Notes"
-				value={props.notes}
-				onChange={(e) => setNotes(e.target.value)}
+				value={myNotes}
+				onChange={(e) => setMyNotes(e.target.value)}
 			/>
-			<button onClick={cancelForm}>Cancel</button>
+			<div className='button-container'>
+				<button className='submit-button' onClick={submitChanges} disabled={isLoading}>Save</button>
+				<button className='cancel-button' onClick={cancelForm} disabled={isLoading}>Cancel</button>
+			</div>
 		</form>
 	);
 }
