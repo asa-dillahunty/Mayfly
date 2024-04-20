@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { auth, deleteCache, getCompany, getMyCompanyID, performLogout, getCompanyFromCache, selectedDate, decrementDate, buildDocName, ABBREVIATIONS, getStartOfWeekString, getEndOfWeekString } from '../lib/firebase';
+import React, { useState } from 'react';
+import { performLogout, selectedDate, buildDocName, ABBREVIATIONS, getStartOfWeekString, getEndOfWeekString } from '../lib/firebase';
 import './Admin.css';
 import { AdminCompanyDisplayTable, DisplayTableSkeleton } from '../Components/DisplayTable';
 import ClickBlocker from '../Components/ClickBlocker';
 import EmployeeInfoForm from '../Components/EmployeeInfoForm';
 import jsPDF from 'jspdf';
 import logo from '../MayflyLogo.png';
-import { AiFillPlusCircle, AiFillPrinter, AiOutlinePrinter } from "react-icons/ai";
+import { AiFillPlusCircle, AiOutlinePrinter } from "react-icons/ai";
 import ConnectionHandler from '../utils/ConnectionHandler';
 
 function AdminDashboard(props) {
@@ -27,7 +27,6 @@ function AdminDashboard(props) {
 
 function ContentContainer({dataObject, dataRefresh, deepDataRefresh, blocked}) {
 	const [infoFormOpen, setInfoFormOpen] = useState(false);
-	
 
 	const createPrintable = () => {
 		const newDoc = new jsPDF();
@@ -61,16 +60,6 @@ function ContentContainer({dataObject, dataRefresh, deepDataRefresh, blocked}) {
 		
 		newDoc.save(`${dataObject.name}-hours-week-${buildDocName(selectedDate.value)}.pdf`);
 	};
-
-	// useEffect(() => {
-	// 	console.log("Fetching Company Data");
-	// 	// 4 is start of pay period. This is done because if it's the start of the pay period
-	// 	// you probably wanted to see last week's data
-	// 	if (selectedDate.value.getDay() === 4) decrementDate(selectedDate.value);
-	// 	fetchCompany().then(() => {
-	// 		setInitialLoad(false);
-	// 	});
-	// }, []);
 
 	if (Object.keys(dataObject).length < 1) {
 		return (

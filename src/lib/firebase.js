@@ -85,12 +85,19 @@ export const navigateUser = async (uid, setPage) => {
 const firebaseCache = {};
 const firebaseSignalCache = {};
 export function deleteCache() {
-	// deleteObjMembers(firebaseCache);
+	// avoid arrays!!!
+	for (var key in firebaseCache) {
+		if (key === COMPANY_LIST_COLLECTION_NAME) continue;
+		else {
+			deleteObjMembers(firebaseCache[key]);
+		}
+	}
 	// deleteObjMembers(firebaseSignalCache);
 }
 
 function deleteObjMembers(obj) {
 	if (!obj) return;
+	if (typeof obj === 'string') return;
 	for (var member in obj) {
 		deleteObjMembers(obj[member]);
 		delete obj[member];
@@ -473,6 +480,9 @@ export async function getCompany(company_ID, docName) {
 
 	const companyData = docSnap.data();
 	companyData.Employees = docList;
+	pullLastChange(company_ID).then((changeData) => {
+		console.log(changeData);
+	});
 	return companyData;
 }
 
@@ -486,15 +496,21 @@ export async function pullLastChange(companyID) {
 	const docRef = doc(db, COMPANY_LIST_COLLECTION_NAME + '/' + companyID + '/' + COMPANY_DOCS_COLLECTION, LAST_CHANGE_DOC_NAME);
 	const docSnap = await getDoc(docRef);
 	if (!firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][COMPANY_DOCS_COLLECTION]) firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][COMPANY_DOCS_COLLECTION] = {};
-	firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][COMPANY_DOCS_COLLECTION][LAST_CHANGE_DOC_NAME] = docSnap.data();
+	firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][COMPANY_DOCS_COLLECTION][LAST_CHANGE_DOC_NAME] = { ...docSnap.data() };
 	return docSnap.data();
 }
 
 export function getLastChangeCached(companyID) {
+	// console.log(firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][COMPANY_DOCS_COLLECTION][LAST_CHANGE_DOC_NAME]);
 	try {
 		return firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][COMPANY_DOCS_COLLECTION][LAST_CHANGE_DOC_NAME];
 	} catch {
-		return 0;
+		return {
+			time: {
+				seconds:0,
+				nanoseconds:0
+			}
+		};
 	}
 }
 

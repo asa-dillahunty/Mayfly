@@ -1,5 +1,5 @@
 import React, { useEffect, useLayoutEffect, useState } from "react";
-import { auth, decrementDate, getCompany, getCompanyFromCache, getLastChangeCached, getMyCompanyID, pullLastChange, selectedDate } from "../lib/firebase";
+import { auth, decrementDate, deleteCache, getCompany, getCompanyFromCache, getLastChangeCached, getMyCompanyID, pullLastChange, selectedDate } from "../lib/firebase";
 
 function ConnectionHandler (props) {
 	const [dataObject, setDataObject] = useState({});
@@ -15,10 +15,20 @@ function ConnectionHandler (props) {
 			if (props.company) {
 				getMyCompanyID(auth.currentUser.uid).then((companyID) => {
 					const cachedChange = getLastChangeCached(companyID);
+					console.log()
 					pullLastChange(companyID).then((changeData) => {
-						if (changeData.time > cachedChange.time) {
+						console.log(changeData.time, cachedChange.time);
+						if (changeData.time.seconds > cachedChange.time.seconds) {
 							console.log("doing deep refresh");
+							deleteCache();
 							deepRefresh();
+						}
+						else if (changeData.time.seconds === cachedChange.time.seconds) {
+							if (changeData.time.nanoseconds > cachedChange.time.nanoseconds) {
+								console.log("doing deep refresh");
+								deleteCache();
+								deepRefresh();
+							}
 						}
 					});
 				});
