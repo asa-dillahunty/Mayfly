@@ -41,9 +41,9 @@ export function DisplayTableSkeleton() {
 				<li className='table-key'>
 					{/* <div className='dropdown'></div> fake kebab so we get spacing right */}
 					<span className='date-row'>
-						<button disabled><AiFillLeftSquare /></button>
+						<AiFillLeftSquare className='week-button' />
 						<span className='week-string'>{getStartOfWeekString(selectedDate.value)}&nbsp;&nbsp;&nbsp;&#x2015;&nbsp;&nbsp;&nbsp;{getEndOfWeekString(selectedDate.value)}</span>
-						<button disabled><AiFillRightSquare /></button>
+						<AiFillRightSquare className='week-button' />
 					</span>
 				</li>
 				<li>

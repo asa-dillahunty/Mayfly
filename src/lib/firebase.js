@@ -1,5 +1,5 @@
 import { getAuth, createUserWithEmailAndPassword, sendPasswordResetEmail, sendSignInLinkToEmail } from "firebase/auth";
-import { getFirestore, doc, setDoc, getDoc, getDocs, addDoc, collection, deleteDoc, updateDoc } from "firebase/firestore";
+import { getFirestore, doc, setDoc, getDoc, getDocs, addDoc, collection, deleteDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { initializeApp } from "firebase/app";
 import { signal } from '@preact/signals-react';
 import 'firebase/auth';
@@ -32,6 +32,8 @@ export const db = getFirestore(app);
 const COMPANY_LIST_COLLECTION_NAME = "CompanyList";
 const UNCLAIMED_LIST_COLLECTION_NAME = "UnclaimedList"
 const ADMIN_DOC_NAME = "Administrative_Data";
+const COMPANY_DOCS_COLLECTION = "CompanyDocs";
+const LAST_CHANGE_DOC_NAME = "Last_Change";
 const COMPANY_EMPLOYEE_COLLECTION = "Employees";
 const daysInChunk = 7;
 const startOfPayPeriod = 4; // Thursday
@@ -176,6 +178,12 @@ export async function setHours(userID,date,hours) {
 
 	// update the firebase signal cache thing
 	getHoursSignal(userID,date,docName).value = hours;
+
+	// update the company last change
+	// we don't await this one the increase responsiveness
+	setLastChange(userID,docName).catch((e) => {
+		alert("Error Code 5392: failed to update last change. "+e.message);
+	});
 }
 
 export function getHoursEarlyReturn(userID,date,docName) {
@@ -471,6 +479,39 @@ export async function getCompany(company_ID, docName) {
 export async function getCompanies() {
 	const companyList = collection(db, COMPANY_LIST_COLLECTION_NAME);
 	return await getDocs(companyList); // Fetch documents from the "Companies" collection
+}
+
+export async function pullLastChange(companyID) {
+	console.log("Pulling Last Change");
+	const docRef = doc(db, COMPANY_LIST_COLLECTION_NAME + '/' + companyID + '/' + COMPANY_DOCS_COLLECTION, LAST_CHANGE_DOC_NAME);
+	const docSnap = await getDoc(docRef);
+	if (!firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][COMPANY_DOCS_COLLECTION]) firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][COMPANY_DOCS_COLLECTION] = {};
+	firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][COMPANY_DOCS_COLLECTION][LAST_CHANGE_DOC_NAME] = docSnap.data();
+	return docSnap.data();
+}
+
+export function getLastChangeCached(companyID) {
+	try {
+		return firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][COMPANY_DOCS_COLLECTION][LAST_CHANGE_DOC_NAME];
+	} catch {
+		return 0;
+	}
+}
+
+export async function setLastChange(empID, docName, companyID) {
+	if (!companyID) companyID = await getMyCompanyID(empID);
+	const docData = {
+		time:serverTimestamp(),
+		empID:empID,
+		docName:docName,
+	}
+	await setDoc(doc(db, COMPANY_LIST_COLLECTION_NAME + '/' + companyID + '/' + COMPANY_DOCS_COLLECTION, LAST_CHANGE_DOC_NAME), {
+		...docData
+	});
+	if (!firebaseCache[COMPANY_LIST_COLLECTION_NAME]) firebaseCache[COMPANY_LIST_COLLECTION_NAME] = {};
+	if (!firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID]) firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID] = {};
+	if (!firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][COMPANY_DOCS_COLLECTION]) firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][COMPANY_DOCS_COLLECTION] = {};
+	firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][COMPANY_DOCS_COLLECTION][LAST_CHANGE_DOC_NAME] = docData;
 }
 
 export function createCompany(companyName) {

@@ -101,27 +101,4 @@ function ContentContainer({dataObject, dataRefresh, deepDataRefresh, blocked}) {
 	);
 }
 
-function AdminTemp(props) {
-	return (
-		<div className="dashboard-container">
-			<div className="dashboard-header">
-				<h1>Mayfly</h1>
-				<button className="dashboard-logout" onClick={() => performLogout(props.setCurrPage)}>
-					Log Out
-				</button>
-			</div>
-			<ConnectionHandler>
-				<AnotherTemp />
-			</ConnectionHandler>
-		</div>
-	);
-}
-
-function AnotherTemp(props) {
-	console.log(props);
-	return (
-		<div>;</div>
-	);
-}
-
 export default AdminDashboard;
