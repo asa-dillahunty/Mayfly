@@ -3,7 +3,8 @@
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
-  "hosting": {
+  "hosting": [ {
+    "target":"production",
     "public": "build",
     "ignore": [
       "firebase.json",
@@ -21,52 +22,28 @@
         "source": "**",
         "destination": "/index.html"
       }
+    ]
+  },{
+    "target":"dev",
+    "public": "build",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
     ],
-    "targets": {
-      "production": {
-        "hosting": {
-          "primer-53a41": [
-            {
-              "target": "primer-53a41",
-              "public": "build",
-              "ignore": [
-                "firebase.json",
-                "**/.*",
-                "**/node_modules/**"
-              ],
-              "rewrites": [
-                {
-                  "source": "**",
-                  "destination": "/index.html"
-                }
-              ]
-            }
-          ]
+    "rewrites": [
+      {
+        "source": "/api/createEmployee",
+        "function": {
+          "functionId": "createEmployee"
         }
       },
-      "dev": {
-        "hosting": {
-          "mayfly-dev": [
-            {
-              "target": "mayfly-dev",
-              "public": "build",
-              "ignore": [
-                "firebase.json",
-                "**/.*",
-                "**/node_modules/**"
-              ],
-              "rewrites": [
-                {
-                  "source": "**",
-                  "destination": "/index.html"
-                }
-              ]
-            }
-          ]
-        }
+      {
+        "source": "**",
+        "destination": "/index.html"
       }
-    }
-  },
+    ]
+  }],
   "functions": [
     {
       "source": "functions",

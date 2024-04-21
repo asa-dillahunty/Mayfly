@@ -1,5 +1,18 @@
 {
   "projects": {
     "default": "primer-53a41"
-  }
+  },
+  "targets": {
+    "primer-53a41": {
+      "hosting": {
+        "production": [
+          "primer-53a41"
+        ],
+        "dev": [
+          "mayfly-dev"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }
