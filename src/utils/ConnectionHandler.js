@@ -1,13 +1,13 @@
-import React, { useEffect, useLayoutEffect, useState } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { auth, decrementDate, deleteCache, getCompany, getCompanyFromCache, getLastChangeCached, getMyCompanyID, pullLastChange, selectedDate } from "../lib/firebase";
 
 function ConnectionHandler (props) {
 	const [dataObject, setDataObject] = useState({});
 	const [blocked, setBlocked] = useState(false);
 
-	const onVisibilityChange = () => {
+	const onVisibilityChange = useCallback(() => {
 		if (document.visibilityState === 'visible') {
-			console.log("visibility change: visible");
+			// console.log("visibility change: visible");
 			// connect to the RTDB
 
 			// if company
@@ -15,17 +15,13 @@ function ConnectionHandler (props) {
 			if (props.company) {
 				getMyCompanyID(auth.currentUser.uid).then((companyID) => {
 					const cachedChange = getLastChangeCached(companyID);
-					console.log()
 					pullLastChange(companyID).then((changeData) => {
-						console.log(changeData.time, cachedChange.time);
 						if (changeData.time.seconds > cachedChange.time.seconds) {
-							console.log("doing deep refresh");
 							deleteCache();
 							deepRefresh();
 						}
 						else if (changeData.time.seconds === cachedChange.time.seconds) {
 							if (changeData.time.nanoseconds > cachedChange.time.nanoseconds) {
-								console.log("doing deep refresh");
 								deleteCache();
 								deepRefresh();
 							}
@@ -38,20 +34,19 @@ function ConnectionHandler (props) {
 			
 		} else {
 			// the window was closed 
-			console.log("visibility change: hidden");
+			// console.log("visibility change: hidden");
 
 			// remove the RTDB listener
 		}
-	}
+	},[props]);
 
 	useLayoutEffect(() => {
 		document.addEventListener('visibilitychange',onVisibilityChange);
 		return () => document.removeEventListener("visibilitychange",onVisibilityChange);
-	}, []);
+	}, [onVisibilityChange]);
 
 	useEffect(() => {
 		if (props.company) {
-			console.log("Fetching Company Data");
 			// 4 is start of pay period. This is done because if it's the start of the pay period
 			// you probably wanted to see last week's data
 			if (selectedDate.value.getDay() === 4) decrementDate(selectedDate.value);
@@ -61,17 +56,17 @@ function ConnectionHandler (props) {
 		}
 	}, [props]);
 
-	const parseRTDBMessage = () => {
+	// const parseRTDBMessage = () => {
 
-	}
+	// }
 	
-	const sendRTDBMessage = () => {
+	// const sendRTDBMessage = () => {
 
-	}
+	// }
 	
-	const connectToRTDB = (e) => {
+	// const connectToRTDB = (e) => {
 
-	}
+	// }
 
 	const fetchCompanyData = async () => {
 		// this needs to somehow wait for selected date to update first

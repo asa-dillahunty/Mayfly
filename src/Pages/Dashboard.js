@@ -1,6 +1,6 @@
 // Dashboard.js
 import React, { useEffect, useState } from 'react';
-import { auth, deleteCache, getMyCompanyID, performLogout, setMyCompany, getClaimCodeInfo, createCompanyEmployee, deleteUnclaimedEmployee, getCompanyEmployee } from '../lib/firebase';
+import { auth, getMyCompanyID, performLogout, setMyCompany, getClaimCodeInfo, createCompanyEmployee, deleteUnclaimedEmployee, getCompanyEmployee } from '../lib/firebase';
 // import { format } from 'date-fns';
 // import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
@@ -23,9 +23,8 @@ function Dashboard(props) {
 		setBlocked(true);
 		performLogout(props.setCurrPage).then(() => {
 			setBlocked(false);
-		}).catch((_e)=> {
-			console.log("this should never happen");
-			console.error("Error code 7034");
+		}).catch((e)=> {
+			console.error("Error code 7034: "+e.message);
 		});
 	};
 
@@ -52,16 +51,11 @@ function Dashboard(props) {
 			//		Execute these in a "transaction" or a batch write
 			// https://firebase.google.com/docs/firestore/manage-data/transactions
 			const companyID = data.companyID;
-			console.log(data);
 			setMyCompany(auth.currentUser.uid, companyID).then(() => {
-				console.log("step 1");
 				getCompanyEmployee(companyID, claimCode).then((empData) => {
-					console.log("step 2");
 					delete empData.unclaimed;
 					createCompanyEmployee(empData, auth.currentUser.uid, companyID).then(() => {
-						console.log("step 3");
 						deleteUnclaimedEmployee(claimCode, companyID).then(() => {
-							console.log("step 4");
 							setClaimedState(claimedStateEnum.claimed);
 						});
 					});
@@ -100,13 +94,9 @@ function Dashboard(props) {
 		const val = e.target.value;
 		const index = parseInt(e.target.id[e.target.id.length - 1]); // gets the last character. won't work for > 9 (obviously)
 		const inputs = document.querySelectorAll("#claimCode input");
-
-		console.log(val,index,inputs);
-
 		
 		if (!/^[a-zA-Z]*$/.test(val)) {
 			e.target.value = ''; // Clear the input value if it's not a letter
-			console.log("clear");
 		}
 		else {
 			// force uppercase

@@ -98,8 +98,7 @@ function HourSelector(props) {
 		props.setBlocked(true);
 
 		setHours(props.uid, selectedDate.value, hoursWorked).then(() => {
-			console.log('Hours data added successfully');
-			refreshWeeklyHours().then(()=> {
+			refreshWeeklyHours().then(() => {
 				props.setBlocked(false);
 			}).catch((_e)=>{
 				alert(`Error Code 1921. Failed to get hours. Please refresh the page.`);
@@ -169,7 +168,6 @@ function NotesForm({setBlocked, uid, date}) {
 	const [isLoading, setIsLoading] = useState(false);
 
 	const submitChanges = (e) => {
-		console.log(myNotes);
 		e.preventDefault();
 		setIsLoading(true);
 		setUserNotes(uid,date,myNotes).then(()=>{

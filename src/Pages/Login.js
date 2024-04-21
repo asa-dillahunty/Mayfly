@@ -1,11 +1,11 @@
 // Login.js
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { signInWithEmailAndPassword } from "firebase/auth";
 
 
 import { auth, createUser, resetPassword } from '../lib/firebase';
 import './Login.css';
-import logo from '../MayflyLogo.png';
+// import logo from '../MayflyLogo.png';
 import ClickBlocker from '../Components/ClickBlocker';
 import { pageListEnum } from '../App';
 
@@ -150,7 +150,6 @@ export function Signup (props) {
 			username:email,
 			password:password
 		}
-		console.log(empData);
 		createUser(empData)
 			.then( () => {
 				setBlocked(false);

@@ -1,4 +1,4 @@
-import { createCompanyEmployee, createEmployeeAuth, createUnclaimedEmployee, getCompany } from "../lib/firebase";
+import { createCompanyEmployee, createEmployeeAuth } from "../lib/firebase";
 import ClickBlocker from "./ClickBlocker";
 
 import './EmployeeInfoForm.css';
@@ -23,7 +23,7 @@ function EmployeeInfoForm (props) {
 		props.setFormOpen(false);
 	}
 
-	const toggleIsAdmin = (e) => {
+	const toggleIsAdmin = (_e) => {
 		setIsAdmin(document.getElementById("admin-checkbox").checked);
 	}
 
@@ -42,8 +42,6 @@ function EmployeeInfoForm (props) {
 		if (email) {
 			empData.email = email;
 		}
-
-		console.log("Sending: ",empData);
 		
 		// if edit -> create company employee
 		// if add -> create Unclaimed Employee
@@ -65,10 +63,8 @@ function EmployeeInfoForm (props) {
 				});
 		}
 		else if (props.add) {
-			console.log("adding");
 			createEmployeeAuth(empData, props.companyID)
 				.then( () => {
-					console.log("in the then");
 					props.deepRefresh().then(() => {
 						setBlocked(false);
 						props.setFormOpen(false);
@@ -78,18 +74,13 @@ function EmployeeInfoForm (props) {
 						props.setFormOpen(false);
 					});
 				}).catch ((e) => {
-					console.log("in the catch");
-					console.log(e);
 					setBlocked(false);
 					props.setFormOpen(false);
 					console.error(e.message);
 					alert("Failed to add user: " + e.message);
 				});
 		}
-		else {
-			console.log("Error: did nothing");
-		}
-		// fix the cache
+		// TODO: fix the cache
 	}
 
 	return (

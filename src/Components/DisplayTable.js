@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import ClickBlocker from './ClickBlocker';
 
 import './DisplayTable.css';
-import { deleteCompanyEmployee, deleteUnclaimedEmployee, getEndOfWeekString, getStartOfWeekString, makeAdmin, selectedDate, setSelectedDate } from '../lib/firebase';
+import { deleteCompanyEmployee, getEndOfWeekString, getStartOfWeekString, makeAdmin, selectedDate, setSelectedDate } from '../lib/firebase';
 
 import Dropdown from 'react-bootstrap/Dropdown';
 import HourAdder from './HourAdder';
@@ -14,7 +14,6 @@ function CreateCompanyPopup(props) {
 
 	const onSubmit = () => {
 		if (companyName.trim() === '') return;
-		console.log("Submitted",companyName);
 		props.onAdd(companyName);
 	}
 
@@ -36,7 +35,7 @@ export function DisplayTableSkeleton() {
 	return (
 		<div className='company-display-table skeleton'>
 			<div className="shimmer-box"></div>
-			<h2></h2>
+			<h2> </h2>
 			<ul>
 				<li className='table-key'>
 					{/* <div className='dropdown'></div> fake kebab so we get spacing right */}
@@ -249,18 +248,9 @@ export function CompanyDisplayTable(props) {
 }
 
 function DisplayTable(props) {
-	const [inputValue, setInputValue] = useState('');
 	const [createVisible, setCreateVisible] = useState(false);
 
 	const toggleCreateVisible = () => setCreateVisible(!createVisible);
-
-	const addItem = () => {
-		props.onAdd(inputValue);
-		// if (inputValue.trim() !== '') {
-		// 	setItems([...items, { id: Date.now(), name: inputValue }]);
-		// 	setInputValue('');
-		// }
-	};
 
 	const tempAdd = (tempName) => {
 		console.log(tempName);

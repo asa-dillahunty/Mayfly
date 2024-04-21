@@ -2,7 +2,7 @@ import { useLayoutEffect, useState } from 'react';
 import { DayPicker } from 'react-day-picker';
 
 import './Calendar.css';
-import { auth, selectedDate, currentDate, getHoursSignal, refreshCurrentDate, ABBREVIATIONS } from '../lib/firebase';
+import { selectedDate, currentDate, getHoursSignal, refreshCurrentDate, ABBREVIATIONS } from '../lib/firebase';
 import { effect, signal } from '@preact/signals-react';
 
 export const WEEK_VIEW = 0;
@@ -57,7 +57,6 @@ function Calendar(props) {
 		if (document.visibilityState !== 'visible') return;
 		refreshCurrentDate();
 		refreshDateArray();
-		console.log("refreshed date array");
 	}
 
 	useLayoutEffect(() => {

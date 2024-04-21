@@ -117,12 +117,11 @@ function getWeek(selectedDatetime) {
 	const firstThursday = Date.UTC(selectedDatetime.getFullYear(), 0, 1 + (startOfPayPeriod - dayOfWeekOfDayOne + 6)%7);
 	// add a check here for the cusp of the year. Go back to last year. (or maybe return -1)
 	if (firstThursday >= selectedDateUTC) {
-		return -1;// console.log("this is a 'cusp' week");
+		return -1;
 	}
 	
 	const days = Math.floor((selectedDateUTC - firstThursday) / 86400000); //  24 * 60 * 60 * 1000
 	const weekNumber = Math.ceil(days / 7);
-	// console.log(weekNumber, selectedDateUTC, firstThursday,firstDayOfYear);
 	return weekNumber;
 }
 
@@ -210,14 +209,13 @@ export function getHoursEarlyReturn(userID,date,docName) {
 }
 
 export async function getHours(userID,date,docName) {
-	// console.log("getting hours", userID, docName);
 	if (arguments.length === 2) docName = buildDocName(date);
 	
 	if (!userID) return;
 
 	if (firebaseCache[userID] && firebaseCache[userID][docName] && !firebaseCache[userID][docName]["awaiting"]) 
 		return firebaseCache[userID][docName][date.getDay()].hours;
-	console.log("pulling data from Firebase");
+	// console.log("pulling data from Firebase");
 
 	const docRef = doc(db, userID, docName);
 	const docSnap = await getDoc(docRef);
@@ -244,8 +242,6 @@ export async function getHours(userID,date,docName) {
 		// signals default to zero and do no need to be updated
 		if (!firebaseCache[userID]) firebaseCache[userID]={};
 		firebaseCache[userID][docName] = fillWeekCache();
-		console.log("No such document!");
-		// console.log(firebaseCache);
 	}
 	return 0;
 }
@@ -333,7 +329,6 @@ export async function getHoursList(userID, date, docName) {
 }
 
 export function buildDocName(date) {
-	// console.log("here is the date",date);
 	// if (date === undefined) return "";
 	const weekNum = getWeek(date);
 
@@ -359,12 +354,10 @@ function fillWeekCache(week) {
 export async function makeAdmin(uid,cid) {
 	const docRef = doc(db, uid, ADMIN_DOC_NAME);
 
-	console.log(firebaseCache[uid][ADMIN_DOC_NAME]);
 	// grab current data from cache
 	const adminData = await getAdminData(uid);
 	adminData.isAdmin = true;
 	// does this auto update the cache?
-	console.log(firebaseCache[uid][ADMIN_DOC_NAME]);
 
 	await setDoc(docRef, adminData);
 		// Todo:
@@ -444,8 +437,6 @@ export async function getCompanyFromCache(company_ID) {
 	const empList = firebaseCache[COMPANY_LIST_COLLECTION_NAME][company_ID][COMPANY_EMPLOYEE_COLLECTION];
 
 	// force an update on the hours ( should still grab them from that cache, no worries)
-	// console.log(empList);
-	// console.log(firebaseCache);
 	for (var emp in empList) {
 		empList[emp].hoursThisWeek = await getHoursThisWeek(empList[emp].id, selectedDate.value, docName);
 		empList[emp].hoursList = await getHoursList(empList[emp].id, selectedDate.value, docName);
@@ -459,7 +450,7 @@ export async function getCompanyFromCache(company_ID) {
 export async function getCompany(company_ID, docName) {
 	if (company_ID === "") return { name:"Major Error Occurred"};
 	if (!docName) docName = buildDocName(selectedDate.value);
-	console.log("pulling company data");
+	// console.log("pulling company data");
 	const docRef = doc(db, COMPANY_LIST_COLLECTION_NAME, company_ID);
 	const docSnap = await getDoc(docRef);
 	const employeeCollection = collection(db, COMPANY_LIST_COLLECTION_NAME + '/' + company_ID + '/' + COMPANY_EMPLOYEE_COLLECTION);
@@ -480,8 +471,10 @@ export async function getCompany(company_ID, docName) {
 
 	const companyData = docSnap.data();
 	companyData.Employees = docList;
-	pullLastChange(company_ID).then((changeData) => {
-		console.log(changeData);
+	pullLastChange(company_ID).then((_changeData) => {
+
+	}).catch((e) => {
+		console.error("Failed to grab last change: "+e.message);
 	});
 	return companyData;
 }
@@ -492,7 +485,7 @@ export async function getCompanies() {
 }
 
 export async function pullLastChange(companyID) {
-	console.log("Pulling Last Change");
+	// console.log("Pulling Last Change");
 	const docRef = doc(db, COMPANY_LIST_COLLECTION_NAME + '/' + companyID + '/' + COMPANY_DOCS_COLLECTION, LAST_CHANGE_DOC_NAME);
 	const docSnap = await getDoc(docRef);
 	if (!firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][COMPANY_DOCS_COLLECTION]) firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][COMPANY_DOCS_COLLECTION] = {};
@@ -501,7 +494,6 @@ export async function pullLastChange(companyID) {
 }
 
 export function getLastChangeCached(companyID) {
-	// console.log(firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][COMPANY_DOCS_COLLECTION][LAST_CHANGE_DOC_NAME]);
 	try {
 		return firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][COMPANY_DOCS_COLLECTION][LAST_CHANGE_DOC_NAME];
 	} catch {
@@ -535,13 +527,13 @@ export function createCompany(companyName) {
 	addDoc(companyList, {
 		name: companyName
 	})
-	.then((docRef) => {
-		console.log("Added Company with ID: ", docRef.id);
+	.then((_docRef) => {
+		// console.log("Added Company with ID: ", docRef.id);
 		// update displayed company list
 	})
 	.catch((error) => {
 		// do something to alert the user
-		console.log(error);
+		console.error(error);
 	})
 }
 
@@ -612,7 +604,7 @@ export async function createEmployeeAuth(empData, companyID) {
 	const result = await createEmp(data);
 	if (!result.data.success) {
 		alert("Failed to create user");
-	} else console.log(result.data);
+	}
 
 	// need to return the employee's ID as well
 	await createCompanyEmployee(empData, result.data.empID, companyID);

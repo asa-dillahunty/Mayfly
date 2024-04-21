@@ -7,7 +7,7 @@ import Login, { ForgotPassword, Signup } from "./Pages/Login";
 import Dashboard from './Pages/Dashboard';
 import Admin from './Pages/Admin';
 import OmniAdmin from './Pages/OmniAdmin';
-import { auth, currentDate, incrementDate, navigateUser } from './lib/firebase';
+import { auth, navigateUser } from './lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import ClickBlocker from './Components/ClickBlocker';
 import PasswordReset from './Pages/PasswordReset';
@@ -21,7 +21,6 @@ function App() {
 		const urlParams = new URLSearchParams(window.location.search);
 		const token = urlParams.get('oobCode');
 		const mode = urlParams.get('mode');
-		console.log(mode);
 		if (token && mode === "resetPassword") {
 			setLoading(false);
 			setResetToken(token);
