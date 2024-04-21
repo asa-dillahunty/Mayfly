@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { pageListEnum } from "../App";
 import ClickBlocker from "../Components/ClickBlocker";
-import { auth } from "../lib/firebase";
+import { auth } from "../utils/firebase";
 import Toast from 'react-bootstrap/Toast';
 
 import './PasswordReset.css';

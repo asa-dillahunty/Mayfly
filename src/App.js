@@ -7,7 +7,7 @@ import Login, { ForgotPassword, Signup } from "./Pages/Login";
 import Dashboard from './Pages/Dashboard';
 import Admin from './Pages/Admin';
 import OmniAdmin from './Pages/OmniAdmin';
-import { auth, navigateUser } from './lib/firebase';
+import { auth, navigateUser } from './utils/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import ClickBlocker from './Components/ClickBlocker';
 import PasswordReset from './Pages/PasswordReset';

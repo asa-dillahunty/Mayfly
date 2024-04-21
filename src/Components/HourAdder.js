@@ -1,4 +1,4 @@
-import { selectedDate, setSelectedDate, auth, setHours, getHoursEarlyReturn, getHoursThisWeek, getUserNotes, setUserNotes, } from '../lib/firebase';
+import { selectedDate, setSelectedDate, auth, setHours, getHoursEarlyReturn, getHoursThisWeek, getUserNotes, setUserNotes, } from '../utils/firebase';
 import Picker from 'react-mobile-picker'
 import { useState, useEffect } from "react";
 import './HourAdder.css';

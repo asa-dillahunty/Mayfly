@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { performLogout, selectedDate, buildDocName, ABBREVIATIONS, getStartOfWeekString, getEndOfWeekString } from '../lib/firebase';
+import { performLogout, selectedDate, buildDocName, ABBREVIATIONS, getStartOfWeekString, getEndOfWeekString } from '../utils/firebase';
 import './Admin.css';
 import { AdminCompanyDisplayTable, DisplayTableSkeleton } from '../Components/DisplayTable';
 import ClickBlocker from '../Components/ClickBlocker';

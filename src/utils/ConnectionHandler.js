@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useLayoutEffect, useState } from "react";
-import { auth, decrementDate, deleteCache, getCompany, getCompanyFromCache, getLastChangeCached, getMyCompanyID, pullLastChange, selectedDate } from "../lib/firebase";
+import { auth, decrementDate, deleteCache, getCompany, getCompanyFromCache, getLastChangeCached, getMyCompanyID, pullLastChange, selectedDate } from "./firebase";
 
 function ConnectionHandler (props) {
 	const [dataObject, setDataObject] = useState({});

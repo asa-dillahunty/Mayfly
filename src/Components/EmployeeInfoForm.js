@@ -1,4 +1,4 @@
-import { createCompanyEmployee, createEmployeeAuth } from "../lib/firebase";
+import { createCompanyEmployee, createEmployeeAuth } from "../utils/firebase";
 import ClickBlocker from "./ClickBlocker";
 
 import './EmployeeInfoForm.css';

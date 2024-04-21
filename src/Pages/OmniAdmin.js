@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getCompanies, getCompanyFromCache, performLogout } from '../lib/firebase';
+import { getCompanies, getCompanyFromCache, performLogout } from '../utils/firebase';
 // import { format } from 'date-fns';
 // import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';

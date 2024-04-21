@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { signInWithEmailAndPassword } from "firebase/auth";
 
 
-import { auth, createUser, resetPassword } from '../lib/firebase';
+import { auth, createUser, resetPassword } from '../utils/firebase';
 import './Login.css';
 // import logo from '../MayflyLogo.png';
 import ClickBlocker from '../Components/ClickBlocker';
