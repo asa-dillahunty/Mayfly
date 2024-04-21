@@ -26,7 +26,8 @@ jobs:
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_PRIMER_53A41 }}'
-          channelId: production
+          target: production
+          channelId: live
           projectId: primer-53a41
 
       - name: Deploy to Firebase - Development
@@ -35,5 +36,6 @@ jobs:
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_PRIMER_53A41 }}'
-          channelId: dev
+          target: dev
+          channelId: live
           projectId: primer-53a41
