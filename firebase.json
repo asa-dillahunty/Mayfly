@@ -21,7 +21,51 @@
         "source": "**",
         "destination": "/index.html"
       }
-    ]
+    ],
+    "targets": {
+      "production": {
+        "hosting": {
+          "primer-53a41": [
+            {
+              "target": "primer-53a41",
+              "public": "build",
+              "ignore": [
+                "firebase.json",
+                "**/.*",
+                "**/node_modules/**"
+              ],
+              "rewrites": [
+                {
+                  "source": "**",
+                  "destination": "/index.html"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "dev": {
+        "hosting": {
+          "mayfly-dev": [
+            {
+              "target": "mayfly-dev",
+              "public": "build",
+              "ignore": [
+                "firebase.json",
+                "**/.*",
+                "**/node_modules/**"
+              ],
+              "rewrites": [
+                {
+                  "source": "**",
+                  "destination": "/index.html"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
   },
   "functions": [
     {
