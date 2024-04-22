@@ -166,6 +166,10 @@ span.employee-weekly-hours {
 }
 
 /** Skeleton Styling **/
+.dashboard-content.skeleton {
+	padding: 0;
+}
+
 .company-display-table.skeleton {
 	position: relative;
 	box-sizing: border-box;
@@ -174,6 +178,7 @@ span.employee-weekly-hours {
 	/* background-color: blue; */
 	overflow: hidden;
 	background-color: var(--backgroundThree);
+	width: 100%;
 }
 
 .company-display-table.skeleton .shimmer-box {
