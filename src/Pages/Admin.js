@@ -7,7 +7,7 @@ import EmployeeInfoForm from '../Components/EmployeeInfoForm';
 import jsPDF from 'jspdf';
 import logo from '../MayflyLogo.png';
 import { AiFillPlusCircle, AiOutlinePrinter } from "react-icons/ai";
-import ConnectionHandler from '../utils/ConnectionHandler';
+import ConnectionHandler, { dataStatusEnum } from '../utils/ConnectionHandler';
 
 function AdminDashboard(props) {
 	return (
@@ -61,33 +61,42 @@ function ContentContainer({dataObject, dataRefresh, deepDataRefresh, blocked}) {
 		newDoc.save(`${dataObject.name}-hours-week-${buildDocName(selectedDate.value)}.pdf`);
 	};
 
-	if (Object.keys(dataObject).length < 1) {
+	if (dataObject.status === dataStatusEnum.loading) {
 		return (
 			<div className="dashboard-content contain-click-blocker skeleton">
 				<DisplayTableSkeleton />
 			</div>
 		);
 	}
-	return (
-		<div className="dashboard-content contain-click-blocker">
-			<ClickBlocker block={blocked} loading/>
-			<AdminCompanyDisplayTable company={dataObject} refreshTable={dataRefresh}/>
+	else if (dataObject.status === dataStatusEnum.loaded) {
+		return (
+			<div className="dashboard-content contain-click-blocker">
+				<ClickBlocker block={blocked} loading/>
+				<AdminCompanyDisplayTable company={dataObject} refreshTable={dataRefresh}/>
 
-			<div className='admin-button-container'>
-				<button className="add-emp" onClick={() => { setInfoFormOpen(true); }}>
-					<AiFillPlusCircle />
-					Add Employee
-				</button>
-				<button className='print-table' onClick={ createPrintable }>
-					<AiOutlinePrinter className="print-table" />
-				</button>
+				<div className='admin-button-container'>
+					<button className="add-emp" onClick={() => { setInfoFormOpen(true); }}>
+						<AiFillPlusCircle />
+						Add Employee
+					</button>
+					<button className='print-table' onClick={ createPrintable }>
+						<AiOutlinePrinter className="print-table" />
+					</button>
+				</div>
+					
+				<ClickBlocker custom={true} block={infoFormOpen}>
+					<EmployeeInfoForm setFormOpen={setInfoFormOpen} refreshTable={dataRefresh} deepRefresh={deepDataRefresh} companyID={dataObject.id} add/>
+				</ClickBlocker>
 			</div>
-				
-			<ClickBlocker custom={true} block={infoFormOpen}>
-				<EmployeeInfoForm setFormOpen={setInfoFormOpen} refreshTable={dataRefresh} deepRefresh={deepDataRefresh} companyID={dataObject.id} add/>
-			</ClickBlocker>
-		</div>
-	);
+		);
+	}
+	else if (dataObject.status === dataStatusEnum.error) {
+		return (
+			<div className="dashboard-content contain-click-blocker skeleton">
+				<h3>There has been an error. Please refresh</h3>
+			</div>
+		);
+	}
 }
 
 export default AdminDashboard;

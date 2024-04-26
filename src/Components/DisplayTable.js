@@ -116,7 +116,9 @@ export function AdminCompanyDisplayTable(props) {
 					</span>
 				</li>
 				{claimedList.map((emp,index) => (
-					<EmployeeLine key={index+1} emp={emp} company={props.company} refreshTable={props.refreshTable} />
+					<ConnectionHandler emp>
+						<EmployeeLine key={index+1} emp={emp} company={props.company} refreshTable={props.refreshTable} />
+					</ConnectionHandler>
 				))}
 
 				<li key={unclaimedList.length + 1} className='table-key' hidden={unclaimedList.length < 1}>
@@ -145,10 +147,11 @@ function EmployeeLine(props) {
 	const [editUser, setEditUser] = useState(false);
 	const [confirmDelete, setConfirmDelete] = useState(false);
 
-	
+	const empData = props.dataObject;
+
 	const deleteUser = () => {
 		setBlocked(true);
-		deleteCompanyEmployee(props.emp.id, props.company.id)
+		deleteCompanyEmployee(empData.id, props.company.id)
 			.then(() => {
 				props.refreshTable().then(() => {
 					setBlocked(false);
@@ -159,7 +162,7 @@ function EmployeeLine(props) {
 					setConfirmDelete(false);
 				});
 			}).catch((_e) => {
-				alert(`Error Code 7982. Failed to delete ${props.emp.id}. Please refresh the page.`)
+				alert(`Error Code 7982. Failed to delete ${empData.id}. Please refresh the page.`)
 				setBlocked(false);
 				setConfirmDelete(false);
 			});
@@ -172,7 +175,7 @@ function EmployeeLine(props) {
 		setEditUser(!editUser);
 	}
 
-	if (props.emp.hidden) return <></>;
+	if (empData.hidden) return <></>;
 	return (
 		<li>
 			{/* <span className='kebab'>&#8942;</span> */}
@@ -180,16 +183,16 @@ function EmployeeLine(props) {
 				<EmployeeInfoForm 
 					setFormOpen={setEditUser}
 					refreshTable={props.refreshTable}
-					empID={props.emp.id}
+					empID={empData.id}
 					companyID={props.company.id}
 					edit
-					fn={props.emp.firstName}
-					ln={props.emp.lastName} />
+					fn={empData.firstName}
+					ln={empData.lastName} />
 			</ClickBlocker>
 			<ClickBlocker 
 				block={confirmDelete}
 				confirm
-				message={`Are you sure you want to remove ${props.emp.name} from ${props.company.name}?`}
+				message={`Are you sure you want to remove ${empData.name} from ${props.company.name}?`}
 				messageEmphasized={"This action cannot be undone."}
 				onConfirm={deleteUser}
 				onCancel={()=>setConfirmDelete(false)}
@@ -200,23 +203,23 @@ function EmployeeLine(props) {
 					<span className='kebab'><AiOutlineMore /></span>
 				</Dropdown.Toggle>
 				<Dropdown.Menu size="sm" title="">
-					{props.emp.unclaimed ? <></> : <Dropdown.Item onClick={toggleShow}>Edit Hours</Dropdown.Item>}
+					{empData.unclaimed ? <></> : <Dropdown.Item onClick={toggleShow}>Edit Hours</Dropdown.Item>}
 					<Dropdown.Item onClick={toggleEdit}>Edit User</Dropdown.Item>
 					<Dropdown.Item onClick={()=>setConfirmDelete(true)}>Remove Employee</Dropdown.Item>
-					{!props.adminAble ? <></> : <Dropdown.Item onClick={()=>{makeAdmin(props.emp.id)}}>Make Admin</Dropdown.Item>}
+					{!props.adminAble ? <></> : <Dropdown.Item onClick={()=>{makeAdmin(empData.id)}}>Make Admin</Dropdown.Item>}
 				</Dropdown.Menu>
 			</Dropdown>
-			<span className='employee-name'> {props.emp.name} </span>
+			<span className='employee-name'> {empData.name} </span>
 			{/* emp.HoursThisWeek is a computed signal */}
-			{ props.emp.unclaimed ?
-				<span className='employee-weekly-hours code'> { props.emp.id } </span> :
-				<span className='employee-weekly-hours'> { props.emp.hoursThisWeek } </span> 
+			{ empData.unclaimed ?
+				<span className='employee-weekly-hours code'> { empData.id } </span> :
+				<span className='employee-weekly-hours'> { empData.hoursThisWeek } </span>
 			}
-			{props.emp.unclaimed ? 
+			{empData.unclaimed ? 
 				<></> :
 				<ClickBlocker block={showMore} custom={true}>
 					<div className='more-info'>
-						<HourAdder uid={props.emp.id} blocked={blocked} setBlocked={setBlocked}/>
+						<HourAdder uid={empData.id} blocked={blocked} setBlocked={setBlocked}/>
 						<button
 							className='toggler'
 							onClick={

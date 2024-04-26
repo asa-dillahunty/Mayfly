@@ -1,8 +1,15 @@
 import React, { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { auth, decrementDate, deleteCache, getCompany, getCompanyFromCache, getLastChangeCached, getMyCompanyID, pullLastChange, selectedDate } from "./firebase";
 
+export const dataStatusEnum = {
+	loading:"loading",
+	loaded:"loaded",
+	error:"error",
+	unclaimed:"unclaimed",
+}
+
 function ConnectionHandler (props) {
-	const [dataObject, setDataObject] = useState({});
+	const [dataObject, setDataObject] = useState({ status: dataStatusEnum.loading });
 	const [blocked, setBlocked] = useState(false);
 
 	const onVisibilityChange = useCallback(() => {
@@ -54,6 +61,9 @@ function ConnectionHandler (props) {
 				// setInitialLoad(false);
 			});
 		}
+		else if (props.emp) {
+			// fetchEmpData().then()
+		}
 	}, [props]);
 
 	// const parseRTDBMessage = () => {
@@ -68,6 +78,24 @@ function ConnectionHandler (props) {
 
 	// }
 
+	const dataRefresh = async () => {
+		if (props.company) {
+			await fetchCompanyData();
+		}
+		else if (props.emp) {
+
+		}
+	}
+
+	const deepDataRefresh = async () => {
+		if (props.company) {
+			await deepRefresh();
+		}
+		else if (props.emp) {
+
+		}
+	}
+
 	const fetchCompanyData = async () => {
 		// this needs to somehow wait for selected date to update first
 		// update state! must somehow trigger an update in signals state
@@ -76,6 +104,7 @@ function ConnectionHandler (props) {
 		const companyID = await getMyCompanyID(auth.currentUser.uid);
 		const companyObj = await getCompanyFromCache(companyID);
 		companyObj.id = companyID;
+		companyObj.status = dataStatusEnum.loaded;
 		setDataObject(companyObj);
 
 		setBlocked(false);
@@ -96,8 +125,8 @@ function ConnectionHandler (props) {
 				React.cloneElement(
 					props.children, {
 						dataObject:dataObject,
-						dataRefresh:fetchCompanyData,
-						deepDataRefresh:deepRefresh,
+						dataRefresh:dataRefresh,
+						deepDataRefresh:deepDataRefresh,
 						blocked:blocked,
 					}
 				)
