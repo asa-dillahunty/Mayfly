@@ -151,16 +151,17 @@ function EmployeeLine(props) {
 		deleteCompanyEmployee(props.emp.id, props.company.id)
 			.then(() => {
 				props.refreshTable().then(() => {
+					setBlocked(false);
 					setConfirmDelete(false);
 				}).catch((_e) => {
 					alert(`Error Code 0012. Please refresh the page.`)
-					setConfirmDelete(false);
 					setBlocked(false);
+					setConfirmDelete(false);
 				});
 			}).catch((_e) => {
 				alert(`Error Code 7982. Failed to delete ${props.emp.id}. Please refresh the page.`)
-				setConfirmDelete(false);
 				setBlocked(false);
+				setConfirmDelete(false);
 			});
 	}
 
