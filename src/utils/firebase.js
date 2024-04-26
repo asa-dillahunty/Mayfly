@@ -6,6 +6,7 @@ import 'firebase/auth';
 import 'firebase/functions';
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { pageListEnum } from "../App";
+import firebase from "firebase/compat/app";
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -31,7 +32,7 @@ export const db = getFirestore(app);
 
 const COMPANY_LIST_COLLECTION_NAME = "CompanyList";
 const UNCLAIMED_LIST_COLLECTION_NAME = "UnclaimedList"
-const ADMIN_DOC_NAME = "Administrative_Data";
+export const ADMIN_DOC_NAME = "Administrative_Data";
 const COMPANY_DOCS_COLLECTION = "CompanyDocs";
 const LAST_CHANGE_DOC_NAME = "Last_Change";
 const COMPANY_EMPLOYEE_COLLECTION = "Employees";
@@ -93,6 +94,24 @@ export function deleteCache() {
 		}
 	}
 	// deleteObjMembers(firebaseSignalCache);
+}
+
+export function deleteCompanyCache(companyID) {
+	// for every emp in the company
+	const empList = firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][COMPANY_EMPLOYEE_COLLECTION];
+
+	for (let i=0; i<empList.length; i++) {
+		const emp = empList[i];
+		deleteUserCache(emp.id);
+		deleteObjMembers(emp);
+	}
+
+	deleteObjMembers(firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID]);
+}
+
+export function deleteUserCache(empID) {
+	// this should delete a users hours data, and admin data
+	deleteObjMembers(firebaseCache[empID]);
 }
 
 function deleteObjMembers(obj) {
@@ -215,7 +234,7 @@ export async function getHours(userID,date,docName) {
 
 	if (firebaseCache[userID] && firebaseCache[userID][docName] && !firebaseCache[userID][docName]["awaiting"]) 
 		return firebaseCache[userID][docName][date.getDay()].hours;
-	// console.log("pulling data from Firebase");
+	console.log("pulling data from Firebase");
 
 	const docRef = doc(db, userID, docName);
 	const docSnap = await getDoc(docRef);
@@ -453,8 +472,8 @@ export async function getAdminData(uid) {
 	return firebaseCache[uid][ADMIN_DOC_NAME];
 }
 
-export async function getCompanyEmployee(company_ID, empID) {
-	const docRef = doc(db, COMPANY_LIST_COLLECTION_NAME +'/'+ company_ID +"/"+COMPANY_EMPLOYEE_COLLECTION,empID);	
+export async function getCompanyEmployee(companyID, empID) {
+	const docRef = doc(db, COMPANY_LIST_COLLECTION_NAME +'/'+ companyID +"/"+COMPANY_EMPLOYEE_COLLECTION,empID);	
 	const docSnap = await getDoc(docRef);
 	if (docSnap.exists()) {
 		return docSnap.data();
@@ -463,6 +482,12 @@ export async function getCompanyEmployee(company_ID, empID) {
 		// TODO:
 			// throw an error
 	}
+}
+
+export async function getEmpData(empID) {
+	const adminData = await getAdminData(empID);
+	const empCompanyData = await getCompanyEmployee(adminData.company, empID);
+	return {...firebaseCache[empID], ...empCompanyData};
 }
 
 export async function getCompanyFromCache(company_ID) {
@@ -488,7 +513,7 @@ export async function getCompanyFromCache(company_ID) {
 export async function getCompany(company_ID, docName) {
 	if (company_ID === "") return { name:"Major Error Occurred"};
 	if (!docName) docName = buildDocName(selectedDate.value);
-	// console.log("pulling company data");
+	console.log("pulling company data");
 	const docRef = doc(db, COMPANY_LIST_COLLECTION_NAME, company_ID);
 	const docSnap = await getDoc(docRef);
 	const employeeCollection = collection(db, COMPANY_LIST_COLLECTION_NAME + '/' + company_ID + '/' + COMPANY_EMPLOYEE_COLLECTION);

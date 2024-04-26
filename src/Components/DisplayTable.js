@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import ClickBlocker from './ClickBlocker';
 
 import './DisplayTable.css';
-import { createCompany, deleteCompanyEmployee, getEndOfWeekString, getStartOfWeekString, makeAdmin, selectedDate, setSelectedDate } from '../utils/firebase';
+import { ADMIN_DOC_NAME, buildDocName, createCompany, deleteCompanyEmployee, getEndOfWeekString, getHours, getStartOfWeekString, makeAdmin, selectedDate, setSelectedDate } from '../utils/firebase';
 
 import Dropdown from 'react-bootstrap/Dropdown';
 import HourAdder from './HourAdder';
 import EmployeeInfoForm from './EmployeeInfoForm';
 import { AiFillLeftSquare, AiFillRightSquare, AiOutlineMore } from 'react-icons/ai';
-import ConnectionHandler from '../utils/ConnectionHandler';
+import ConnectionHandler, { dataStatusEnum } from '../utils/ConnectionHandler';
 
 function CreateCompanyPopup(props) {
 	const [companyName,setCompanyName] = useState('');
@@ -116,8 +116,8 @@ export function AdminCompanyDisplayTable(props) {
 					</span>
 				</li>
 				{claimedList.map((emp,index) => (
-					<ConnectionHandler emp>
-						<EmployeeLine key={index+1} emp={emp} company={props.company} refreshTable={props.refreshTable} />
+					<ConnectionHandler key={index+1} emp empID={emp.id} companyData={props.company}>
+						<EmployeeLine refreshTable={props.refreshTable} company={props.company}/>
 					</ConnectionHandler>
 				))}
 
@@ -175,7 +175,30 @@ function EmployeeLine(props) {
 		setEditUser(!editUser);
 	}
 
-	if (empData.hidden) return <></>;
+	const countTotalHours = () => {
+		const docName = buildDocName(selectedDate.value);
+		if (!empData[docName]) {
+			console.log("here");
+			props.requestData({
+				type:"hours",
+				params: {
+					date:selectedDate.value,
+					docName:docName
+				}
+			});
+		} else {
+			var total = 0;
+			for (var value in empData[docName]) {
+				total += empData[docName][value].hours;
+			}
+			return total;
+		}
+		return 0;
+	}
+
+	if (!empData.id) return <></>
+	if (empData[ADMIN_DOC_NAME].hidden) return <></>;
+	console.log(empData);
 	return (
 		<li>
 			{/* <span className='kebab'>&#8942;</span> */}
@@ -211,9 +234,9 @@ function EmployeeLine(props) {
 			</Dropdown>
 			<span className='employee-name'> {empData.name} </span>
 			{/* emp.HoursThisWeek is a computed signal */}
-			{ empData.unclaimed ?
-				<span className='employee-weekly-hours code'> { empData.id } </span> :
-				<span className='employee-weekly-hours'> { empData.hoursThisWeek } </span>
+			{ empData.status === dataStatusEnum.loading ?
+				<span className='employee-weekly-hours code'> Loading </span> :
+				<span className='employee-weekly-hours'> { countTotalHours() } </span>
 			}
 			{empData.unclaimed ? 
 				<></> :

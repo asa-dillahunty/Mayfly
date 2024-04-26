@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useLayoutEffect, useState } from "react";
-import { auth, decrementDate, deleteCache, getCompany, getCompanyFromCache, getLastChangeCached, getMyCompanyID, pullLastChange, selectedDate } from "./firebase";
+import { auth, decrementDate, deleteCompanyCache, getCompany, getCompanyFromCache, getEmpData, getHours, getLastChangeCached, getMyCompanyID, pullLastChange, selectedDate } from "./firebase";
 
 export const dataStatusEnum = {
 	loading:"loading",
@@ -24,12 +24,12 @@ function ConnectionHandler (props) {
 					const cachedChange = getLastChangeCached(companyID);
 					pullLastChange(companyID).then((changeData) => {
 						if (changeData.time.seconds > cachedChange.time.seconds) {
-							deleteCache();
+							deleteCompanyCache(companyID);
 							deepRefresh();
 						}
 						else if (changeData.time.seconds === cachedChange.time.seconds) {
 							if (changeData.time.nanoseconds > cachedChange.time.nanoseconds) {
-								deleteCache();
+								deleteCompanyCache(companyID);
 								deepRefresh();
 							}
 						}
@@ -62,9 +62,21 @@ function ConnectionHandler (props) {
 			});
 		}
 		else if (props.emp) {
-			// fetchEmpData().then()
+			fetchEmpData().then(() => {
+			}).catch((e)=> {
+				console.log("failure! "+e.message);
+			})
+
 		}
 	}, [props]);
+
+	const changeStatus = (status) => {
+		const temp = { ...dataObject, status:status };
+		console.log("here1", dataObject);
+		console.log("here1.5", { ...dataObject, status:status } );
+		setDataObject(temp);
+		console.log("here2", dataObject);
+	}
 
 	// const parseRTDBMessage = () => {
 
@@ -96,6 +108,33 @@ function ConnectionHandler (props) {
 		}
 	}
 
+	const fetchEmpData = async () => {
+		const empObj = await getEmpData(props.empID);
+		// TODO: check if unclaimed
+		setDataObject({ ...empObj, id:props.empID, status:dataStatusEnum.loaded });
+	};
+
+	const requestData = ({type, params}) => {
+		if (type === "hours") {
+			console.log("Made it in");
+			changeStatus(dataStatusEnum.loading);
+			console.log("Changing Status");
+			if (props.emp) {
+				getHours(props.empID, params.date, params.docName).then(async () => {
+					console.log("Fetched Hours");
+					await fetchEmpData(); // should be instant
+					// should auto-set status to loaded
+				});
+			} 
+			else if (props.company) {
+				getHours(params.empID, params.date, params.docName).then(async () => {
+					await fetchEmpData(); // should be instant
+					// should auto-set status to loaded
+				});
+			}
+		}
+	}
+
 	const fetchCompanyData = async () => {
 		// this needs to somehow wait for selected date to update first
 		// update state! must somehow trigger an update in signals state
@@ -124,9 +163,10 @@ function ConnectionHandler (props) {
 			{
 				React.cloneElement(
 					props.children, {
-						dataObject:dataObject,
-						dataRefresh:dataRefresh,
-						deepDataRefresh:deepDataRefresh,
+						dataObject: dataObject,
+						dataRefresh: dataRefresh,
+						deepDataRefresh: deepDataRefresh,
+						requestData: requestData,
 						blocked:blocked,
 					}
 				)
