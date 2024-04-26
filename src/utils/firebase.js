@@ -376,6 +376,44 @@ export async function getIsOmniAdmin(uid) {
 	else return false;
 }
 
+export async function pullLastChange(companyID) {
+	// console.log("Pulling Last Change");
+	const docRef = doc(db, COMPANY_LIST_COLLECTION_NAME + '/' + companyID + '/' + COMPANY_DOCS_COLLECTION, LAST_CHANGE_DOC_NAME);
+	const docSnap = await getDoc(docRef);
+	if (!firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][COMPANY_DOCS_COLLECTION]) firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][COMPANY_DOCS_COLLECTION] = {};
+	firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][COMPANY_DOCS_COLLECTION][LAST_CHANGE_DOC_NAME] = { ...docSnap.data() };
+	return docSnap.data();
+}
+
+export function getLastChangeCached(companyID) {
+	try {
+		return firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][COMPANY_DOCS_COLLECTION][LAST_CHANGE_DOC_NAME];
+	} catch {
+		return {
+			time: {
+				seconds:0,
+				nanoseconds:0
+			}
+		};
+	}
+}
+
+export async function setLastChange(empID, docName, companyID) {
+	if (!companyID) companyID = await getMyCompanyID(empID);
+	const docData = {
+		time:serverTimestamp(),
+		empID:empID,
+		docName:docName,
+	}
+	await setDoc(doc(db, COMPANY_LIST_COLLECTION_NAME + '/' + companyID + '/' + COMPANY_DOCS_COLLECTION, LAST_CHANGE_DOC_NAME), {
+		...docData
+	});
+	if (!firebaseCache[COMPANY_LIST_COLLECTION_NAME]) firebaseCache[COMPANY_LIST_COLLECTION_NAME] = {};
+	if (!firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID]) firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID] = {};
+	if (!firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][COMPANY_DOCS_COLLECTION]) firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][COMPANY_DOCS_COLLECTION] = {};
+	firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][COMPANY_DOCS_COLLECTION][LAST_CHANGE_DOC_NAME] = docData;
+}
+
 // uid - userID
 // cid - company ID
 export async function setMyCompany(uid,cid) {
@@ -484,51 +522,13 @@ export async function getCompanies() {
 	return await getDocs(companyList); // Fetch documents from the "Companies" collection
 }
 
-export async function pullLastChange(companyID) {
-	// console.log("Pulling Last Change");
-	const docRef = doc(db, COMPANY_LIST_COLLECTION_NAME + '/' + companyID + '/' + COMPANY_DOCS_COLLECTION, LAST_CHANGE_DOC_NAME);
-	const docSnap = await getDoc(docRef);
-	if (!firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][COMPANY_DOCS_COLLECTION]) firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][COMPANY_DOCS_COLLECTION] = {};
-	firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][COMPANY_DOCS_COLLECTION][LAST_CHANGE_DOC_NAME] = { ...docSnap.data() };
-	return docSnap.data();
-}
-
-export function getLastChangeCached(companyID) {
-	try {
-		return firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][COMPANY_DOCS_COLLECTION][LAST_CHANGE_DOC_NAME];
-	} catch {
-		return {
-			time: {
-				seconds:0,
-				nanoseconds:0
-			}
-		};
-	}
-}
-
-export async function setLastChange(empID, docName, companyID) {
-	if (!companyID) companyID = await getMyCompanyID(empID);
-	const docData = {
-		time:serverTimestamp(),
-		empID:empID,
-		docName:docName,
-	}
-	await setDoc(doc(db, COMPANY_LIST_COLLECTION_NAME + '/' + companyID + '/' + COMPANY_DOCS_COLLECTION, LAST_CHANGE_DOC_NAME), {
-		...docData
-	});
-	if (!firebaseCache[COMPANY_LIST_COLLECTION_NAME]) firebaseCache[COMPANY_LIST_COLLECTION_NAME] = {};
-	if (!firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID]) firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID] = {};
-	if (!firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][COMPANY_DOCS_COLLECTION]) firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][COMPANY_DOCS_COLLECTION] = {};
-	firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][COMPANY_DOCS_COLLECTION][LAST_CHANGE_DOC_NAME] = docData;
-}
-
 export function createCompany(companyName) {
 	const companyList = collection(db, COMPANY_LIST_COLLECTION_NAME);
 	addDoc(companyList, {
 		name: companyName
 	})
-	.then((_docRef) => {
-		// console.log("Added Company with ID: ", docRef.id);
+	.then((docRef) => {
+		console.log("Added Company with ID: ", docRef.id);
 		// update displayed company list
 	})
 	.catch((error) => {
@@ -600,7 +600,12 @@ export async function deleteUnclaimedEmployee(claimCode, companyID) {
 }
 
 export async function createEmployeeAuth(empData, companyID) {
-	const data = {email: empData.email, companyID, name: empData.name};
+	const data = {
+		companyID,
+		email: empData.email,
+		name: empData.name,
+		isAdmin: empData.isAdmin
+	};
 	const result = await createEmp(data);
 	if (!result.data.success) {
 		alert("Failed to create user");
