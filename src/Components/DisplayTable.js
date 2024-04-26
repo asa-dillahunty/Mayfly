@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import ClickBlocker from './ClickBlocker';
 
 import './DisplayTable.css';
-import { deleteCompanyEmployee, getEndOfWeekString, getStartOfWeekString, makeAdmin, selectedDate, setSelectedDate } from '../utils/firebase';
+import { createCompany, deleteCompanyEmployee, getEndOfWeekString, getStartOfWeekString, makeAdmin, selectedDate, setSelectedDate } from '../utils/firebase';
 
 import Dropdown from 'react-bootstrap/Dropdown';
 import HourAdder from './HourAdder';
 import EmployeeInfoForm from './EmployeeInfoForm';
 import { AiFillLeftSquare, AiFillRightSquare, AiOutlineMore } from 'react-icons/ai';
+import ConnectionHandler from '../utils/ConnectionHandler';
 
 function CreateCompanyPopup(props) {
 	const [companyName,setCompanyName] = useState('');
@@ -131,7 +132,7 @@ export function AdminCompanyDisplayTable(props) {
 	)
 }
 
-const CustomToggle = React.forwardRef(({ children, onClick }, ref) => (
+const CustomToggle = React.forwardRef(({ children, onClick }, _ref) => (
 	<button className='kebab-container' onClick={e => {e.preventDefault();onClick(e); }} >
 		{/* custom icon */}
 		{children}
@@ -174,7 +175,6 @@ function EmployeeLine(props) {
 	return (
 		<li>
 			{/* <span className='kebab'>&#8942;</span> */}
-			<ClickBlocker block={blocked} />
 			<ClickBlocker block={editUser} custom>
 				<EmployeeInfoForm 
 					setFormOpen={setEditUser}
@@ -192,7 +192,8 @@ function EmployeeLine(props) {
 				messageEmphasized={"This action cannot be undone."}
 				onConfirm={deleteUser}
 				onCancel={()=>setConfirmDelete(false)}
-				/>
+			/>
+			<ClickBlocker block={blocked} loading />
 			<Dropdown>
 				<Dropdown.Toggle as={CustomToggle}>
 					<span className='kebab'><AiOutlineMore /></span>
@@ -233,14 +234,21 @@ function EmployeeLine(props) {
 
 export function CompanyDisplayTable(props) {
 	const [blocked, setBlocked] = useState(false);
+	const [formOpen, setFormOpen] = useState(false);
 
 	return (
 		<details className='company-details'>
 			<summary> {props.company.name} </summary>
 			<AdminCompanyDisplayTable company={props.company} refreshTable={props.refreshTable} adminAble={props.addAdmins} />
-			<button className="add-emp" onClick={() => { setBlocked(true); }}>Add Employee</button>
-			<ClickBlocker custom={true} block={blocked}>
-				<EmployeeInfoForm setBlocked={setBlocked} refreshTable={props.refreshTable} companyID={props.company.id} add admin={props.addAdmins}/>
+			<button className="add-emp" onClick={() => { setFormOpen(true); }}>Add Employee</button>
+			<ClickBlocker custom block={formOpen}>
+				<EmployeeInfoForm 
+					setFormOpen={setFormOpen}
+					refreshTable={props.refreshTable}
+					companyID={props.company.id}
+					admin
+					add
+				/>
 			</ClickBlocker>
 			<button onClick={() => props.onDelete(props.company)}>Delete Company</button>
 		</details>
@@ -256,12 +264,16 @@ function DisplayTable(props) {
 		console.log(tempName);
 	};
 
+	const addCompany = (companyName) => {
+		createCompany(companyName);
+	}
+
 	const onCancel = () => {
 		toggleCreateVisible();
 	};
 
-	const tempDelete = (companyID) => {
-		console.log(companyID);
+	const tempDelete = (companyData) => {
+		console.log(companyData);
 	}
 	// const removeItem = (id) => {
 	// 	setItems(items.filter(item => item.id !== id));
@@ -280,7 +292,7 @@ function DisplayTable(props) {
 			<button className='popup-trigger' onClick={toggleCreateVisible}>Create Company</button>
 			{/* <CreateCompanyPopup Visible={createVisible} toggleVisible={toggleCreateVisible} /> */}
 			<ClickBlocker block={createVisible} custom={true} >
-				<CreateCompanyPopup onAdd={tempAdd} onCancel={onCancel} />
+				<CreateCompanyPopup onAdd={addCompany} onCancel={onCancel} />
 			</ClickBlocker>
 		</div>
 	);

@@ -19,6 +19,11 @@ service cloud.firestore {
 			allow read, write: if isSenderAdmin() && 
 														companyId == getCompanyID(request.auth.uid);
 		}
+
+		match /CompanyList/{companyId}/CompanyDocs/Last_Change {
+			allow read: if companyId == getCompanyID(request.auth.uid);
+			allow write: if (companyId == getCompanyID(request.auth.uid) && isPast());
+		}
 		
 		match /{userId}/{document} {
 			allow read: if request.auth.uid == userId || isUsersAdmin(userId);
@@ -52,6 +57,10 @@ service cloud.firestore {
 			let userCompanyID = getCompanyID(userID);
 			
 			return isSenderAdmin() && (adminCompanyID == userCompanyID || userCompanyID == null);
+		}
+
+		function isPast() {
+			return request.resource.data.time is timestamp;
 		}
 	}
 }

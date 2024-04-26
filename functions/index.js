@@ -18,47 +18,9 @@ const ADMIN_DOC_NAME = "Administrative_Data";
 
 admin.initializeApp();
 
-exports.createAdminUser = functions.https.onCall(async (data, context) => {
-	try {
-		// Check if the request is made by an admin
-		if (!context.auth) {
-			throw new functions.https.HttpsError('permission-denied', 'Only Asa can create admin users');
-		}
-		const adminDataDocRef = admin.firestore().collection(context.auth.uid).doc(ADMIN_DOC_NAME);
-		const adminDataDocSnapshot = await adminDataDocRef.get();
-		const adminIsOmniAdmin = adminDataDocSnapshot.data().omniAdmin;
-
-		if (!adminIsOmniAdmin) {
-			throw new functions.https.HttpsError('permission-denied', 'Only Asa can create admin users');
-		}
-		// Extract data from request
-		const { email, phoneNumber, companyID } = data;
-
-		// Create user
-		let userRecord;
-		if (email) {
-			userRecord = await admin.auth().createUser({ email });
-		} else if (phoneNumber) {
-			userRecord = await admin.auth().createUser({ phoneNumber });
-		} else {
-			throw new functions.https.HttpsError('invalid-argument', 'Email or phone number is required');
-		}
-
-		await admin.firestore().collection(userRecord.uid).doc(ADMIN_DOC_NAME).set({
-			"isAdmin":true,
-			"omniAdmin":false,
-			"company":companyID
-		});
-
-		return { success: true, empID: userRecord.uid };
-	} catch (error) {
-		throw new functions.https.HttpsError('internal', 'Error creating user', error);
-	}
-});
-
 exports.createEmployee = functions.https.onCall(async (data, context) => {
 	try {
-		// Check if the request is made by an admin
+		const { email, companyID, isAdmin } = data;
 		if (!context.auth) {
 			throw new functions.https.HttpsError('permission-denied', 'not authenticated');
 		}
@@ -67,11 +29,14 @@ exports.createEmployee = functions.https.onCall(async (data, context) => {
 		const userIsAdmin = userDataDocSnapshot.data().isAdmin;
 		const userIsOmniAdmin = userDataDocSnapshot.data().omniAdmin;
 
-		if (!context.auth || !(userIsAdmin || userIsOmniAdmin)) {
+		if (isAdmin && !userIsOmniAdmin) {
+			throw new functions.https.HttpsError('permission-denied', 'Only Asa can create admin users');
+		}
+		else if (!(userIsAdmin || userIsOmniAdmin)) {
 			throw new functions.https.HttpsError('permission-denied', 'Only Admins can create users');
 		}
 
-		const { email, companyID } = data;
+		
 		const userRecord = await admin.auth().createUser({ email });
 
 		// this should send the user an email with link to set up their password
@@ -79,9 +44,9 @@ exports.createEmployee = functions.https.onCall(async (data, context) => {
 		// 		https://mayfly.asadillahunty.com/?token={TOKEN_STRING}
 
 		await admin.firestore().collection(userRecord.uid).doc(ADMIN_DOC_NAME).set({
-			"isAdmin":false,
-			"omniAdmin":false,
-			"company":companyID
+			"isAdmin": isAdmin === true,
+			"omniAdmin": false,
+			"company": companyID
 		});
 
 		return { success: true, empID: userRecord.uid };

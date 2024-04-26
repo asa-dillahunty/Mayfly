@@ -37,11 +37,10 @@ function EmployeeInfoForm (props) {
 		const empData = {
 			name:firstName+" "+lastName,
 			firstName:firstName,
-			lastName:lastName
+			lastName:lastName,
 		}
-		if (email) {
-			empData.email = email;
-		}
+		if (email) empData.email = email;
+		if (isAdmin) empData.isAdmin = true;
 		
 		// if edit -> create company employee
 		// if add -> create Unclaimed Employee
