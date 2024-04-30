@@ -43,12 +43,6 @@
 	margin-bottom: 10px;
 }
 
-/* This accesses the bar of the scroll wheel */
-.killScroll > div > div:nth-child(3) {
-	background-color: var(--accent);
-	opacity: .3;
-}
-
 .preset-buttons {
 	display: flex;
 	justify-content: center;

@@ -1,33 +1,39 @@
 import "./CustomPicker.css";
 
-export default function Picker (props) {
-	// add functionality with JavaScript
-	const container = document.querySelector('.scroll-container')
-	const items = document.querySelectorAll('.scroll-item')
 
-	const scrollToItem = (index) => {
-		// calculate the position of the item
-		const item = items[index]
-		const top = item.offsetTop
-		// scroll the container to that position
-		container.scrollTop = top - container.offsetTop
-	}
-
-	items.forEach((item, index) => {
-		// add click event listener to each item
-		item.addEventListener('click', () => {
-			scrollToItem(index)
-		});
-	})
+const hours = [0,1,2,3,4,5,6,7,8,9]; 
+export default function Picker ({value, onChange}) {
 	
+	const handleScroll = (event) => {
+		const scrollTop = event.target.scrollTop;
+		const itemHeight = event.target.firstChild.clientHeight;
+		const selectedIndex = Math.floor(scrollTop / itemHeight);
+		handleChange(hours[selectedIndex]);
+	};
+	
+	/*
+	set things like this ->
+	{
+		hours: num,
+		minutes: decimal num
+	}
+	*/
+	const handleChange = (num) => {
+		// do some logic to get the one that's in the center
+		// snap it to the center
+		onChange({
+			hours:num,
+			minutes:0
+		});
+	};
+
 	return (
-		<div class="scroll-container">
-			<div class="scroll-item">Item 1</div>
-			<div class="scroll-item">Item 2</div>
-			<div class="scroll-item">Item 3</div>
-			<div class="scroll-item">Item 4</div>
-			<div class="scroll-item">Item 5</div>
-			<div class="scroll-item">Item 6</div>
+		<div className="select-container" onScroll={handleScroll} >
+			{hours.map((hour, index) => (
+				<div key={index} className={`select-item ${value === hour ? 'selected' : ''}`}>
+					{hour}
+				</div>
+			))}
 		</div>
 	);
 }

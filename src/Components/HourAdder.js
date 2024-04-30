@@ -125,7 +125,7 @@ function HourSelector(props) {
 				<p className="weekly-total">{ hoursThisWeek < .5 ? "" : "Weekly total: " + hoursThisWeek}</p>
 			</div>
 			<div className="killScroll">
-				<Picker />
+				<Picker value={pickerValue} onChange={setPickerValue} />
 				{/* <Picker value={pickerValue} onChange={setPickerValue}>
 					{Object.keys(selections).map(name => (
 						<Picker.Column key={name} name={name}>
