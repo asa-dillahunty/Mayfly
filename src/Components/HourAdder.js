@@ -1,5 +1,4 @@
 import { selectedDate, setSelectedDate, auth, setHours, getHoursEarlyReturn, getHoursThisWeek, getUserNotes, setUserNotes, } from '../utils/firebase';
-import Picker from 'react-mobile-picker'
 import { useState, useEffect } from "react";
 import './HourAdder.css';
 import { effect } from "@preact/signals-react";
@@ -8,6 +7,8 @@ import ClickBlocker from "./ClickBlocker";
 import Calendar from './Calendar';
 import { WEEK_VIEW, MONTH_VIEW } from './Calendar';
 import { AiOutlineSnippets } from 'react-icons/ai';
+
+import Picker from './CustomPicker';
 
 export function HourAdder (props) {
 	const [calendarView, setCalendarView] = useState( WEEK_VIEW );
@@ -124,7 +125,8 @@ function HourSelector(props) {
 				<p className="weekly-total">{ hoursThisWeek < .5 ? "" : "Weekly total: " + hoursThisWeek}</p>
 			</div>
 			<div className="killScroll">
-				<Picker value={pickerValue} onChange={setPickerValue}>
+				<Picker />
+				{/* <Picker value={pickerValue} onChange={setPickerValue}>
 					{Object.keys(selections).map(name => (
 						<Picker.Column key={name} name={name}>
 						{selections[name].map(option => (
@@ -140,7 +142,7 @@ function HourSelector(props) {
 						))}
 						</Picker.Column>
 					))}
-				</Picker>
+				</Picker> */}
 			</div>
 			<div className='add-hours-button-container'>
 				<button
