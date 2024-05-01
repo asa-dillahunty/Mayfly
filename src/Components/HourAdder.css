@@ -14,11 +14,6 @@
 	margin-bottom: 10px;
 }
 
-/* This overwrites some default styling in the daypicker npm component */
-.hour-adder-content .rdp { 
-	margin: 0;
-}
-
 .hours-controls {
 	display: flex;
 	flex-direction: column;
