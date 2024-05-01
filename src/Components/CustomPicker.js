@@ -1,6 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import "./CustomPicker.css";
-
 
 const hours = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24];
 const minutes = [0,.5]
@@ -8,21 +7,34 @@ let scrollTimeoutID;
 export default function Picker ({value, onChange}) {
 	const [selectedHour, setSelectedHour] = useState(value.hours);
 	const [selectedMinutes, setSelectedMinutes] = useState(value.minutes);
+	
+	const setHourFromInside = (hours) => {
+		if (value.hours !== hours) {
+			onChange({
+				hours:hours,
+				minutes:value.minutes,
+			});
+		}
+	}
+
+	const setMinFromInside = (min) => {
+		if (value.minutes !== min) {
+			onChange({
+				hours:value.hours,
+				minutes:min,
+			});
+		}
+	}
 
 	useEffect(() => {
-		if (selectedHour === value.hours && selectedMinutes === value.minutes) return;
-		onChange({
-			hours:selectedHour,
-			minutes:selectedMinutes,
-		});
-		console.log("change");
-
-	}, [selectedHour,selectedMinutes]);
+		setSelectedHour(value.hours);
+		setSelectedMinutes(value.minutes);
+	}, [value,setSelectedHour,setSelectedMinutes]);
 
 	return (
 		<div className="picker-container">
-			<PickerWheel values={hours} value={selectedHour} onChange={setSelectedHour} />
-			<PickerWheel values={minutes} value={selectedMinutes} onChange={setSelectedMinutes} />
+			<PickerWheel values={hours} value={selectedHour} onChange={setHourFromInside} />
+			<PickerWheel values={minutes} value={selectedMinutes} onChange={setMinFromInside} />
 			<div className="select-bar"></div>
 		</div>
 	);
@@ -32,10 +44,26 @@ function PickerWheel ({value, values, onChange}) {
 	const [selectedValue, setSelectedValue] = useState(value);
 	const selectContainerRef = useRef(null);
 
+	const getScrollPosition = useCallback((value) => {
+		const container = selectContainerRef.current;
+		const itemHeight = container.firstChild.firstChild.clientHeight;
+		const selectedIndex = values.indexOf(value);
+		const scrollPosition = (selectedIndex + 0.5) * itemHeight - container.clientHeight / 2 + 100;
+		return scrollPosition;
+	}, [values]);
+
+	const centerOnValue = useCallback((value) => {
+		const container = selectContainerRef.current;
+		container.scrollTop = getScrollPosition(value);
+	}, [getScrollPosition]);
+
 	useEffect(() => {
-		// debugger;
 		centerOnValue(selectedValue);
-	  }, [selectedValue]);
+	}, [selectedValue, centerOnValue]);
+
+	useEffect(() => {
+		setSelectedValue(value);
+	},[value,setSelectedValue])
 
 	const handleScroll = (_event) => {
 		clearTimeout(scrollTimeoutID);
@@ -68,19 +96,6 @@ function PickerWheel ({value, values, onChange}) {
 		}
 
 		return selectedIndex;
-	}
-
-	const getScrollPosition = (value) => {
-		const container = selectContainerRef.current;
-		const itemHeight = container.firstChild.firstChild.clientHeight;
-		const selectedIndex = values.indexOf(value);
-		const scrollPosition = (selectedIndex + 0.5) * itemHeight - container.clientHeight / 2 + 100;
-		return scrollPosition;
-	}
-
-	const centerOnValue = (value) => {
-		const container = selectContainerRef.current;
-		container.scrollTop = getScrollPosition(value);
 	}
 
 	const handleChange = (num) => {
