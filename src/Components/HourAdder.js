@@ -1,14 +1,14 @@
 import { selectedDate, setSelectedDate, auth, setHours, getHoursEarlyReturn, getHoursThisWeek, getUserNotes, setUserNotes, } from '../utils/firebase';
 import { useState, useEffect } from "react";
-import './HourAdder.css';
 import { effect } from "@preact/signals-react";
+
+import Calendar, { WEEK_VIEW, MONTH_VIEW } from './Calendar';
 import ClickBlocker from "./ClickBlocker";
-
-import Calendar from './Calendar';
-import { WEEK_VIEW, MONTH_VIEW } from './Calendar';
-import { AiOutlineSnippets } from 'react-icons/ai';
-
 import Picker from './CustomPicker';
+
+import './HourAdder.css';
+
+import { AiOutlineSnippets } from 'react-icons/ai';
 
 export function HourAdder (props) {
 	const [calendarView, setCalendarView] = useState( WEEK_VIEW );
@@ -46,10 +46,6 @@ export function HourAdder (props) {
 	);
 }
 
-const selections = {
-	hours: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24],
-	minutes: [0,.5],
-}
 function HourSelector(props) {
 	const [start, setStart] = useState(true);
 	const [notes, setNotes] = useState(false);
@@ -71,7 +67,7 @@ function HourSelector(props) {
 		if (Math.floor(hoursWorked) === pickerValue.hours && 
 			hoursWorked % 1 === pickerValue.minutes) return;
 		setHoursWorked( pickerValue.hours + pickerValue.minutes);
-	}, [pickerValue]);
+	}, [pickerValue, hoursWorked, setHoursWorked]);
 
 	const refreshWeeklyHours = async () => {
 		const weekHours = await getHoursThisWeek(props.uid, selectedDate.value)
@@ -126,23 +122,6 @@ function HourSelector(props) {
 			</div>
 			<div className="killScroll">
 				<Picker value={pickerValue} onChange={setPickerValue} />
-				{/* <Picker value={pickerValue} onChange={setPickerValue}>
-					{Object.keys(selections).map(name => (
-						<Picker.Column key={name} name={name}>
-						{selections[name].map(option => (
-							<Picker.Item key={option} value={option}>
-								{({ selected }) => (
-									<div style={{ 
-										fontWeight: selected ? 'bold' : 'normal',
-									}}>
-										{option}
-									</div>
-								)}
-							</Picker.Item>
-						))}
-						</Picker.Column>
-					))}
-				</Picker> */}
 			</div>
 			<div className='add-hours-button-container'>
 				<button
