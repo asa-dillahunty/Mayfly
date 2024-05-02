@@ -112,8 +112,10 @@ function PickerWheel ({value, values, onChange}) {
 
 	const handleTouchEnd = () => {
 		setCurrentlyTouching(false);
-		snapToClosest();
 		clearTimeout(scrollTimeoutID);
+		scrollTimeoutID = setTimeout(() => {
+			snapToClosest();
+		}, 100);
 	}
 
 	return (

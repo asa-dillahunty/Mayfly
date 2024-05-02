@@ -15,6 +15,13 @@
 	padding: 100px 0;
 }
 
+.select-container::-webkit-scrollbar {
+	display: none;
+	-webkit-appearance: none;
+	width: 0px;
+	background: transparent;
+}
+
 .select-container .select-item {
 	padding: 7px;
 	/* border: 1px solid #ccc; */
