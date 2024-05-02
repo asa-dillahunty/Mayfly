@@ -4,6 +4,7 @@ import "./CustomPicker.css";
 const hours = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24];
 const minutes = [0,.5]
 let scrollTimeoutID;
+
 export default function Picker ({value, onChange}) {
 	const [selectedHour, setSelectedHour] = useState(value.hours);
 	const [selectedMinutes, setSelectedMinutes] = useState(value.minutes);
@@ -42,6 +43,7 @@ export default function Picker ({value, onChange}) {
 
 function PickerWheel ({value, values, onChange}) {
 	const [selectedValue, setSelectedValue] = useState(value);
+	const [currentlyTouching, setCurrentlyTouching] = useState(false);
 	const selectContainerRef = useRef(null);
 
 	const getScrollPosition = useCallback((value) => {
@@ -66,20 +68,25 @@ function PickerWheel ({value, values, onChange}) {
 	},[value,setSelectedValue])
 
 	const handleScroll = (_event) => {
+		if (currentlyTouching) return;
 		clearTimeout(scrollTimeoutID);
 		scrollTimeoutID = setTimeout(() => {
-			const container = selectContainerRef.current;
-			const selectedIndex = getSelectedIndex();
-			const newValue = values[selectedIndex];
-			const newPosition = getScrollPosition(newValue);
-
-			// do the snap
-			if (container.scrollTop !== newPosition) container.scrollTop = newPosition;
-			if (newValue === selectedValue) return;
-			setSelectedValue(newValue);
-			handleChange(newValue);
-		}, 250);
+			snapToClosest();
+		}, 150);
 	};
+
+	const snapToClosest = () => {
+		const container = selectContainerRef.current;
+		const selectedIndex = getSelectedIndex();
+		const newValue = values[selectedIndex];
+		const newPosition = getScrollPosition(newValue);
+
+		// do the snap
+		if (container.scrollTop !== newPosition) container.scrollTop = newPosition;
+		if (newValue === selectedValue) return;
+		setSelectedValue(newValue);
+		handleChange(newValue);
+	}
 
 	const getSelectedIndex = () => {
 		const container = selectContainerRef.current;
@@ -103,8 +110,20 @@ function PickerWheel ({value, values, onChange}) {
 		onChange(num);
 	};
 
+	const handleTouchEnd = () => {
+		setCurrentlyTouching(false);
+		snapToClosest();
+		clearTimeout(scrollTimeoutID);
+	}
+
 	return (
-		<div className="select-container" onScroll={handleScroll} ref={selectContainerRef}>
+		<div
+			className="select-container"
+			onScroll={handleScroll}
+			onTouchStart={()=>setCurrentlyTouching(true)}
+			onTouchEnd={handleTouchEnd}
+			ref={selectContainerRef}
+		>
 			<div className="select-list">
 				{values.map((val, index) => (
 					<div key={index} className="select-item" onClick={() => handleChange(val)} >
