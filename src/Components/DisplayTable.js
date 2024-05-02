@@ -8,7 +8,6 @@ import Dropdown from 'react-bootstrap/Dropdown';
 import HourAdder from './HourAdder';
 import EmployeeInfoForm from './EmployeeInfoForm';
 import { AiFillLeftSquare, AiFillRightSquare, AiOutlineMore } from 'react-icons/ai';
-import ConnectionHandler from '../utils/ConnectionHandler';
 
 function CreateCompanyPopup(props) {
 	const [companyName,setCompanyName] = useState('');
@@ -260,10 +259,6 @@ function DisplayTable(props) {
 	const [createVisible, setCreateVisible] = useState(false);
 
 	const toggleCreateVisible = () => setCreateVisible(!createVisible);
-
-	const tempAdd = (tempName) => {
-		console.log(tempName);
-	};
 
 	const addCompany = (companyName) => {
 		createCompany(companyName);

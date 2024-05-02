@@ -14,11 +14,6 @@
 	margin-bottom: 10px;
 }
 
-/* This overwrites some default styling in the daypicker npm component */
-.hour-adder-content .rdp { 
-	margin: 0;
-}
-
 .hours-controls {
 	display: flex;
 	flex-direction: column;
@@ -41,12 +36,6 @@
 	justify-content: center;
 	cursor: pointer;
 	margin-bottom: 10px;
-}
-
-/* This accesses the bar of the scroll wheel */
-.killScroll > div > div:nth-child(3) {
-	background-color: var(--accent);
-	opacity: .3;
 }
 
 .preset-buttons {
