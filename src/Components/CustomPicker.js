@@ -114,7 +114,7 @@ function PickerWheel ({value, values, onChange}) {
 		setCurrentlyTouching(false);
 		clearTimeout(scrollTimeoutID);
 		scrollTimeoutID = setTimeout(() => {
-			snapToClosest();
+			if (!currentlyTouching) snapToClosest();
 		}, 100);
 	}
 
