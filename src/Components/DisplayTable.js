@@ -287,10 +287,6 @@ function DisplayTable(props) {
 
 	const toggleCreateVisible = () => setCreateVisible(!createVisible);
 
-	const tempAdd = (tempName) => {
-		console.log(tempName);
-	};
-
 	const addCompany = (companyName) => {
 		createCompany(companyName);
 	}
