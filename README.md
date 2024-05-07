@@ -3,7 +3,7 @@ It is designed specifically to handle pay periods of a week and to only work som
 <a href="https://mayfly.asadillahunty.com">
 	<img alt='Deployed Status' src='https://github.com/asa-dillahunty/Mayfly/workflows/Deploy%20to%20Firebase/badge.svg'>
 </a>
-<h2 align='left'>Technology Used:</h2>
+<h2 align='left'>Technologies Used:</h2>
 <p align='center'>
 	<img margin=20px height=40px alt='React' src='https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB'>
 	<img margin=20px height=40px alt='Javascript' src='https://img.shields.io/badge/JavaScript-323330?style=for-the-badge&logo=javascript&logoColor=F7DF1E'>
