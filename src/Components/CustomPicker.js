@@ -48,9 +48,10 @@ function PickerWheel ({value, values, onChange}) {
 
 	const getScrollPosition = useCallback((value) => {
 		const container = selectContainerRef.current;
+		const padding = parseFloat(getComputedStyle(container).getPropertyValue("padding-top"));
 		const itemHeight = container.firstChild.firstChild.clientHeight;
 		const selectedIndex = values.indexOf(value);
-		const scrollPosition = (selectedIndex + 0.5) * itemHeight - container.clientHeight / 2 + 100;
+		const scrollPosition = (selectedIndex + 0.5) * itemHeight - container.clientHeight / 2 + padding;
 		return scrollPosition;
 	}, [values]);
 
@@ -93,7 +94,8 @@ function PickerWheel ({value, values, onChange}) {
 		const container = selectContainerRef.current;
 		const scrollTop = container.scrollTop;
 		const itemHeight = container.firstChild.firstChild.clientHeight;
-		const si = (( scrollTop + (container.clientHeight / 2) - 100 ) / itemHeight) -  .5;
+		const padding = parseFloat(getComputedStyle(container).getPropertyValue("padding-top"));
+		const si = (( scrollTop + (container.clientHeight / 2) - padding ) / itemHeight) -  .5;
 		let selectedIndex = Math.round(si);
 
 		if (selectedIndex > values.length - 1) {
