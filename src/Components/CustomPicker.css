@@ -7,12 +7,16 @@
 }
 
 .select-container {
+	--height: 200px;
 	overflow-y: scroll;
 	scrollbar-width: none;
-	height: 200px;
+	height: var(--height);
 	width: 50%;
 	scroll-behavior: smooth;
-	padding: 100px 0;
+	/* padding should be ( height - item height )/2 
+		currently height is 200px and item height is 24px for
+		the line height plus 7px on each side for the padding, so 38px*/
+	padding: calc((var(--height) - 38px)/2) 0;
 }
 
 .select-container::-webkit-scrollbar {
