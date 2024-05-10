@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ClickBlocker from './ClickBlocker';
 
 import './DisplayTable.css';
-import { ADMIN_DOC_NAME, buildDocName, createCompany, deleteCompanyEmployee, getEndOfWeekString, getHours, getStartOfWeekString, makeAdmin, selectedDate, setSelectedDate } from '../utils/firebase';
+import { ADMIN_DOC_NAME, buildDocName, createCompany, deleteCompanyEmployee, getEndOfWeekString, getStartOfWeekString, makeAdmin, selectedDate, setSelectedDate } from '../utils/firebase';
 
 import Dropdown from 'react-bootstrap/Dropdown';
 import HourAdder from './HourAdder';
 import EmployeeInfoForm from './EmployeeInfoForm';
 import { AiFillLeftSquare, AiFillRightSquare, AiOutlineMore } from 'react-icons/ai';
 import ConnectionHandler, { dataStatusEnum } from '../utils/ConnectionHandler';
+import { ClipLoader } from 'react-spinners';
+import logo from "../DillahuntyFarmsLogo.png";
 
 function CreateCompanyPopup(props) {
 	const [companyName,setCompanyName] = useState('');
@@ -105,7 +107,11 @@ export function AdminCompanyDisplayTable(props) {
 
 	return (
 		<div className='company-display-table'>
-			<h2> {props.company.name} </h2>
+
+			{props.company.name === "H. T. Dillahunty & Sons" ?
+				<h2> <img src={logo} className="company-logo" alt="H. T. Dillahunty & Sons" /> </h2> :
+				<h2> {props.company.name} </h2>
+			}
 			<ul>
 				<li key={0} className='table-key'>
 					{/* <div className='dropdown'></div> fake kebab so we get spacing right */}
@@ -146,6 +152,7 @@ function EmployeeLine(props) {
 	const [showMore, setShowMore] = useState(false);
 	const [editUser, setEditUser] = useState(false);
 	const [confirmDelete, setConfirmDelete] = useState(false);
+	const [status, setStatus] = useState(dataStatusEnum.loading);
 
 	const empData = props.dataObject;
 
@@ -178,7 +185,7 @@ function EmployeeLine(props) {
 	const countTotalHours = () => {
 		const docName = buildDocName(selectedDate.value);
 		if (!empData[docName]) {
-			console.log("here");
+			setStatus(dataStatusEnum.loading);
 			props.requestData({
 				type:"hours",
 				params: {
@@ -196,9 +203,13 @@ function EmployeeLine(props) {
 		return 0;
 	}
 
+	useEffect(() => {
+		if (status !== dataStatusEnum.loaded) setStatus(dataStatusEnum.loaded);
+	},[props])
+
 	if (!empData.id) return <></>
 	if (empData[ADMIN_DOC_NAME].hidden) return <></>;
-	console.log(empData);
+	// console.log(empData);
 	return (
 		<li>
 			{/* <span className='kebab'>&#8942;</span> */}
@@ -234,8 +245,8 @@ function EmployeeLine(props) {
 			</Dropdown>
 			<span className='employee-name'> {empData.name} </span>
 			{/* emp.HoursThisWeek is a computed signal */}
-			{ empData.status === dataStatusEnum.loading ?
-				<span className='employee-weekly-hours code'> Loading </span> :
+			{ status === dataStatusEnum.loading ?
+				<span className='employee-weekly-hours'> <ClipLoader size={16} color='#ffffff' /> </span> :
 				<span className='employee-weekly-hours'> { countTotalHours() } </span>
 			}
 			{empData.unclaimed ? 

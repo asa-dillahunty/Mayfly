@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useLayoutEffect, useState } from "react";
-import { auth, decrementDate, deleteCompanyCache, getCompany, getCompanyFromCache, getEmpData, getHours, getLastChangeCached, getMyCompanyID, pullLastChange, selectedDate } from "./firebase";
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { auth, buildDocName, decrementDate, deleteCompanyCache, getCompany, getCompanyFromCache, getEmpData, getLastChangeCached, getMyCompanyID, pullLastChange, selectedDate } from "./firebase";
 
 export const dataStatusEnum = {
 	loading:"loading",
@@ -11,6 +11,7 @@ export const dataStatusEnum = {
 function ConnectionHandler (props) {
 	const [dataObject, setDataObject] = useState({ status: dataStatusEnum.loading });
 	const [blocked, setBlocked] = useState(false);
+	const gettingData = useRef(false);
 
 	const onVisibilityChange = useCallback(() => {
 		if (document.visibilityState === 'visible') {
@@ -62,21 +63,13 @@ function ConnectionHandler (props) {
 			});
 		}
 		else if (props.emp) {
-			fetchEmpData().then(() => {
+			fetchEmpData(selectedDate.value).then(() => {
 			}).catch((e)=> {
 				console.log("failure! "+e.message);
 			})
 
 		}
 	}, [props]);
-
-	const changeStatus = (status) => {
-		const temp = { ...dataObject, status:status };
-		console.log("here1", dataObject);
-		console.log("here1.5", { ...dataObject, status:status } );
-		setDataObject(temp);
-		console.log("here2", dataObject);
-	}
 
 	// const parseRTDBMessage = () => {
 
@@ -108,28 +101,26 @@ function ConnectionHandler (props) {
 		}
 	}
 
-	const fetchEmpData = async () => {
-		const empObj = await getEmpData(props.empID);
+	const fetchEmpData = async (date, docName) => {
+		if (!docName) docName = buildDocName(date);
+		// if already getting EmpData -> quit
+		if (gettingData.current) return;
+		else gettingData.current = true;
+		const empObj = await getEmpData(props.empID, date, docName);
 		// TODO: check if unclaimed
 		setDataObject({ ...empObj, id:props.empID, status:dataStatusEnum.loaded });
+		gettingData.current = false;
 	};
 
 	const requestData = ({type, params}) => {
 		if (type === "hours") {
-			console.log("Made it in");
-			changeStatus(dataStatusEnum.loading);
-			console.log("Changing Status");
 			if (props.emp) {
-				getHours(props.empID, params.date, params.docName).then(async () => {
-					console.log("Fetched Hours");
-					await fetchEmpData(); // should be instant
-					// should auto-set status to loaded
+				// test if already queried data ?
+				fetchEmpData(params.date, params.docName).then(() => {
 				});
 			} 
 			else if (props.company) {
-				getHours(params.empID, params.date, params.docName).then(async () => {
-					await fetchEmpData(); // should be instant
-					// should auto-set status to loaded
+				fetchEmpData(params.date, params.docName).then(() => {
 				});
 			}
 		}
@@ -154,6 +145,7 @@ function ConnectionHandler (props) {
 		const companyID = await getMyCompanyID(auth.currentUser.uid);
 		const companyObj = await getCompany(companyID);
 		companyObj.id = companyID;
+		companyObj.status = dataStatusEnum.loaded;
 		setDataObject(companyObj);
 		setBlocked(false);
 	};

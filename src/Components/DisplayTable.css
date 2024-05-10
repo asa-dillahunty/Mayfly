@@ -26,6 +26,11 @@ details > summary {
 	margin-left: 20px;
 }
 
+.company-display-table .company-logo {
+	margin: auto;
+	max-width: 300px;
+}
+
 .company-display-table > ul {
 	padding: 0;
 	margin: 0;
@@ -60,6 +65,11 @@ span.employee-weekly-hours {
 	width: 25%;
 	background-color: var(--secondary);
 	text-align: center;
+}
+
+/* this grabs the react-spinner */
+span.employee-weekly-hours > span {
+	margin: auto;
 }
 
 .company-display-table .dropdown {
