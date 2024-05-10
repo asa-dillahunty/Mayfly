@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ClickBlocker from './ClickBlocker';
 
 import './DisplayTable.css';
-import { createCompany, deleteCompanyEmployee, getEndOfWeekString, getStartOfWeekString, makeAdmin, selectedDate, setSelectedDate } from '../utils/firebase';
+import { ADMIN_DOC_NAME, buildDocName, createCompany, deleteCompanyEmployee, getEndOfWeekString, getStartOfWeekString, makeAdmin, selectedDate, setSelectedDate } from '../utils/firebase';
 
 import Dropdown from 'react-bootstrap/Dropdown';
 import HourAdder from './HourAdder';
 import EmployeeInfoForm from './EmployeeInfoForm';
 import { AiFillLeftSquare, AiFillRightSquare, AiOutlineMore } from 'react-icons/ai';
+import ConnectionHandler, { dataStatusEnum } from '../utils/ConnectionHandler';
+import { ClipLoader } from 'react-spinners';
+import logo from "../DillahuntyFarmsLogo.png";
 
 function CreateCompanyPopup(props) {
 	const [companyName,setCompanyName] = useState('');
@@ -104,7 +107,11 @@ export function AdminCompanyDisplayTable(props) {
 
 	return (
 		<div className='company-display-table'>
-			<h2> {props.company.name} </h2>
+
+			{props.company.name === "H. T. Dillahunty & Sons" ?
+				<h2> <img src={logo} className="company-logo" alt="H. T. Dillahunty & Sons" /> </h2> :
+				<h2> {props.company.name} </h2>
+			}
 			<ul>
 				<li key={0} className='table-key'>
 					{/* <div className='dropdown'></div> fake kebab so we get spacing right */}
@@ -115,7 +122,9 @@ export function AdminCompanyDisplayTable(props) {
 					</span>
 				</li>
 				{claimedList.map((emp,index) => (
-					<EmployeeLine key={index+1} emp={emp} company={props.company} refreshTable={props.refreshTable} />
+					<ConnectionHandler key={index+1} emp empID={emp.id} companyData={props.company}>
+						<EmployeeLine refreshTable={props.refreshTable} company={props.company}/>
+					</ConnectionHandler>
 				))}
 
 				<li key={unclaimedList.length + 1} className='table-key' hidden={unclaimedList.length < 1}>
@@ -143,11 +152,13 @@ function EmployeeLine(props) {
 	const [showMore, setShowMore] = useState(false);
 	const [editUser, setEditUser] = useState(false);
 	const [confirmDelete, setConfirmDelete] = useState(false);
+	const [status, setStatus] = useState(dataStatusEnum.loading);
 
-	
+	const empData = props.dataObject;
+
 	const deleteUser = () => {
 		setBlocked(true);
-		deleteCompanyEmployee(props.emp.id, props.company.id)
+		deleteCompanyEmployee(empData.id, props.company.id)
 			.then(() => {
 				props.refreshTable().then(() => {
 					setBlocked(false);
@@ -158,7 +169,7 @@ function EmployeeLine(props) {
 					setConfirmDelete(false);
 				});
 			}).catch((_e) => {
-				alert(`Error Code 7982. Failed to delete ${props.emp.id}. Please refresh the page.`)
+				alert(`Error Code 7982. Failed to delete ${empData.id}. Please refresh the page.`)
 				setBlocked(false);
 				setConfirmDelete(false);
 			});
@@ -171,7 +182,34 @@ function EmployeeLine(props) {
 		setEditUser(!editUser);
 	}
 
-	if (props.emp.hidden) return <></>;
+	const countTotalHours = () => {
+		const docName = buildDocName(selectedDate.value);
+		if (!empData[docName]) {
+			setStatus(dataStatusEnum.loading);
+			props.requestData({
+				type:"hours",
+				params: {
+					date:selectedDate.value,
+					docName:docName
+				}
+			});
+		} else {
+			var total = 0;
+			for (var value in empData[docName]) {
+				total += empData[docName][value].hours;
+			}
+			return total;
+		}
+		return 0;
+	}
+
+	useEffect(() => {
+		if (status !== dataStatusEnum.loaded) setStatus(dataStatusEnum.loaded);
+	},[props])
+
+	if (!empData.id) return <></>
+	if (empData[ADMIN_DOC_NAME].hidden) return <></>;
+	// console.log(empData);
 	return (
 		<li>
 			{/* <span className='kebab'>&#8942;</span> */}
@@ -179,16 +217,16 @@ function EmployeeLine(props) {
 				<EmployeeInfoForm 
 					setFormOpen={setEditUser}
 					refreshTable={props.refreshTable}
-					empID={props.emp.id}
+					empID={empData.id}
 					companyID={props.company.id}
 					edit
-					fn={props.emp.firstName}
-					ln={props.emp.lastName} />
+					fn={empData.firstName}
+					ln={empData.lastName} />
 			</ClickBlocker>
 			<ClickBlocker 
 				block={confirmDelete}
 				confirm
-				message={`Are you sure you want to remove ${props.emp.name} from ${props.company.name}?`}
+				message={`Are you sure you want to remove ${empData.name} from ${props.company.name}?`}
 				messageEmphasized={"This action cannot be undone."}
 				onConfirm={deleteUser}
 				onCancel={()=>setConfirmDelete(false)}
@@ -199,23 +237,23 @@ function EmployeeLine(props) {
 					<span className='kebab'><AiOutlineMore /></span>
 				</Dropdown.Toggle>
 				<Dropdown.Menu size="sm" title="">
-					{props.emp.unclaimed ? <></> : <Dropdown.Item onClick={toggleShow}>Edit Hours</Dropdown.Item>}
+					{empData.unclaimed ? <></> : <Dropdown.Item onClick={toggleShow}>Edit Hours</Dropdown.Item>}
 					<Dropdown.Item onClick={toggleEdit}>Edit User</Dropdown.Item>
 					<Dropdown.Item onClick={()=>setConfirmDelete(true)}>Remove Employee</Dropdown.Item>
-					{!props.adminAble ? <></> : <Dropdown.Item onClick={()=>{makeAdmin(props.emp.id)}}>Make Admin</Dropdown.Item>}
+					{!props.adminAble ? <></> : <Dropdown.Item onClick={()=>{makeAdmin(empData.id)}}>Make Admin</Dropdown.Item>}
 				</Dropdown.Menu>
 			</Dropdown>
-			<span className='employee-name'> {props.emp.name} </span>
+			<span className='employee-name'> {empData.name} </span>
 			{/* emp.HoursThisWeek is a computed signal */}
-			{ props.emp.unclaimed ?
-				<span className='employee-weekly-hours code'> { props.emp.id } </span> :
-				<span className='employee-weekly-hours'> { props.emp.hoursThisWeek } </span> 
+			{ status === dataStatusEnum.loading ?
+				<span className='employee-weekly-hours'> <ClipLoader size={16} color='#ffffff' /> </span> :
+				<span className='employee-weekly-hours'> { countTotalHours() } </span>
 			}
-			{props.emp.unclaimed ? 
+			{empData.unclaimed ? 
 				<></> :
 				<ClickBlocker block={showMore} custom={true}>
 					<div className='more-info'>
-						<HourAdder uid={props.emp.id} blocked={blocked} setBlocked={setBlocked}/>
+						<HourAdder uid={empData.id} blocked={blocked} setBlocked={setBlocked}/>
 						<button
 							className='toggler'
 							onClick={

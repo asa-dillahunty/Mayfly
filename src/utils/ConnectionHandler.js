@@ -1,9 +1,17 @@
-import React, { useCallback, useEffect, useLayoutEffect, useState } from "react";
-import { auth, decrementDate, deleteCache, getCompany, getCompanyFromCache, getLastChangeCached, getMyCompanyID, pullLastChange, selectedDate } from "./firebase";
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { auth, buildDocName, decrementDate, deleteCompanyCache, getCompany, getCompanyFromCache, getEmpData, getLastChangeCached, getMyCompanyID, pullLastChange, selectedDate } from "./firebase";
+
+export const dataStatusEnum = {
+	loading:"loading",
+	loaded:"loaded",
+	error:"error",
+	unclaimed:"unclaimed",
+}
 
 function ConnectionHandler (props) {
-	const [dataObject, setDataObject] = useState({});
+	const [dataObject, setDataObject] = useState({ status: dataStatusEnum.loading });
 	const [blocked, setBlocked] = useState(false);
+	const gettingData = useRef(false);
 
 	const onVisibilityChange = useCallback(() => {
 		if (document.visibilityState === 'visible') {
@@ -17,12 +25,12 @@ function ConnectionHandler (props) {
 					const cachedChange = getLastChangeCached(companyID);
 					pullLastChange(companyID).then((changeData) => {
 						if (changeData.time.seconds > cachedChange.time.seconds) {
-							deleteCache();
+							deleteCompanyCache(companyID);
 							deepRefresh();
 						}
 						else if (changeData.time.seconds === cachedChange.time.seconds) {
 							if (changeData.time.nanoseconds > cachedChange.time.nanoseconds) {
-								deleteCache();
+								deleteCompanyCache(companyID);
 								deepRefresh();
 							}
 						}
@@ -54,6 +62,13 @@ function ConnectionHandler (props) {
 				// setInitialLoad(false);
 			});
 		}
+		else if (props.emp) {
+			fetchEmpData(selectedDate.value).then(() => {
+			}).catch((e)=> {
+				console.log("failure! "+e.message);
+			})
+
+		}
 	}, [props]);
 
 	// const parseRTDBMessage = () => {
@@ -68,6 +83,49 @@ function ConnectionHandler (props) {
 
 	// }
 
+	const dataRefresh = async () => {
+		if (props.company) {
+			await fetchCompanyData();
+		}
+		else if (props.emp) {
+
+		}
+	}
+
+	const deepDataRefresh = async () => {
+		if (props.company) {
+			await deepRefresh();
+		}
+		else if (props.emp) {
+
+		}
+	}
+
+	const fetchEmpData = async (date, docName) => {
+		if (!docName) docName = buildDocName(date);
+		// if already getting EmpData -> quit
+		if (gettingData.current) return;
+		else gettingData.current = true;
+		const empObj = await getEmpData(props.empID, date, docName);
+		// TODO: check if unclaimed
+		setDataObject({ ...empObj, id:props.empID, status:dataStatusEnum.loaded });
+		gettingData.current = false;
+	};
+
+	const requestData = ({type, params}) => {
+		if (type === "hours") {
+			if (props.emp) {
+				// test if already queried data ?
+				fetchEmpData(params.date, params.docName).then(() => {
+				});
+			} 
+			else if (props.company) {
+				fetchEmpData(params.date, params.docName).then(() => {
+				});
+			}
+		}
+	}
+
 	const fetchCompanyData = async () => {
 		// this needs to somehow wait for selected date to update first
 		// update state! must somehow trigger an update in signals state
@@ -76,6 +134,7 @@ function ConnectionHandler (props) {
 		const companyID = await getMyCompanyID(auth.currentUser.uid);
 		const companyObj = await getCompanyFromCache(companyID);
 		companyObj.id = companyID;
+		companyObj.status = dataStatusEnum.loaded;
 		setDataObject(companyObj);
 
 		setBlocked(false);
@@ -86,6 +145,7 @@ function ConnectionHandler (props) {
 		const companyID = await getMyCompanyID(auth.currentUser.uid);
 		const companyObj = await getCompany(companyID);
 		companyObj.id = companyID;
+		companyObj.status = dataStatusEnum.loaded;
 		setDataObject(companyObj);
 		setBlocked(false);
 	};
@@ -95,9 +155,10 @@ function ConnectionHandler (props) {
 			{
 				React.cloneElement(
 					props.children, {
-						dataObject:dataObject,
-						dataRefresh:fetchCompanyData,
-						deepDataRefresh:deepRefresh,
+						dataObject: dataObject,
+						dataRefresh: dataRefresh,
+						deepDataRefresh: deepDataRefresh,
+						requestData: requestData,
 						blocked:blocked,
 					}
 				)
