@@ -77,7 +77,7 @@ export default Login;
 export function ForgotPassword (props) {
 	const [email, setEmail] = useState('');
 	const [blocked, setBlocked] = useState(false);
-	const [completed, setCompleted] = useState(true);
+	const [completed, setCompleted] = useState(false);
 
 	const handleReset = (e) => {
 		e.preventDefault();
