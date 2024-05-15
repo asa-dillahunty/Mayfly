@@ -42,8 +42,8 @@ export default function Picker ({value, onChange}) {
 
 function PickerWheel ({value, values, onChange}) {
 	const [selectedValue, setSelectedValue] = useState(value);
-	const [currentlyTouching, setCurrentlyTouching] = useState(false);
 	const [scrollTimeoutID, setScrollTimeoutID] = useState();
+	const currentlyTouching = useRef(false);
 	const selectContainerRef = useRef(null);
 
 	const getScrollPosition = useCallback((value) => {
@@ -69,7 +69,17 @@ function PickerWheel ({value, values, onChange}) {
 	},[value,setSelectedValue])
 
 	const handleScroll = (_event) => {
-		if (currentlyTouching) return;
+		if ("vibrate" in navigator) {
+			const container = selectContainerRef.current;
+			const index = getSelectedIndex();
+			const newValue = values[index];
+			const position = getScrollPosition(newValue);
+			if (container.scrollTop <= position+1 || container.scrollTop >= position-1) { // on value
+				navigator.vibrate(10);
+				console.log(index)
+			}
+		}
+		if (currentlyTouching.current) return;
 		clearTimeout(scrollTimeoutID);
 		const timeoutID = setTimeout(() => {
 			snapToClosest();
@@ -114,10 +124,10 @@ function PickerWheel ({value, values, onChange}) {
 	};
 
 	const handleTouchEnd = () => {
-		setCurrentlyTouching(false);
+		currentlyTouching.current = false;
 		clearTimeout(scrollTimeoutID);
 		const timeoutID = setTimeout(() => {
-			if (!currentlyTouching) snapToClosest();
+			if (!currentlyTouching.current) snapToClosest();
 		}, 50);
 		setScrollTimeoutID(timeoutID);
 	}
@@ -126,7 +136,7 @@ function PickerWheel ({value, values, onChange}) {
 		<div
 			className="select-container"
 			onScroll={handleScroll}
-			onTouchStart={()=>setCurrentlyTouching(true)}
+			onTouchStart={()=>currentlyTouching.current = true}
 			onTouchEnd={handleTouchEnd}
 			ref={selectContainerRef}
 		>
