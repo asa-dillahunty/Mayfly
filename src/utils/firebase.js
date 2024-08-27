@@ -6,7 +6,6 @@ import 'firebase/auth';
 import 'firebase/functions';
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { pageListEnum } from "../App";
-import firebase from "firebase/compat/app";
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -25,6 +24,7 @@ const app = initializeApp(firebaseConfig);
 const functions = getFunctions(app);
 const createEmp = httpsCallable(functions, 'createEmployee');
 const deleteEmpCompany = httpsCallable(functions, 'removeEmployeeCompany');
+const transferEmployeeData = httpsCallable(functions, 'transferEmployeeData');
 
 // Initialize Firebase Authentication and get a reference to the service
 export const auth = getAuth(app);
@@ -661,6 +661,14 @@ export async function createEmployeeAuth(empData, companyID) {
 	// await setMyCompany(result.data.empID, companyID);
 	// update the cache
 	await getCompany(companyID);
+}
+
+export async function transferEmpData(oldID, newID) {
+	const data = { oldCollectionPath: oldID, newCollectionPath: newID };
+	const result = await transferEmployeeData(data);
+	if (!result.data.success) {
+		alert("Failed to remove emp company data");
+	}
 }
 
 export async function resetPassword(email) {

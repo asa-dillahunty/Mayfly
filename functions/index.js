@@ -55,7 +55,7 @@ exports.createEmployee = functions.https.onCall(async (data, context) => {
 	}
 });
 
-exports.removeEmployeeCompany = functions.https.onCall(async (data,context) => {
+exports.removeEmployeeCompany = functions.https.onCall(async (data, context) => {
 	try {
 		if (!context.auth) {
 			throw new functions.https.HttpsError('permission-denied', 'not authenticated');
@@ -84,5 +84,50 @@ exports.removeEmployeeCompany = functions.https.onCall(async (data,context) => {
 		return { success: true };
 	} catch (error) {
 		throw new functions.https.HttpsError('internal', 'Error removing user information', error);
+	}
+});
+
+exports.transferEmployeeData = functions.https.onCall(async (data, context) => {
+	try {
+		if (!context.auth) {
+			throw new functions.https.HttpsError('permission-denied', 'not authenticated');
+		}
+
+		const userDataDocRef = admin.firestore().collection(context.auth.uid).doc(ADMIN_DOC_NAME);
+		const userDataDocSnapshot = await userDataDocRef.get();
+		const userIsOmniAdmin = userDataDocSnapshot.data().omniAdmin;
+		if (!userIsOmniAdmin) {
+			throw new functions.https.HttpsError('permission-denied', 'Only Asa can create admin users');
+		}
+
+		const { oldCollectionPath, newCollectionPath } = data;
+		const firestore = admin.firestore();
+		const oldCollectionRef = firestore.collection(oldCollectionPath);
+		const newCollectionRef = firestore.collection(newCollectionPath);
+
+		const snapshot = await oldCollectionRef.get();
+
+		if (snapshot.empty) {
+			console.log('No matching documents found.');
+			return { 
+				success: true,
+				message: "No matching documents found"
+			};
+		}
+
+		const batch = firestore.batch();
+
+		snapshot.forEach((doc) => {
+			const newDocRef = newCollectionRef.doc(doc.id);
+			batch.set(newDocRef, doc.data());
+		});
+
+		await batch.commit();
+		return { 
+			success: true,
+			message: "Data transferred successfully."
+		};
+	} catch (error) {
+		throw new functions.https.HttpsError('internal', 'Error transferring user information', error);
 	}
 });
