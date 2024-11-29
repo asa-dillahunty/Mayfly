@@ -217,11 +217,14 @@ function EmployeeLine(props) {
 				<EmployeeInfoForm 
 					setFormOpen={setEditUser}
 					refreshTable={props.refreshTable}
+					deepRefresh={props.deepDataRefresh}
 					empID={empData.id}
 					companyID={props.company.id}
 					edit
 					fn={empData.firstName}
-					ln={empData.lastName} />
+					ln={empData.lastName}
+					empData={empData}
+				/>
 			</ClickBlocker>
 			<ClickBlocker 
 				block={confirmDelete}

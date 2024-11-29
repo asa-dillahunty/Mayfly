@@ -27,7 +27,7 @@
 	padding-left: 10px;
 }
 
-.employee-info-form .name-input {
+.employee-info-form .name-input, .employee-info-form .number-input {
 	width: 100%;
 	padding: 10px;
 	margin-bottom: 10px;
@@ -69,6 +69,10 @@
 .employee-info-form > form > div > .cancel-button {
 	background-color: var(--accent);
 	color: var(--background);
+}
+
+.employee-info-form .error-asterisk {
+	color: red;
 }
 
 .checkbox-container {

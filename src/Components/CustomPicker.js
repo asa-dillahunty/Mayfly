@@ -82,7 +82,7 @@ function PickerWheel ({value, values, onChange}) {
 		if (currentlyTouching.current) return;
 		clearTimeout(scrollTimeoutID);
 		const timeoutID = setTimeout(() => {
-			snapToClosest();
+			if (!currentlyTouching.current) snapToClosest();
 		}, 150);
 		setScrollTimeoutID(timeoutID);
 	};

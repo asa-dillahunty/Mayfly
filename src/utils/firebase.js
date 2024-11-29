@@ -577,6 +577,8 @@ export function createCompany(companyName) {
 }
 
 export async function createCompanyEmployee(empData, empID, companyID) {
+	console.log(`${COMPANY_LIST_COLLECTION_NAME + '/' + companyID + '/' + COMPANY_EMPLOYEE_COLLECTION}`);
+	console.log(empData);
 	await setDoc(doc(db, COMPANY_LIST_COLLECTION_NAME + '/' + companyID + '/' + COMPANY_EMPLOYEE_COLLECTION, empID), {
 		...empData
 	});

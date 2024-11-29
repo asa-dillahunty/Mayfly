@@ -7,14 +7,18 @@ import { useState } from "react";
 function EmployeeInfoForm (props) {
 	let fn = "";
 	let ln = "";
+	let rate = 0;
 	if (props.edit) {
 		fn = props.fn;
-		ln = props.ln
+		ln = props.ln;
+		rate = props.empData?.rate ?? 0;
 	}
 
 	const [firstName, setFirstName] = useState(fn);
 	const [lastName, setLastName] = useState(ln);
 	const [email, setEmail] = useState("");
+	const [hourlyRate, setRate] = useState(rate);
+	const [wageError, setRateError] = useState(false);
 	const [isAdmin, setIsAdmin] = useState(false);
 	const [blocked, setBlocked] = useState(false);
 
@@ -29,6 +33,10 @@ function EmployeeInfoForm (props) {
 
 	const submitChanges = (e) => {
 		e.preventDefault();
+		if (wageError) {
+			alert("Hourly Wage not valid");
+			return;
+		}
 		setBlocked(true);
 		// TODO: 
 		// 	do some checking on the data gathered from the form
@@ -38,6 +46,7 @@ function EmployeeInfoForm (props) {
 			name:firstName+" "+lastName,
 			firstName:firstName,
 			lastName:lastName,
+			rate:hourlyRate,
 		}
 		if (email) empData.email = email;
 		if (isAdmin) empData.isAdmin = true;
@@ -82,6 +91,11 @@ function EmployeeInfoForm (props) {
 		// TODO: fix the cache
 	}
 
+	const trysetRate = (e) => {
+		setRate(e.target.value);
+		setRateError( isNaN(e.target.value) || isNaN(parseFloat(e.target.value)) );
+	}
+
 	return (
 		<div className='employee-info-form'>
 			<h1 className="login-title">
@@ -104,6 +118,15 @@ function EmployeeInfoForm (props) {
 					placeholder="Last Name"
 					value={lastName}
 					onChange={(e) => setLastName(e.target.value)}
+				/>
+				<label htmlFor="employee-wage">Rate Per Hour:
+					{wageError && <span className="error-asterisk">*</span>}
+				</label>
+				<input
+					type="number"
+					className="name-input"
+					value={hourlyRate}
+					onChange={trysetRate}
 				/>
 				{!props.add ? "" : 
 				<>
