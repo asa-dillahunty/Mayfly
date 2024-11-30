@@ -212,10 +212,18 @@ function EmployeeLine(props) {
 	function roundToFortyHours() {
 		const currTotal = countTotalHours();
 		// setAdditionalHours(40 - currTotal);
-		setAdditionalHours(empData.id, selectedDate.value, 40 - currTotal)
-			.then( () => {
-				props.deepDataRefresh();
-			});
+		if (currTotal > 40) {
+			setAdditionalHours(empData.id, selectedDate.value, 0)
+				.then( () => {
+					props.refreshTable();
+				});
+		}
+		else {
+			setAdditionalHours(empData.id, selectedDate.value, 40 - currTotal)
+				.then( () => {
+					props.refreshTable();
+				});
+		}
 	}
 
 	useEffect(() => {

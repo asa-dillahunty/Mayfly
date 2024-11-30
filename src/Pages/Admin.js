@@ -114,8 +114,8 @@ function ContentContainer({dataObject, dataRefresh, deepDataRefresh, blocked}) {
 				}
 
 				line += .5;
-				newDoc.text(`${empList[i].hoursThisWeek}`, 15 + 13 * 8 + 3, line * lineHeight);
-				newDoc.text(`${empList[i].hoursThisWeek}`, 15 + 13 * 8 + 65, line * lineHeight);
+				newDoc.text(`${empList[i].hoursWorkedThisWeek}`, 15 + 13 * 8 + 3, line * lineHeight);
+				newDoc.text(`${empList[i].hoursPaidThisWeek}`, 15 + 13 * 8 + 65, line * lineHeight);
 				line -= .5;
 
 				line += .5
@@ -130,7 +130,7 @@ function ContentContainer({dataObject, dataRefresh, deepDataRefresh, blocked}) {
 				line -= .2;
 				newDoc.text(`$${empList[i].rate}`, 10, line * lineHeight);
 				// Math.round(num * 100) / 100
-				newDoc.text(`$${ ( Math.round((empList[i].rate * empList[i].hoursThisWeek) * 100) / 100).toFixed(2)}`, 70, line * lineHeight);
+				newDoc.text(`$${ ( Math.round((empList[i].rate * empList[i].hoursPaidThisWeek) * 100) / 100).toFixed(2)}`, 70, line * lineHeight);
 				line += .2;
 				// line++;
 

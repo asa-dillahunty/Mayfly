@@ -1,4 +1,4 @@
-import { selectedDate, setSelectedDate, auth, setHours, getHoursEarlyReturn, getHoursThisWeek, getUserNotes, setUserNotes, } from '../utils/firebase';
+import { selectedDate, setSelectedDate, auth, setHours, getHoursEarlyReturn, getUserNotes, setUserNotes, getHoursWorkedThisWeek, } from '../utils/firebase';
 import { useState, useEffect } from "react";
 import { effect } from "@preact/signals-react";
 
@@ -70,7 +70,7 @@ function HourSelector(props) {
 	}, [pickerValue, hoursWorked, setHoursWorked]);
 
 	const refreshWeeklyHours = async () => {
-		const weekHours = await getHoursThisWeek(props.uid, selectedDate.value)
+		const weekHours = await getHoursWorkedThisWeek(props.uid, selectedDate.value)
 		if (weekHours !== hoursThisWeek) setHoursThisWeek(weekHours);
 	}
 

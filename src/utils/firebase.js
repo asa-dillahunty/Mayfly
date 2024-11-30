@@ -380,7 +380,21 @@ export function getHoursSignal(userID,date,docName) {
 	return firebaseSignalCache[userID][docName][date.getDay()];
 }
 
-export async function getHoursThisWeek(userID, date, docName) {
+export async function getHoursWorkedThisWeek(userID, date, docName) {
+	if (arguments.length === 2) docName = buildDocName(date);
+	if (!userID) return 0;
+
+	if (!firebaseCache[userID] || !firebaseCache[userID][docName] || firebaseCache[userID][docName]["awaiting"]) await getHours(userID, date, docName);
+	
+	let totalHours = 0;
+	for (var day in firebaseCache[userID][docName]) {
+		if (day === 'additionalHours') continue
+		totalHours += firebaseCache[userID][docName][day].hours ?? 0;
+	}
+	return totalHours;
+}
+
+export async function getHoursPaidThisWeek(userID, date, docName) {
 	if (arguments.length === 2) docName = buildDocName(date);
 	if (!userID) return 0;
 
@@ -570,7 +584,8 @@ export async function getCompanyEmployeeList(companyID, docName) {
 
 	for (let i=0; i<docList.length; i++) {
 		const emp = docList[i];
-		emp.hoursThisWeek = await getHoursThisWeek(emp.id, selectedDate.value, docName);
+		emp.hoursPaidThisWeek = await getHoursPaidThisWeek(emp.id, selectedDate.value, docName);
+		emp.hoursWorkedThisWeek = await getHoursWorkedThisWeek(emp.id, selectedDate.value, docName);
 		emp.hoursList = await getHoursList(emp.id, selectedDate.value, docName);
 		emp.hidden = await getIsHidden(emp.id);
 	}
