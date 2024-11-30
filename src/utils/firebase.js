@@ -187,7 +187,7 @@ export function getEndOfWeekString(selectedDate) {
 	return (finalDay.getMonth()+1) + "/" + finalDay.getDate() + "/" + (finalDay.getFullYear() % 100);
 }
 
-export async function setHours(userID,date,hours) {
+export async function setHours(userID, date, hours) {
 	const docName = buildDocName(date);
 	/******** data schema: ********
 		collection -> document           -> fields { hours:hours, date:datetime}
@@ -207,6 +207,30 @@ export async function setHours(userID,date,hours) {
 	// update the company last change
 	// we don't await this one the increase responsiveness
 	setLastChange(userID,docName).catch((e) => {
+		alert("Error Code 5392: failed to update last change. "+e.message);
+	});
+}
+
+export async function setAdditionalHours(userID, date, hours) {
+	const docName = buildDocName(date);
+	/******** data schema: ********
+		collection -> document           -> fields { hours:hours, date:datetime}
+		userID     -> week number - year -> 
+	*/
+	if (!firebaseCache[userID]) firebaseCache[userID]={};
+	var savedData = firebaseCache[userID][docName];
+	fillWeekCache(savedData);
+	savedData["additionalHours"] = {
+		hours:hours
+	};
+	await setDoc(doc(db, userID, docName), savedData);
+
+	// update the firebase signal cache thing
+	// getHoursSignal(userID, date, docName).value = hours;
+
+	// update the company last change
+	// we don't await this one to increase responsiveness
+	setLastChange(userID, docName).catch((e) => {
 		alert("Error Code 5392: failed to update last change. "+e.message);
 	});
 }
@@ -256,6 +280,44 @@ export async function getHours(userID,date,docName) {
 			firebaseSignalCache[userID][docName][i].value = firebaseCache[userID][docName][i].hours;
 		}
 		return firebaseCache[userID][docName][date.getDay()].hours;
+	} else {
+		// docSnap.data() will be undefined in this case
+		// signals default to zero and do no need to be updated
+		if (!firebaseCache[userID]) firebaseCache[userID]={};
+		firebaseCache[userID][docName] = fillWeekCache();
+	}
+	return 0;
+}
+
+export async function getAdditionalHours(userID, date, docName) {
+	if (arguments.length === 2) docName = buildDocName(date);
+	
+	if (!userID) return;
+
+	if (firebaseCache[userID] && firebaseCache[userID][docName] && !firebaseCache[userID][docName]["awaiting"]) 
+		return firebaseCache[userID][docName]["additionalHours"].hours;
+	console.log("pulling data from Firebase");
+
+	const docRef = doc(db, userID, docName);
+	const docSnap = await getDoc(docRef);
+
+	if (!firebaseCache[userID]) firebaseCache[userID]={};
+
+	if (docSnap.exists()) {
+		firebaseCache[userID][docName] = docSnap.data();
+		// this for loop is probably horrible performance-wise (mostly because of buildDocName)
+		// fixed that ^. 
+		// Todo: 
+		//	- to reinvestigate performance here
+		
+		// call get signals to set up the signals
+		getHoursSignal(userID,date,docName);
+		// update the signals
+		for (let i=0;i<daysInChunk;i++) {
+			// since we know this will only ever hold hours signals, it doesn't need to be an object at index i
+			firebaseSignalCache[userID][docName][i].value = firebaseCache[userID][docName][i].hours;
+		}
+		return firebaseCache[userID][docName]["additionalHours"]?.hours ?? 0;
 	} else {
 		// docSnap.data() will be undefined in this case
 		// signals default to zero and do no need to be updated
@@ -344,6 +406,7 @@ export async function getHoursList(userID, date, docName) {
 			hoursList[day] = firebaseCache[userID][docName][day].hours;
 		else hoursList[day] = 0;
 	}
+	hoursList["additionalHours"] = firebaseCache[userID][docName]["additionalHours"]?.hours ?? 0;
 	return hoursList;
 }
 

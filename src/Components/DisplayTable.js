@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import ClickBlocker from './ClickBlocker';
 
 import './DisplayTable.css';
-import { ADMIN_DOC_NAME, buildDocName, createCompany, deleteCompanyEmployee, getEndOfWeekString, getStartOfWeekString, makeAdmin, selectedDate, setSelectedDate } from '../utils/firebase';
+import { ADMIN_DOC_NAME, buildDocName, createCompany, deleteCompanyEmployee, getEndOfWeekString, getHours, getStartOfWeekString, makeAdmin, selectedDate, setAdditionalHours, setHours, setSelectedDate } from '../utils/firebase';
 
 import Dropdown from 'react-bootstrap/Dropdown';
 import HourAdder from './HourAdder';
@@ -196,11 +196,26 @@ function EmployeeLine(props) {
 		} else {
 			var total = 0;
 			for (var value in empData[docName]) {
+				if (value === 'additionalHours') continue;
 				total += empData[docName][value].hours;
 			}
 			return total;
 		}
 		return 0;
+	}
+
+	const findAdditionalHours = () => {
+		const docName = buildDocName(selectedDate.value);
+		return empData?.[docName]?.["additionalHours"]?.hours ?? 0;
+	}
+
+	function roundToFortyHours() {
+		const currTotal = countTotalHours();
+		// setAdditionalHours(40 - currTotal);
+		setAdditionalHours(empData.id, selectedDate.value, 40 - currTotal)
+			.then( () => {
+				props.deepDataRefresh();
+			});
 	}
 
 	useEffect(() => {
@@ -241,7 +256,8 @@ function EmployeeLine(props) {
 				</Dropdown.Toggle>
 				<Dropdown.Menu size="sm" title="">
 					{empData.unclaimed ? <></> : <Dropdown.Item onClick={toggleShow}>Edit Hours</Dropdown.Item>}
-					<Dropdown.Item onClick={toggleEdit}>Edit User</Dropdown.Item>
+					{empData.unclaimed ? <></> : <Dropdown.Item onClick={roundToFortyHours}>Add Additional Hours</Dropdown.Item>}
+					<Dropdown.Item onClick={toggleEdit}>Edit Employee Information</Dropdown.Item>
 					<Dropdown.Item onClick={()=>setConfirmDelete(true)}>Remove Employee</Dropdown.Item>
 					{!props.adminAble ? <></> : <Dropdown.Item onClick={()=>{makeAdmin(empData.id)}}>Make Admin</Dropdown.Item>}
 				</Dropdown.Menu>
@@ -250,7 +266,10 @@ function EmployeeLine(props) {
 			{/* emp.HoursThisWeek is a computed signal */}
 			{ status === dataStatusEnum.loading ?
 				<span className='employee-weekly-hours'> <ClipLoader size={16} color='#ffffff' /> </span> :
-				<span className='employee-weekly-hours'> { countTotalHours() } </span>
+				<span className='employee-weekly-hours'> 
+				{ countTotalHours() }
+				{ findAdditionalHours() ? `+${findAdditionalHours()}` : ""}
+				</span>
 			}
 			{empData.unclaimed ? 
 				<></> :
