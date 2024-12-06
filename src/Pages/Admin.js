@@ -30,6 +30,7 @@ function AdminDashboard(props) {
 
 function ContentContainer({dataObject, dataRefresh, deepDataRefresh, blocked}) {
 	const [infoFormOpen, setInfoFormOpen] = useState(false);
+	const [previewPDF, setPreviewPDF] = useState(false);
 
 	const createPrintable = () => {
 		const newDoc = new jsPDF();
@@ -47,9 +48,11 @@ function ContentContainer({dataObject, dataRefresh, deepDataRefresh, blocked}) {
 		// get the employee list, how?
 		getCompanyEmployeeList(dataObject.id, docName).then( async (empList) => {
 			let line = 0;
+			let shownEmps = 0;
 			for (let i=0; i<empList.length; i++) {
 			// for (let i=0; i<1; i++) {
 				if (empList[i].hidden) continue;
+
 				line += 2;
 				newDoc.setFontSize(defaultFontSize);
 
@@ -140,9 +143,19 @@ function ContentContainer({dataObject, dataRefresh, deepDataRefresh, blocked}) {
 
 				// newDoc.setFontSize(defaultFontSize);
 				newDoc.text(`Deductions:   FICA / FED`, 10, line * lineHeight);
+
+				shownEmps++;
+				if (shownEmps%2 === 0) {
+					newDoc.addPage();
+					line = 0;
+				}
 			}
 			
-			newDoc.save(`${dataObject.name}-hours-week-${docName}.pdf`);
+			newDoc.setProperties({ title: `${dataObject.name}-hours-week-${docName}.pdf` });
+			const url = newDoc.output("bloburi");
+			// window.open(url, "_blank");
+			setPreviewPDF(url);
+			// newDoc.save(`${dataObject.name}-hours-week-${docName}.pdf`);
 		});
 	};
 
@@ -157,6 +170,10 @@ function ContentContainer({dataObject, dataRefresh, deepDataRefresh, blocked}) {
 		return (
 			<div className="dashboard-content contain-click-blocker">
 				<ClickBlocker block={blocked} loading/>
+				<ClickBlocker block={previewPDF !== false} custom>
+					<iframe id="pdfobject" title='pdfObject' src={previewPDF} />
+				</ClickBlocker>
+				
 				<AdminCompanyDisplayTable company={dataObject} refreshTable={dataRefresh}/>
 
 				<div className='admin-button-container'>
