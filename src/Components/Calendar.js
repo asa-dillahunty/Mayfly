@@ -20,10 +20,10 @@ const buildDateArray = () => {
 	return dateArray;
 }
 
+const CalendarDates = signal(buildDateArray());
 const refreshDateArray = () => {
 	CalendarDates.value = buildDateArray();
 }
-const CalendarDates = signal(buildDateArray());
 
 
 function DateCell(props) {

@@ -9,9 +9,6 @@ import logo from '../DillahuntyFarmsLogo.png';
 import { AiFillPlusCircle, AiOutlinePrinter } from "react-icons/ai";
 import ConnectionHandler, { dataStatusEnum } from '../utils/ConnectionHandler';
 
-const language = navigator.language;
-console.log(language); 
-
 function AdminDashboard(props) {
 	return (
 		<div className="dashboard-container">

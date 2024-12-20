@@ -49,8 +49,8 @@ function ConnectionHandler (props) {
 	},[props]);
 
 	useLayoutEffect(() => {
-		document.addEventListener('visibilitychange',onVisibilityChange);
-		return () => document.removeEventListener("visibilitychange",onVisibilityChange);
+		document.addEventListener('visibilitychange', onVisibilityChange);
+		return () => document.removeEventListener("visibilitychange", onVisibilityChange);
 	}, [onVisibilityChange]);
 
 	useEffect(() => {

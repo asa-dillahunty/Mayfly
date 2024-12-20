@@ -207,7 +207,7 @@ export async function setHours(userID, date, hours) {
 	// update the company last change
 	// we don't await this one the increase responsiveness
 	setLastChange(userID,docName).catch((e) => {
-		alert("Error Code 5392: failed to update last change. "+e.message);
+		alert("Error Code 5392: Failed to update last change. "+e.message);
 	});
 }
 
