@@ -91,20 +91,6 @@ function PickerWheel({ value, values, onChange }) {
   }, [value, setSelectedValue]);
 
   const handleScroll = (_event) => {
-    if ("vibrate" in navigator) {
-      const container = selectContainerRef.current;
-      const index = getSelectedIndex();
-      const newValue = values[index];
-      const position = getScrollPosition(newValue);
-      if (
-        container.scrollTop <= position + 1 ||
-        container.scrollTop >= position - 1
-      ) {
-        // on value
-        navigator.vibrate(10);
-        console.log(index);
-      }
-    }
     if (currentlyTouching.current) return;
     clearTimeout(scrollTimeoutID);
     const timeoutID = setTimeout(() => {
