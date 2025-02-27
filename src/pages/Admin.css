@@ -1,0 +1,73 @@
+div.dashboard-content {
+  background-color: var(--background);
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-align: center;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  width: 340px;
+
+  margin-bottom: 20px;
+}
+
+.pdfPreviewContainer,
+#pdfobject {
+  height: 90vh;
+  width: 90vw;
+}
+
+.dashboard-content .admin-button-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  width: 100%;
+}
+
+.dashboard-content .admin-button-container button.add-emp {
+  color: var(--background);
+  background-color: var(--accent);
+
+  /* width: 50%; */
+  padding: 5px 7px;
+  margin-top: 20px;
+
+  border-radius: 3px;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.dashboard-content .admin-button-container button.add-emp:hover {
+  background-color: var(--text);
+}
+
+.dashboard-content .admin-button-container button.print-table {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  transition: all 0.2s;
+  /* padding: 10px; */
+  border-radius: 3px;
+  box-sizing: border-box;
+  color: var(--background);
+  background-color: var(--text);
+}
+
+.dashboard-content .admin-button-container button.print-table:hover {
+  cursor: pointer;
+  /* background-color: var(--backgroundThree); */
+  background-color: var(--accent);
+}
+
+.dashboard-content .admin-button-container button.add-emp svg {
+  padding-right: 5px;
+  font-size: 20px;
+}
+
+.dashboard-content.skeleton {
+  padding: 0;
+}
