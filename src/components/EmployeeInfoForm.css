@@ -1,0 +1,84 @@
+.employee-info-form {
+  background-color: var(--background);
+  display: flex;
+  flex-direction: column;
+
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  width: 340px;
+}
+
+.employee-info-form > div {
+  padding: 7px;
+}
+
+.employee-info-form > form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.employee-info-form > form label {
+  width: 100%;
+  text-align: left;
+  padding-left: 10px;
+}
+
+.employee-info-form .name-input,
+.employee-info-form .number-input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+}
+
+.employee-info-form > div.input-container {
+  width: 100%;
+  text-align: left;
+}
+
+.employee-info-form > div.input-container > label {
+  font-weight: bold;
+}
+
+.employee-info-form > div.input-container > input {
+  width: 100%;
+}
+
+.employee-info-form > form > div.button-container {
+  margin: auto;
+  margin-top: 20px;
+}
+
+.employee-info-form > form > div.button-container > button {
+  margin: 0 10px 0 10px;
+  padding: 5px 10px 5px 10px;
+  border-radius: 3px;
+
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.employee-info-form > form > div > .submit-button {
+  background-color: var(--primary);
+  color: var(--background);
+}
+
+.employee-info-form > form > div > .cancel-button {
+  background-color: var(--accent);
+  color: var(--background);
+}
+
+.employee-info-form .error-asterisk {
+  color: red;
+}
+
+.checkbox-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
