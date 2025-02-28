@@ -3,14 +3,15 @@ import json
 import base64
 import firebase_admin
 from firebase_admin import credentials, firestore
+from google.cloud.firestore_v1 import _helpers
 from datetime import datetime
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.fernet import Fernet
 
-# Load Firebase credentials from GitHub Secrets (encoded as base64)
+# Load Firebase credentials from GitHub Secrets
 firebase_credentials = json.loads(os.getenv("FIREBASE_SERVICE_ACCOUNT"))
-backup_password = os.getenv("BACKUP_ENCRYPTION_PASSWORD")  # Your encryption password
+backup_password = os.getenv("BACKUP_ENCRYPTION_PASSWORD")
 
 # Initialize Firebase
 cred = credentials.Certificate(firebase_credentials)
@@ -19,8 +20,8 @@ db = firestore.client()
 
 def firestore_serializer(obj):
     """Convert Firestore timestamp objects to ISO format strings."""
-    if isinstance(obj, firestore.SERVER_TIMESTAMP.__class__):  # DatetimeWithNanoseconds
-        return obj.isoformat()  # Convert to ISO 8601 string
+    if isinstance(obj, _helpers.DatetimeWithNanoseconds):
+        return obj.isoformat()  # Convert Firestore timestamps to string format
     raise TypeError(f"Object of type {obj.__class__.__name__} is not JSON serializable")
 
 def derive_key(password: str, salt: bytes) -> bytes:
@@ -59,16 +60,13 @@ def backup_firestore():
             data[collection_name][doc.id] = doc.to_dict()
     
     # Convert the data to a JSON string and then to bytes.
-    # json_data = json.dumps(data, indent=4).encode("utf-8")
     json_data = json.dumps(data, indent=4, default=firestore_serializer).encode("utf-8")
     return json_data
 
 if __name__ == "__main__":
-    # Backup Firestore data and encrypt it in memory
     json_data = backup_firestore()
     encrypted_data = encrypt_data(json_data, backup_password)
     
-    # Save the encrypted backup as a single file
     backup_filename = f"firestore_backup_{datetime.now().strftime('%Y-%m-%d')}.enc"
     with open(backup_filename, "wb") as f:
         f.write(encrypted_data)
