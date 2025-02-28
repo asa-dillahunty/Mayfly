@@ -9,7 +9,7 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.fernet import Fernet
 
 # Load Firebase credentials from GitHub Secrets (encoded as base64)
-firebase_credentials = json.loads(base64.b64decode(os.getenv("FIREBASE_SERVICE_ACCOUNT_PRIMER_53A41")))
+firebase_credentials = json.loads(os.getenv("FIREBASE_SERVICE_ACCOUNT_PRIMER_53A41"))
 backup_password = os.getenv("BACKUP_ENCRYPTION_PASSWORD")  # Your encryption password
 
 # Initialize Firebase
