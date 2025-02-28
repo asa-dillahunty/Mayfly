@@ -17,6 +17,12 @@ cred = credentials.Certificate(firebase_credentials)
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
+def firestore_serializer(obj):
+    """Convert Firestore timestamp objects to ISO format strings."""
+    if isinstance(obj, firestore.SERVER_TIMESTAMP.__class__):  # DatetimeWithNanoseconds
+        return obj.isoformat()  # Convert to ISO 8601 string
+    raise TypeError(f"Object of type {obj.__class__.__name__} is not JSON serializable")
+
 def derive_key(password: str, salt: bytes) -> bytes:
     """Derive a key from the given password and salt."""
     kdf = PBKDF2HMAC(
@@ -53,7 +59,8 @@ def backup_firestore():
             data[collection_name][doc.id] = doc.to_dict()
     
     # Convert the data to a JSON string and then to bytes.
-    json_data = json.dumps(data, indent=4).encode("utf-8")
+    # json_data = json.dumps(data, indent=4).encode("utf-8")
+    json_data = json.dumps(data, indent=4, default=firestore_serializer).encode("utf-8")
     return json_data
 
 if __name__ == "__main__":
