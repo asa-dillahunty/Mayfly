@@ -774,9 +774,8 @@ export async function getCompanyFromCache(company_ID) {
   return companyData;
 }
 
-export async function getCompany(company_ID, docName) {
+export async function getCompany(company_ID) {
   if (company_ID === "") return { name: "Major Error Occurred" };
-  if (!docName) docName = buildDocName(selectedDate.value);
   console.log("pulling company data");
   const docRef = doc(db, COMPANY_LIST_COLLECTION_NAME, company_ID);
   const docSnap = await getDoc(docRef);

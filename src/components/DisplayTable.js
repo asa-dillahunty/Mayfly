@@ -8,7 +8,6 @@ import {
   createCompany,
   deleteCompanyEmployee,
   getEndOfWeekString,
-  getHours,
   getStartOfWeekString,
   makeAdmin,
   selectedDate,
@@ -28,6 +27,13 @@ import {
 import ConnectionHandler, { dataStatusEnum } from "../utils/ConnectionHandler";
 import { ClipLoader } from "react-spinners";
 import logo from "../assets/DillahuntyFarmsLogo.png";
+import { useQuery } from "@tanstack/react-query";
+import {
+  getAdminDataQuery,
+  getCompanyEmployeeQuery,
+  getEmpData,
+  getUserWeekQuery,
+} from "../utils/firebaseQueries.ts";
 
 function CreateCompanyPopup(props) {
   const [companyName, setCompanyName] = useState("");
@@ -117,7 +123,6 @@ export function AdminCompanyDisplayTable(props) {
         selectedDate.value.getDate() + 7
       )
     );
-    props.refreshTable();
   };
 
   // jumps selectedDate a week forward
@@ -129,7 +134,6 @@ export function AdminCompanyDisplayTable(props) {
         selectedDate.value.getDate() - 7
       )
     );
-    props.refreshTable();
   };
 
   let claimedList;
@@ -166,18 +170,8 @@ export function AdminCompanyDisplayTable(props) {
             <AiFillRightSquare className="week-button" onClick={jumpForward} />
           </span>
         </li>
-        {claimedList.map((emp, index) => (
-          <ConnectionHandler
-            key={index + 1}
-            emp
-            empID={emp.id}
-            companyData={props.company}
-          >
-            <EmployeeLine
-              refreshTable={props.refreshTable}
-              company={props.company}
-            />
-          </ConnectionHandler>
+        {claimedList.map((emp) => (
+          <EmployeeLine key={emp.id} company={props.company} empId={emp.id} />
         ))}
 
         <li
@@ -195,7 +189,6 @@ export function AdminCompanyDisplayTable(props) {
             key={index + claimedList.length + 2}
             emp={emp}
             company={props.company}
-            refreshTable={props.refreshTable}
             admin={props.admin}
           />
         ))}
@@ -222,34 +215,50 @@ function EmployeeLine(props) {
   const [showMore, setShowMore] = useState(false);
   const [editUser, setEditUser] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [status, setStatus] = useState(dataStatusEnum.loading);
 
-  const empData = props.dataObject;
+  const empQuery = useQuery(
+    getCompanyEmployeeQuery(props.company.id, props.empId)
+  );
+  const empAdminQuery = useQuery(getAdminDataQuery(props.empId));
+  const hoursQuery = useQuery(
+    getUserWeekQuery(props.empId, selectedDate.value)
+  );
+  const { data: empData } = empQuery;
+  // what is empData supposed to be?
+  // we need { id, firstName, lastName, name }
+  const status =
+    empQuery.isLoading || empAdminQuery.isLoading || hoursQuery.isLoading
+      ? dataStatusEnum.loading
+      : dataStatusEnum.loaded;
 
-  const deleteUser = () => {
-    setBlocked(true);
-    deleteCompanyEmployee(empData.id, props.company.id)
-      .then(() => {
-        props
-          .refreshTable()
-          .then(() => {
-            setBlocked(false);
-            setConfirmDelete(false);
-          })
-          .catch((_e) => {
-            alert(`Error Code 0012. Please refresh the page.`);
-            setBlocked(false);
-            setConfirmDelete(false);
-          });
-      })
-      .catch((_e) => {
-        alert(
-          `Error Code 7982. Failed to delete ${empData.id}. Please refresh the page.`
-        );
-        setBlocked(false);
-        setConfirmDelete(false);
-      });
-  };
+  function deleteUser() {
+    console.log("missing implementation");
+  }
+
+  // const deleteUser = () => {
+  //   setBlocked(true);
+  //   deleteCompanyEmployee(empData.id, props.company.id)
+  //     .then(() => {
+  //       props
+  //         .refreshTable()
+  //         .then(() => {
+  //           setBlocked(false);
+  //           setConfirmDelete(false);
+  //         })
+  //         .catch((_e) => {
+  //           alert(`Error Code 0012. Please refresh the page.`);
+  //           setBlocked(false);
+  //           setConfirmDelete(false);
+  //         });
+  //     })
+  //     .catch((_e) => {
+  //       alert(
+  //         `Error Code 7982. Failed to delete ${empData.id}. Please refresh the page.`
+  //       );
+  //       setBlocked(false);
+  //       setConfirmDelete(false);
+  //     });
+  // };
 
   const toggleShow = () => {
     setShowMore(!showMore);
@@ -259,63 +268,51 @@ function EmployeeLine(props) {
   };
 
   const countTotalHours = () => {
-    const docName = buildDocName(selectedDate.value);
-    if (!empData[docName]) {
-      setStatus(dataStatusEnum.loading);
-      props.requestData({
-        type: "hours",
-        params: {
-          date: selectedDate.value,
-          docName: docName,
-        },
-      });
-    } else {
-      var total = 0;
-      for (var value in empData[docName]) {
-        if (value === "additionalHours") continue;
-        total += empData[docName][value].hours;
-      }
-      return total;
+    if (hoursQuery.isLoading) return 0;
+
+    const weeklyHours = hoursQuery.data;
+
+    var total = 0;
+    for (var value in weeklyHours) {
+      if (value === "additionalHours") continue;
+      total += weeklyHours[value].hours;
     }
-    return 0;
+    return total;
   };
 
   const findAdditionalHours = () => {
-    const docName = buildDocName(selectedDate.value);
-    return empData?.[docName]?.["additionalHours"]?.hours ?? 0;
+    if (hoursQuery.isLoading) return 0;
+    return hoursQuery.data["additionalHours"]?.hours ?? 0;
   };
 
   function roundToFortyHours() {
-    const currTotal = countTotalHours();
-    // setAdditionalHours(40 - currTotal);
-    if (currTotal > 40) {
-      setAdditionalHours(empData.id, selectedDate.value, 0).then(() => {
-        props.refreshTable();
-      });
-    } else {
-      setAdditionalHours(empData.id, selectedDate.value, 40 - currTotal).then(
-        () => {
-          props.refreshTable();
-        }
-      );
-    }
+    console.log("missing implementation");
   }
 
-  useEffect(() => {
-    if (status !== dataStatusEnum.loaded) setStatus(dataStatusEnum.loaded);
-  }, [props]);
+  // function roundToFortyHours() {
+  //   const currTotal = countTotalHours();
+  //   // setAdditionalHours(40 - currTotal);
+  //   if (currTotal > 40) {
+  //     setAdditionalHours(empData.id, selectedDate.value, 0).then(() => {
+  //       props.refreshTable();
+  //     });
+  //   } else {
+  //     setAdditionalHours(empData.id, selectedDate.value, 40 - currTotal).then(
+  //       () => {
+  //         props.refreshTable();
+  //       }
+  //     );
+  //   }
+  // }
 
-  if (!empData.id) return <></>;
-  if (empData[ADMIN_DOC_NAME].hidden) return <></>;
-  // console.log(empData);
+  if (!empData?.id) return <></>; // TODO: should be a skeleton of some kind?
+  if (empAdminQuery.data.hidden) return <></>;
   return (
     <li>
       {/* <span className='kebab'>&#8942;</span> */}
       <ClickBlocker block={editUser} custom>
         <EmployeeInfoForm
           setFormOpen={setEditUser}
-          refreshTable={props.refreshTable}
-          deepRefresh={props.deepDataRefresh}
           empID={empData.id}
           companyID={props.company.id}
           edit
@@ -373,7 +370,7 @@ function EmployeeLine(props) {
       </Dropdown>
       <span className="employee-name"> {empData.name} </span>
       {/* emp.HoursThisWeek is a computed signal */}
-      {status === dataStatusEnum.loading ? (
+      {hoursQuery.isLoading ? (
         <span className="employee-weekly-hours">
           {" "}
           <ClipLoader size={16} color="#ffffff" />{" "}
@@ -397,7 +394,6 @@ function EmployeeLine(props) {
             <button
               className="toggler"
               onClick={() => {
-                props.refreshTable();
                 toggleShow();
               }}
             >
