@@ -89,7 +89,7 @@ function ContentContainer({
         newDoc.text("710450529", 10, line * lineHeight);
         line++;
 
-        newDoc.text("State of Employement - Arkansas", 10, line * lineHeight);
+        newDoc.text("State of Employment - Arkansas", 10, line * lineHeight);
         // newDoc.text("Arkansas", 70, line * lineHeight);
         line++;
         line += 0.5;
@@ -167,7 +167,7 @@ function ContentContainer({
         line++;
 
         newDoc.text(`Rate Per Hour`, 10, line * lineHeight);
-        newDoc.text(`Net Pay`, 70, line * lineHeight);
+        newDoc.text(`Gross Pay`, 70, line * lineHeight);
         line++;
 
         newDoc.setFontSize(smallFontSize);
