@@ -1,13 +1,14 @@
 import React, { useState } from "react";
+import { performLogout, auth } from "../utils/firebase";
+
 import {
-  performLogout,
+  getEndOfWeekString,
+  getStartOfWeekString,
   selectedDate,
   buildDocName,
   ABBREVIATIONS,
-  getStartOfWeekString,
-  getEndOfWeekString,
-  auth,
-} from "../utils/firebase";
+} from "../utils/dateUtils.ts";
+
 import "./Admin.css";
 import {
   AdminCompanyDisplayTable,

@@ -38,9 +38,15 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const functions = getFunctions(app);
-const createEmp = httpsCallable(functions, "createEmployee");
-const deleteEmpCompany = httpsCallable(functions, "removeEmployeeCompany");
-const transferEmployeeData = httpsCallable(functions, "transferEmployeeData");
+export const createEmp = httpsCallable(functions, "createEmployee");
+export const deleteEmpCompany = httpsCallable(
+  functions,
+  "removeEmployeeCompany"
+);
+export const transferEmployeeData = httpsCallable(
+  functions,
+  "transferEmployeeData"
+);
 
 // Initialize Firebase Authentication and get a reference to the service
 export const auth = getAuth(app);

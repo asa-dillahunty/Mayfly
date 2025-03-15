@@ -1,13 +1,20 @@
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
   setDoc,
   updateDoc,
 } from "firebase/firestore";
-import { auth, buildDocName, db, selectedDate } from "./firebase";
+import {
+  auth,
+  createEmp,
+  db,
+  deleteEmpCompany,
+  transferEmployeeData,
+} from "./firebase";
 import { QueryClient, useMutation } from "@tanstack/react-query";
 import { queryClient } from "..";
 import {
@@ -15,17 +22,15 @@ import {
   sendPasswordResetEmail,
   sendSignInLinkToEmail,
 } from "firebase/auth";
+import { buildDocName, selectedDate } from "./dateUtils";
 
 const COMPANY_LIST_COLLECTION_NAME = "CompanyList";
 const UNCLAIMED_LIST_COLLECTION_NAME = "UnclaimedList";
-export const ADMIN_DOC_NAME = "Administrative_Data";
+const ADMIN_DOC_NAME = "Administrative_Data";
 const COMPANY_DOCS_COLLECTION = "CompanyDocs";
 const LAST_CHANGE_DOC_NAME = "Last_Change";
 const COMPANY_EMPLOYEE_COLLECTION = "Employees";
-const daysInChunk = 7;
-const startOfPayPeriod = 4; // Thursday
 export const FAKE_EMAIL_EXTENSION = "@dillahuntyfarms.com";
-export const ABBREVIATIONS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 type WeeklyHours = {
   0: { hours: number; notes?: string };
@@ -354,7 +359,7 @@ export function getCompanyEmployeeQuery(companyId: string, empId: string) {
       empId,
     ],
     queryFn: async () => {
-      console.log("getCompanyEmployeeQuery", companyId, empId);
+      console.log("getCompanyEmployeeQuery");
       if (!companyId || !empId) return {};
       const docRef = doc(
         db,
@@ -382,13 +387,6 @@ export async function fetchCompanyEmployee(companyId: string, empId: string) {
   return await queryClient.fetchQuery(
     getCompanyEmployeeQuery(companyId, empId)
   );
-}
-
-export async function getEmpData(userId: string, date: Date, docName?: string) {
-  // FIXME: investigate what this is supposed to do
-  const adminData = await fetchAdminData(userId);
-  const empCompanyData = await fetchCompanyEmployee(adminData.company, userId);
-  return { ...firebaseCache[empID], ...empCompanyData };
 }
 
 export async function getCompanyEmployeeList(
@@ -426,7 +424,7 @@ export function getCompanyQuery(companyId: string) {
       // TODO: investigate use and see if this is dumb
       if (!companyId || companyId === "")
         return { name: "Major Error Occurred" };
-      console.log("pulling company data");
+      console.log("getCompanyQuery");
       const docRef = doc(db, COMPANY_LIST_COLLECTION_NAME, companyId);
       const docSnap = await getDoc(docRef);
       const employeeCollection = collection(
@@ -611,7 +609,7 @@ export async function createEmployeeAuth(empData, companyID) {
 }
 
 // TODO: make mutation and/or invalidate some queries
-export async function transferEmpData(oldID, newID) {
+export async function transferEmpData(oldID: string, newID: string) {
   const data = { oldCollectionPath: oldID, newCollectionPath: newID };
   const result = await transferEmployeeData(data);
   if (!result.data.success) {

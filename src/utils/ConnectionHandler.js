@@ -7,8 +7,6 @@ import React, {
 } from "react";
 import {
   auth,
-  buildDocName,
-  decrementDate,
   deleteCompanyCache,
   getCompany,
   getCompanyFromCache,
@@ -16,8 +14,12 @@ import {
   getLastChangeCached,
   getMyCompanyID,
   pullLastChange,
-  selectedDate,
 } from "./firebase";
+import {
+  decrementDate,
+  selectedDate,
+  buildDocName,
+} from "../utils/dateUtils.ts";
 
 export const dataStatusEnum = {
   loading: "loading",

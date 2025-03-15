@@ -3,18 +3,17 @@ import ClickBlocker from "./ClickBlocker";
 
 import "./DisplayTable.css";
 import {
-  ADMIN_DOC_NAME,
-  buildDocName,
   createCompany,
   deleteCompanyEmployee,
+  makeAdmin,
+} from "../utils/firebase";
+
+import {
   getEndOfWeekString,
   getStartOfWeekString,
-  makeAdmin,
   selectedDate,
-  setAdditionalHours,
-  setHours,
   setSelectedDate,
-} from "../utils/firebase";
+} from "../utils/dateUtils.ts";
 
 import Dropdown from "react-bootstrap/Dropdown";
 import HourAdder from "./HourAdder";
@@ -24,14 +23,12 @@ import {
   AiFillRightSquare,
   AiOutlineMore,
 } from "react-icons/ai";
-import ConnectionHandler, { dataStatusEnum } from "../utils/ConnectionHandler";
 import { ClipLoader } from "react-spinners";
 import logo from "../assets/DillahuntyFarmsLogo.png";
 import { useQuery } from "@tanstack/react-query";
 import {
   getAdminDataQuery,
   getCompanyEmployeeQuery,
-  getEmpData,
   getUserWeekQuery,
 } from "../utils/firebaseQueries.ts";
 
@@ -226,10 +223,6 @@ function EmployeeLine(props) {
   const { data: empData } = empQuery;
   // what is empData supposed to be?
   // we need { id, firstName, lastName, name }
-  const status =
-    empQuery.isLoading || empAdminQuery.isLoading || hoursQuery.isLoading
-      ? dataStatusEnum.loading
-      : dataStatusEnum.loaded;
 
   function deleteUser() {
     console.log("missing implementation");

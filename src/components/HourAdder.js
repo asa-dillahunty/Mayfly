@@ -1,13 +1,5 @@
-import {
-  selectedDate,
-  setSelectedDate,
-  auth,
-  setHours,
-  getHoursEarlyReturn,
-  getUserNotes,
-  setUserNotes,
-  getHoursWorkedThisWeek,
-} from "../utils/firebase";
+import { getUserNotes, setUserNotes } from "../utils/firebase";
+import { selectedDate, setSelectedDate } from "../utils/dateUtils.ts";
 import { useState, useEffect } from "react";
 import { effect } from "@preact/signals-react";
 
@@ -18,6 +10,8 @@ import Picker from "./CustomPicker";
 import "./HourAdder.css";
 
 import { AiOutlineSnippets } from "react-icons/ai";
+import { useQuery } from "@tanstack/react-query";
+import { getUserWeekQuery, useSetHours } from "../utils/firebaseQueries.ts";
 
 export function HourAdder(props) {
   const [calendarView, setCalendarView] = useState(WEEK_VIEW);
@@ -63,11 +57,25 @@ function HourSelector(props) {
   const [start, setStart] = useState(true);
   const [notes, setNotes] = useState(false);
   const [hoursWorked, setHoursWorked] = useState(-2);
-  const [hoursThisWeek, setHoursThisWeek] = useState(0);
   const [pickerValue, setPickerValue] = useState({
     hours: 0,
     minutes: 0,
   });
+
+  const weeklyHoursQuery = useQuery(
+    getUserWeekQuery(props.uid, selectedDate.value)
+  );
+
+  const hoursThisWeek = () => {
+    const weeklyHours = weeklyHoursQuery.data;
+    if (!weeklyHours) return 0;
+    let total = 0;
+    for (const day in weeklyHours) {
+      if (day === "additionalHours") continue;
+      total += weeklyHours[day].hours;
+    }
+    return total;
+  };
 
   useEffect(() => {
     // this should trigger every time the user touches the picker
@@ -85,56 +93,43 @@ function HourSelector(props) {
     setHoursWorked(pickerValue.hours + pickerValue.minutes);
   }, [pickerValue, hoursWorked, setHoursWorked]);
 
-  const refreshWeeklyHours = async () => {
-    const weekHours = await getHoursWorkedThisWeek(
-      props.uid,
-      selectedDate.value
-    );
-    if (weekHours !== hoursThisWeek) setHoursThisWeek(weekHours);
-  };
-
   effect(() => {
+    // console.log("here", weeklyHoursQuery.isLoading, start);
+    if (weeklyHoursQuery.isLoading) return;
     if (start) setStart(false);
     else return;
 
-    if (!auth.currentUser) return;
-    const hours = getHoursEarlyReturn(props.uid, selectedDate.value);
-    refreshWeeklyHours();
-    if (hours < 0) return; // we don't have the proper hours yet
-    if (hoursWorked === hours) return;
-    // tell the picker, it will update the hours
+    // initialize
+    const weeklyHours = weeklyHoursQuery.data;
+    const hours = weeklyHours[selectedDate.value.getDay()].hours;
+    setHoursWorked(hours);
     setPickerValue({
       hours: Math.floor(hours),
       minutes: hours % 1,
     });
+
+    // console.log(
+    //   "in - here",
+    //   selectedDate.value.getDay(),
+    //   buildDocName(selectedDate.value),
+    //   hours,
+    //   weeklyHours
+    // );
   });
+
+  const setTheseHours = useSetHours();
 
   const handleAddHours = async (e) => {
     e.preventDefault();
     props.setBlocked(true);
 
-    setHours(props.uid, selectedDate.value, hoursWorked)
-      .then(() => {
-        refreshWeeklyHours()
-          .then(() => {
-            props.setBlocked(false);
-          })
-          .catch((_e) => {
-            alert(
-              `Error Code 1921. Failed to get hours. Please refresh the page.`
-            );
-            props.setBlocked(false);
-          });
-      })
-      .catch((error) => {
-        // console.error('Error adding hours data:', error.message);
-        alert("Please refresh. Error adding hours data: ", error.message);
-        props.setBlocked(false);
-      });
+    setTheseHours(props.uid, selectedDate.value, hoursWorked, () => {
+      props.setBlocked(false);
+    });
   };
 
   if (props.hide === true) return <div></div>;
-  else
+  else {
     return (
       <div className="hours-and-picker-container">
         <ClickBlocker
@@ -152,7 +147,7 @@ function HourSelector(props) {
           <p className="worked-hours-label">Hours Worked:</p>
           <p className="worked-hours">{hoursWorked < 0 ? "" : hoursWorked}</p>
           <p className="weekly-total">
-            {hoursThisWeek < 0.5 ? "" : "Weekly total: " + hoursThisWeek}
+            {hoursThisWeek() < 0.5 ? "" : "Weekly total: " + hoursThisWeek()}
           </p>
         </div>
         <div className="killScroll">
@@ -180,6 +175,7 @@ function HourSelector(props) {
         </div>
       </div>
     );
+  }
 }
 
 function NotesForm({ setBlocked, uid, date }) {

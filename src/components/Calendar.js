@@ -5,11 +5,12 @@ import "./Calendar.css";
 import {
   selectedDate,
   currentDate,
-  getHoursSignal,
   refreshCurrentDate,
   ABBREVIATIONS,
-} from "../utils/firebase";
+} from "../utils/dateUtils.ts";
 import { effect, signal } from "@preact/signals-react";
+import { useQuery } from "@tanstack/react-query";
+import { getUserWeekQuery } from "../utils/firebaseQueries.ts";
 
 export const WEEK_VIEW = 0;
 export const MONTH_VIEW = 1;
@@ -38,6 +39,9 @@ function DateCell(props) {
     props.onDayClick(props.date);
   };
 
+  const weeklyHoursQuery = useQuery(getUserWeekQuery(props.uid, props.date));
+  const hours = weeklyHoursQuery.data?.[props.date.getDay()].hours;
+
   effect(() => {
     if (props.date.getTime() === selectedDate.value.getTime()) {
       if (isSelected)
@@ -56,10 +60,10 @@ function DateCell(props) {
     >
       <p className="dateDay">{ABBREVIATIONS[props.date.getUTCDay()]}</p>
       <p className="dateNum">{props.date.getUTCDate()}</p>
-      <p className="dateHours">{getHoursSignal(props.uid, props.date).value}</p>
+      <p className="dateHours">{hours !== undefined ? hours : ""}</p>
       <div
         className={
-          getHoursSignal(props.uid, props.date).value > 6
+          hours !== undefined && hours > 6
             ? "statusCircle goodHours"
             : "statusCircle badHours"
         }
