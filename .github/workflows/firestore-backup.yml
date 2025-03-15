@@ -1,0 +1,39 @@
+name: Firestore Backup
+
+on:
+  schedule:
+    - cron: "0 0 * * 0" # Runs every Sunday at midnight UTC
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set Up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install Dependencies
+        run: pip install firebase-admin cryptography
+
+      - name: Run Firestore Backup & Encrypt
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_PRIMER_53A41 }}
+          BACKUP_ENCRYPTION_PASSWORD: ${{ secrets.BACKUP_ENCRYPTION_PASSWORD }}
+        run: python .github/scripts/firestore_backup.py
+
+      - name: Commit and Push Backup
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions@github.com"
+          git checkout -B backups
+          mkdir -p backups
+          mv firestore_backup_*.enc backups/
+          git add backups/
+          git commit -m "Encrypted Firestore Backup - $(date +'%Y-%m-%d')" || exit 0
+          git push origin backups --force
