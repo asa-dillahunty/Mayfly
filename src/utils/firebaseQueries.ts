@@ -22,7 +22,8 @@ import {
   sendPasswordResetEmail,
   sendSignInLinkToEmail,
 } from "firebase/auth";
-import { buildDocName, selectedDate } from "./dateUtils";
+import { buildDocName, selectedDate } from "./dateUtils.ts";
+import { pageListEnum } from "../App.js";
 
 const COMPANY_LIST_COLLECTION_NAME = "CompanyList";
 const UNCLAIMED_LIST_COLLECTION_NAME = "UnclaimedList";
@@ -31,6 +32,18 @@ const COMPANY_DOCS_COLLECTION = "CompanyDocs";
 const LAST_CHANGE_DOC_NAME = "Last_Change";
 const COMPANY_EMPLOYEE_COLLECTION = "Employees";
 export const FAKE_EMAIL_EXTENSION = "@dillahuntyfarms.com";
+
+// TODO: move this handling into the App.js file
+export const navigateUser = async (uid: string, setPage) => {
+  const adminData = await fetchAdminData(uid);
+
+  // if 'Asa' -> navigate to OmniAdmin Dashboard
+  // props.setCurrPage(pageListEnum.OmniAdmin);
+  // if admin -> navigate to admin dashboard
+  if (adminData.omniAdmin === true) setPage(pageListEnum.OmniAdmin);
+  else if (adminData.isAdmin === true) setPage(pageListEnum.Admin);
+  else setPage(pageListEnum.Dashboard);
+};
 
 type WeeklyHours = {
   0: { hours: number; notes?: string };
