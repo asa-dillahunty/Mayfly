@@ -1,7 +1,4 @@
-import { getUserNotes, setUserNotes } from "../utils/firebase";
-import { selectedDate, setSelectedDate } from "../utils/dateUtils.ts";
 import { useState, useEffect } from "react";
-import { effect } from "@preact/signals-react";
 
 import Calendar, { WEEK_VIEW, MONTH_VIEW } from "./Calendar";
 import ClickBlocker from "./ClickBlocker";
@@ -11,13 +8,18 @@ import "./HourAdder.css";
 
 import { AiOutlineSnippets } from "react-icons/ai";
 import { useQuery } from "@tanstack/react-query";
-import { getUserWeekQuery, useSetHours } from "../utils/firebaseQueries.ts";
+import {
+  getUserWeekQuery,
+  useSetHours,
+  useSetNotes,
+} from "../utils/firebaseQueries.ts";
 
 export function HourAdder(props) {
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [calendarView, setCalendarView] = useState(WEEK_VIEW);
 
   // Todo: this functionality should be moved to the calendar component
-  const outsidePayPeriod = false; // (buildDocName(selectedDate.value) === buildDocName(new Date()));
+  const outsidePayPeriod = false; // (buildDocName(selectedDate) === buildDocName(new Date()));
   const toggleView = () => {
     if (calendarView === WEEK_VIEW) setCalendarView(MONTH_VIEW);
     else setCalendarView(WEEK_VIEW);
@@ -39,6 +41,7 @@ export function HourAdder(props) {
             view={calendarView}
             onDayClick={handleDateChange}
             startSelected={true}
+            selectedDate={selectedDate}
           />
         </label>
         <HourSelector
@@ -47,14 +50,22 @@ export function HourAdder(props) {
           setBlocked={props.setBlocked}
           locked={outsidePayPeriod}
           showNotes={props.showNotes === true}
+          selectedDate={selectedDate}
         />
       </div>
     </div>
   );
 }
 
-function HourSelector(props) {
-  const [start, setStart] = useState(true);
+function HourSelector({
+  uid,
+  blocked,
+  setBlocked,
+  locked,
+  showNotes,
+  selectedDate,
+  hide,
+}) {
   const [notes, setNotes] = useState(false);
   const [hoursWorked, setHoursWorked] = useState(-2);
   const [pickerValue, setPickerValue] = useState({
@@ -62,12 +73,10 @@ function HourSelector(props) {
     minutes: 0,
   });
 
-  const weeklyHoursQuery = useQuery(
-    getUserWeekQuery(props.uid, selectedDate.value)
-  );
+  const weeklyHoursQuery = useQuery(getUserWeekQuery(uid, selectedDate));
+  const weeklyHours = weeklyHoursQuery.data;
 
   const hoursThisWeek = () => {
-    const weeklyHours = weeklyHoursQuery.data;
     if (!weeklyHours) return 0;
     let total = 0;
     for (const day in weeklyHours) {
@@ -93,54 +102,42 @@ function HourSelector(props) {
     setHoursWorked(pickerValue.hours + pickerValue.minutes);
   }, [pickerValue, hoursWorked, setHoursWorked]);
 
-  effect(() => {
-    // console.log("here", weeklyHoursQuery.isLoading, start);
-    if (weeklyHoursQuery.isLoading) return;
-    if (start) setStart(false);
-    else return;
+  useEffect(() => {
+    if (!weeklyHours) return;
 
     // initialize
-    const weeklyHours = weeklyHoursQuery.data;
-    const hours = weeklyHours[selectedDate.value.getDay()].hours;
+    const hours = weeklyHours[selectedDate.getDay()].hours;
     setHoursWorked(hours);
     setPickerValue({
       hours: Math.floor(hours),
       minutes: hours % 1,
     });
-
-    // console.log(
-    //   "in - here",
-    //   selectedDate.value.getDay(),
-    //   buildDocName(selectedDate.value),
-    //   hours,
-    //   weeklyHours
-    // );
-  });
+  }, [selectedDate, weeklyHours]);
 
   const setTheseHours = useSetHours();
 
   const handleAddHours = async (e) => {
     e.preventDefault();
-    props.setBlocked(true);
+    setBlocked(true);
 
-    setTheseHours(props.uid, selectedDate.value, hoursWorked, () => {
-      props.setBlocked(false);
+    setTheseHours(uid, selectedDate, hoursWorked, () => {
+      setBlocked(false);
     });
   };
 
-  if (props.hide === true) return <div></div>;
-  else {
+  if (hide === true) return <div></div>;
+  else if (!weeklyHours) {
+    return <></>;
+  } else {
     return (
       <div className="hours-and-picker-container">
-        <ClickBlocker
-          block={props.blocked || props.locked}
-          locked={props.locked}
-        />
+        <ClickBlocker block={blocked || locked} locked={locked} />
         <ClickBlocker block={notes} custom>
           <NotesForm
             setBlocked={setNotes}
-            uid={props.uid}
-            date={selectedDate.value}
+            uid={uid}
+            date={selectedDate}
+            defaultNotes={weeklyHours[selectedDate.getDay()].notes}
           />
         </ClickBlocker>
         <div className="worked-hours-container">
@@ -157,15 +154,15 @@ function HourSelector(props) {
           <button
             className="add-hours-button"
             onClick={handleAddHours}
-            disabled={props.blocked}
+            disabled={blocked}
           >
             Add Hours
           </button>
-          {props.showNotes ? (
+          {showNotes ? (
             <button
               className="add-notes-button"
               onClick={() => setNotes(true)}
-              disabled={props.blocked}
+              disabled={blocked}
             >
               <AiOutlineSnippets />
             </button>
@@ -178,23 +175,18 @@ function HourSelector(props) {
   }
 }
 
-function NotesForm({ setBlocked, uid, date }) {
+function NotesForm({ setBlocked, uid, date, defaultNotes }) {
   const [myNotes, setMyNotes] = useState("");
-  const [initialLoad, setInitialLoad] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
+  const setNotes = useSetNotes();
   const submitChanges = (e) => {
     e.preventDefault();
-    setIsLoading(true);
-    setUserNotes(uid, date, myNotes)
-      .then(() => {
-        setIsLoading(false);
-        setBlocked(false);
-      })
-      .catch((e) => {
-        alert("Failed to save notes: " + e.message);
-        setIsLoading(false);
-      });
+    setSubmitting(true);
+    setNotes(uid, date, myNotes, () => {
+      setSubmitting(false);
+      setBlocked(false); // close the form
+    });
   };
 
   const cancelForm = (e) => {
@@ -203,21 +195,13 @@ function NotesForm({ setBlocked, uid, date }) {
   };
 
   useEffect(() => {
-    if (!initialLoad) return;
-    getUserNotes(uid, date)
-      .then((userNotes) => {
-        setMyNotes(userNotes);
-        setInitialLoad(false);
-      })
-      .catch((e) => {
-        alert("Failed to get notes. Please refresh: " + e.message);
-        setInitialLoad(false);
-      });
-  });
+    const notes = defaultNotes ? defaultNotes : "";
+    setMyNotes(notes);
+  }, [defaultNotes]);
 
   return (
     <form className="add-notes-form" onSubmit={submitChanges}>
-      <ClickBlocker block={isLoading || initialLoad} loading />
+      <ClickBlocker block={submitting} loading />
       <textarea
         name="notes-area"
         className="notes-input"
@@ -229,14 +213,14 @@ function NotesForm({ setBlocked, uid, date }) {
         <button
           className="submit-button"
           onClick={submitChanges}
-          disabled={isLoading}
+          disabled={submitting}
         >
           Save
         </button>
         <button
           className="cancel-button"
           onClick={cancelForm}
-          disabled={isLoading}
+          disabled={submitting}
         >
           Cancel
         </button>

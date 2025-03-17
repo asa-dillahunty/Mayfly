@@ -185,6 +185,23 @@ export async function useSetAdditionalHours() {
   return setAdditionalHours;
 }
 
+export function useSetNotes() {
+  const setWeek = useMutation(userWeekMutation());
+  const setNotes = async (
+    userId: string,
+    date: Date,
+    notes: string,
+    onSettled?: ({ error, variables }) => void
+  ) => {
+    const docName = buildDocName(date);
+    const currentWeek = await fetchWeek(userId, date, docName);
+    // ASK: do we need to make a deep copy before altering these values?
+    currentWeek[date.getDay()].notes = notes;
+    setWeek.mutate({ userId, date, userWeek: currentWeek, onSettled });
+  };
+  return setNotes;
+}
+
 export async function getHoursWorkedThisWeek(
   userId: string,
   date: Date,

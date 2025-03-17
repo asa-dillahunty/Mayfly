@@ -3,12 +3,11 @@ import { DayPicker } from "react-day-picker";
 
 import "./Calendar.css";
 import {
-  selectedDate,
   currentDate,
   refreshCurrentDate,
   ABBREVIATIONS,
 } from "../utils/dateUtils.ts";
-import { effect, signal } from "@preact/signals-react";
+import { signal } from "@preact/signals-react";
 import { useQuery } from "@tanstack/react-query";
 import { getUserWeekQuery } from "../utils/firebaseQueries.ts";
 
@@ -32,34 +31,17 @@ const refreshDateArray = () => {
   CalendarDates.value = buildDateArray();
 };
 
-function DateCell(props) {
-  const [isSelected, setIsSelected] = useState(false);
-  const selectedThisDateCell = () => {
-    setIsSelected(true); // do immediately for responsive behavior
-    props.onDayClick(props.date);
-  };
-
-  const weeklyHoursQuery = useQuery(getUserWeekQuery(props.uid, props.date));
-  const hours = weeklyHoursQuery.data?.[props.date.getDay()].hours;
-
-  effect(() => {
-    if (props.date.getTime() === selectedDate.value.getTime()) {
-      if (isSelected)
-        return; // already selected
-      else setIsSelected(true);
-    } else {
-      if (!isSelected) return;
-      else setIsSelected(false);
-    }
-  });
+function DateCell({ date, onDayClick, uid, isSelected }) {
+  const weeklyHoursQuery = useQuery(getUserWeekQuery(uid, date));
+  const hours = weeklyHoursQuery.data?.[date.getDay()].hours;
 
   return (
     <td
       className={"date" + (isSelected ? " selected" : "")}
-      onClick={selectedThisDateCell}
+      onClick={() => onDayClick(date)}
     >
-      <p className="dateDay">{ABBREVIATIONS[props.date.getUTCDay()]}</p>
-      <p className="dateNum">{props.date.getUTCDate()}</p>
+      <p className="dateDay">{ABBREVIATIONS[date.getUTCDay()]}</p>
+      <p className="dateNum">{date.getUTCDate()}</p>
       <p className="dateHours">{hours !== undefined ? hours : ""}</p>
       <div
         className={
@@ -72,7 +54,7 @@ function DateCell(props) {
   );
 }
 
-function Calendar(props) {
+function Calendar({ uid, view, onDayClick, startSelected, selectedDate }) {
   const onVisibilityChange = () => {
     if (document.visibilityState !== "visible") return;
     refreshCurrentDate();
@@ -85,7 +67,7 @@ function Calendar(props) {
       document.removeEventListener("visibilitychange", onVisibilityChange);
   }, []);
 
-  if (props.view === WEEK_VIEW) {
+  if (view === WEEK_VIEW) {
     return (
       <div className="carouselWrapper" dir="rtl">
         <table className="dateCarousel">
@@ -94,10 +76,13 @@ function Calendar(props) {
               {/* I bet this is horrible for performance */}
               {CalendarDates.value.map((currDate, i) => (
                 <DateCell
-                  uid={props.uid}
                   key={i}
+                  uid={uid}
                   date={currDate}
-                  onDayClick={props.onDayClick}
+                  onDayClick={onDayClick}
+                  isSelected={
+                    selectedDate.toDateString() === currDate.toDateString()
+                  }
                 />
               ))}
             </tr>
@@ -105,11 +90,11 @@ function Calendar(props) {
         </table>
       </div>
     );
-  } else if (props.view === MONTH_VIEW) {
+  } else if (view === MONTH_VIEW) {
     return (
       <DayPicker
-        selected={selectedDate.value}
-        onDayClick={props.onDayClick}
+        selected={selectedDate}
+        onDayClick={onDayClick}
         className="DayPicker"
       />
     );
