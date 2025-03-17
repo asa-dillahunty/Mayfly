@@ -101,7 +101,7 @@ function ContentContainer() {
       <ClickBlocker custom={true} block={infoFormOpen}>
         <EmployeeInfoForm
           setFormOpen={setInfoFormOpen}
-          companyID={companyData.id}
+          companyId={companyData.id}
           add
         />
       </ClickBlocker>

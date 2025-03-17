@@ -305,13 +305,10 @@ function EmployeeLine(props) {
       {/* <span className='kebab'>&#8942;</span> */}
       <ClickBlocker block={editUser} custom>
         <EmployeeInfoForm
-          setFormOpen={setEditUser}
-          empID={empData.id}
-          companyID={props.company.id}
-          edit
-          fn={empData.firstName}
-          ln={empData.lastName}
           empData={empData}
+          setFormOpen={setEditUser}
+          companyId={props.company.id}
+          edit
         />
       </ClickBlocker>
       <ClickBlocker
@@ -423,7 +420,7 @@ export function CompanyDisplayTable(props) {
         <EmployeeInfoForm
           setFormOpen={setFormOpen}
           refreshTable={props.refreshTable}
-          companyID={props.company.id}
+          companyId={props.company.id}
           admin
           add
         />

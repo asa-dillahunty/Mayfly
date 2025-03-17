@@ -427,23 +427,32 @@ export async function getCompanyEmployeeList(
     COMPANY_EMPLOYEE_COLLECTION
   ];
 
-  for (let i = 0; i < docList.length; i++) {
-    const emp = docList[i];
-    emp.hoursPaidThisWeek = await getHoursPaidThisWeek(
-      emp.id,
-      selectedDate.value,
-      docName
-    );
-    emp.hoursWorkedThisWeek = await getHoursWorkedThisWeek(
-      emp.id,
-      selectedDate.value,
-      docName
-    );
-    emp.hoursList = await getHoursList(emp.id, selectedDate.value, docName);
-    emp.hidden = (await fetchAdminData(emp.id)).hidden;
-  }
+  const empList = await Promise.all(
+    docList.map(async (emp) => {
+      const hoursPaidThisWeek = await getHoursPaidThisWeek(
+        emp.id,
+        selectedDate.value,
+        docName
+      );
+      const hoursWorkedThisWeek = await getHoursWorkedThisWeek(
+        emp.id,
+        selectedDate.value,
+        docName
+      );
+      const hoursList = await getHoursList(emp.id, selectedDate.value, docName);
+      const hidden = (await fetchAdminData(emp.id)).hidden;
 
-  return docList;
+      return {
+        ...emp,
+        hoursPaidThisWeek,
+        hoursWorkedThisWeek,
+        hoursList,
+        hidden,
+      };
+    })
+  );
+
+  return empList;
 }
 
 export function getCompanyQuery(companyId: string) {
@@ -452,8 +461,9 @@ export function getCompanyQuery(companyId: string) {
     queryFn: async () => {
       // TODO: replace the "major error occurred with actual error handling"
       // TODO: investigate use and see if this is dumb
-      if (!companyId || companyId === "")
-        return { name: "Major Error Occurred" };
+      if (!companyId || companyId === "") {
+        throw new Error("Invalid Arguments");
+      }
       console.log("getCompanyQuery");
       const docRef = doc(db, COMPANY_LIST_COLLECTION_NAME, companyId);
       const docSnap = await getDoc(docRef);
@@ -518,13 +528,19 @@ export function createCompany(companyName: string) {
     });
 }
 
-// TODO: standardize empData
-// TODO: make mutation and/or invalidate some queries
-export async function createCompanyEmployee(
-  empData,
-  empId: string,
-  companyId: string
-) {
+export async function setCompanyEmployee({
+  userId,
+  companyId,
+  userData,
+  onSettled,
+}: {
+  userId: string;
+  companyId: string;
+  userData;
+  onSettled?: ({ error, variables }) => void;
+}) {
+  console.log("setCompanyEmployee");
+  const { id: _, ...userDataNoId } = userData;
   await setDoc(
     doc(
       db,
@@ -533,12 +549,73 @@ export async function createCompanyEmployee(
         companyId +
         "/" +
         COMPANY_EMPLOYEE_COLLECTION,
-      empId
+      userId
     ),
     {
-      ...empData,
+      ...userDataNoId, // without id
     }
   );
+  return userDataNoId;
+}
+
+export function useUpdateEmployeeData() {
+  const setEmployeeDataMutation = useMutation({
+    mutationFn: setCompanyEmployee,
+    onSuccess: async (data, variables) => {
+      const queryKey = [
+        COMPANY_LIST_COLLECTION_NAME,
+        variables.companyId,
+        COMPANY_EMPLOYEE_COLLECTION,
+        variables.userId,
+      ];
+
+      // ASK: update cache - is this always okay?
+      queryClient.setQueryData(queryKey, data);
+
+      // user docs are currently inside the company docs, invalidating the company query
+      // TODO: consider updating the company query cache instead of invalidating it?
+      const companyQueryKey = [
+        COMPANY_LIST_COLLECTION_NAME,
+        variables.companyId,
+      ];
+      queryClient.invalidateQueries({ queryKey: companyQueryKey });
+    },
+    onError: async (_data, variables) => {
+      const queryKey = [
+        COMPANY_LIST_COLLECTION_NAME,
+        variables.companyId,
+        COMPANY_EMPLOYEE_COLLECTION,
+        variables.userId,
+      ];
+
+      // TODO: log the error
+      // Invalidate and refetch
+      queryClient.invalidateQueries({ queryKey: queryKey });
+
+      // invalidate company query
+      const companyQueryKey = [
+        COMPANY_LIST_COLLECTION_NAME,
+        variables.companyId,
+      ];
+      queryClient.invalidateQueries({ queryKey: companyQueryKey });
+    },
+    onSettled: (_data, error, variables, _context) => {
+      if (variables.onSettled) {
+        variables.onSettled({ error, variables });
+      }
+    },
+  });
+
+  const setEmployeeData = async (
+    userId: string,
+    companyId: string,
+    userData,
+    onSettled
+  ) => {
+    setEmployeeDataMutation.mutate({ userId, companyId, userData, onSettled });
+  };
+
+  return setEmployeeData;
 }
 
 // TODO: make mutation and/or invalidate some queries
