@@ -573,7 +573,7 @@ export function useUpdateEmployeeData() {
       queryClient.setQueryData(queryKey, data);
 
       // user docs are currently inside the company docs, invalidating the company query
-      // TODO: consider updating the company query cache instead of invalidating it?
+      // TODO: consider updating the company query cache instead of invalidating it
       const companyQueryKey = [
         COMPANY_LIST_COLLECTION_NAME,
         variables.companyId,
@@ -610,7 +610,7 @@ export function useUpdateEmployeeData() {
     userId: string,
     companyId: string,
     userData,
-    onSettled
+    onSettled?
   ) => {
     setEmployeeDataMutation.mutate({ userId, companyId, userData, onSettled });
   };
@@ -618,8 +618,15 @@ export function useUpdateEmployeeData() {
   return setEmployeeData;
 }
 
-// TODO: make mutation and/or invalidate some queries
-export async function deleteCompanyEmployee(empId, companyId) {
+async function deleteCompanyEmployee({
+  userId,
+  companyId,
+  onSettled,
+}: {
+  userId: string;
+  companyId: string;
+  onSettled: ({ error, variables }) => void;
+}) {
   const docRef = doc(
     db,
     COMPANY_LIST_COLLECTION_NAME +
@@ -627,30 +634,75 @@ export async function deleteCompanyEmployee(empId, companyId) {
       companyId +
       "/" +
       COMPANY_EMPLOYEE_COLLECTION,
-    empId
+    userId
   );
   await deleteDoc(docRef);
 
-  const data = { uid: empId };
+  const data = { uid: userId };
   const result = await deleteEmpCompany(data);
   if (!result.data.success) {
-    alert("Failed to remove emp company data");
+    throw new Error("Failed to remove emp company data");
   }
+  return true;
+}
 
-  // remove them from the cache
-  const oldCache =
-    firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyId][
-      COMPANY_EMPLOYEE_COLLECTION
-    ];
-  const newCache = oldCache.filter((emp) => emp.id !== empId);
-  firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyId][
-    COMPANY_EMPLOYEE_COLLECTION
-  ] = newCache;
+// TODO: make mutation and/or invalidate some queries
+export function useRemoveEmployee() {
+  const removeEmployeeMutation = useMutation({
+    mutationFn: deleteCompanyEmployee,
+    onSuccess: async (_data, variables) => {
+      const queryKey = [
+        COMPANY_LIST_COLLECTION_NAME,
+        variables.companyId,
+        COMPANY_EMPLOYEE_COLLECTION,
+        variables.userId,
+      ];
 
-  // grab the employee's collection -> delete their administrative_data
-  // const empDocRef = doc(db, empID, ADMIN_DOC_NAME);
-  // await updateDoc(empDocRef, {"company":""})
-  // await deleteDoc(empDocRef);
+      queryClient.invalidateQueries({ queryKey: queryKey });
+
+      // user docs are currently inside the company docs, invalidating the company query
+      // TODO: consider updating the company query cache instead of invalidating it
+      const companyQueryKey = [
+        COMPANY_LIST_COLLECTION_NAME,
+        variables.companyId,
+      ];
+      queryClient.invalidateQueries({ queryKey: companyQueryKey });
+    },
+    onError: async (_data, variables) => {
+      const queryKey = [
+        COMPANY_LIST_COLLECTION_NAME,
+        variables.companyId,
+        COMPANY_EMPLOYEE_COLLECTION,
+        variables.userId,
+      ];
+
+      // TODO: log the error
+      // Invalidate and refetch
+      queryClient.invalidateQueries({ queryKey: queryKey });
+
+      // invalidate company query
+      const companyQueryKey = [
+        COMPANY_LIST_COLLECTION_NAME,
+        variables.companyId,
+      ];
+      queryClient.invalidateQueries({ queryKey: companyQueryKey });
+    },
+    onSettled: (_data, error, variables, _context) => {
+      if (variables.onSettled) {
+        variables.onSettled({ error, variables });
+      }
+    },
+  });
+
+  const removeEmployee = async (
+    userId: string,
+    companyId: string,
+    onSettled
+  ) => {
+    removeEmployeeMutation.mutate({ userId, companyId, onSettled });
+  };
+
+  return removeEmployee;
 }
 
 // TODO: make mutation and/or invalidate some queries
@@ -689,30 +741,58 @@ export async function deleteUnclaimedEmployee(claimCode, companyID) {
   await deleteCompanyEmployee(claimCode, companyID);
 }
 
-// TODO: make mutation and/or invalidate some queries
-export async function createEmployeeAuth(empData, companyID) {
+async function createEmployeeAuth({ userData, companyId, onSettled }) {
   const data = {
-    companyID,
-    email: empData.email,
-    name: empData.name,
-    isAdmin: empData.isAdmin,
+    companyID: companyId,
+    email: userData.email,
+    name: userData.name,
+    isAdmin: userData.isAdmin,
   };
   const result = await createEmp(data);
   if (!result.data.success) {
-    alert("Failed to create user");
+    throw new Error("Failed to create user");
   }
 
-  // need to return the employee's ID as well
-  await createCompanyEmployee(empData, result.data.empID, companyID);
+  console.log(result.data);
+  return result.data;
+}
 
-  const actionCodeSettings = {
-    url: "https://mayfly.asadillahunty.com/",
-    handleCodeInApp: true,
+export function useCreateEmployee() {
+  const updateEmployeeData = useUpdateEmployeeData();
+  const createEmployeeMutation = useMutation({
+    mutationFn: createEmployeeAuth,
+    onSuccess: async (data, variables) => {
+      const { companyId, userData, onSettled } = variables;
+      // ASK: should we need to await this or something?
+      updateEmployeeData(data.empID, companyId, userData, onSettled);
+      // await createCompanyEmployee(empData, result.data.empID, companyId);
+
+      const actionCodeSettings = {
+        url: "https://mayfly.asadillahunty.com/",
+        handleCodeInApp: true,
+      };
+
+      // ASK: should we await or catch this?
+      sendSignInLinkToEmail(auth, variables.userData.email, actionCodeSettings);
+      // we are assuming updateEmployeeData will properly invalidate our queries?
+    },
+    onError: async (error, variables) => {
+      // invalidate company query
+      const companyQueryKey = [
+        COMPANY_LIST_COLLECTION_NAME,
+        variables.companyId,
+      ];
+      queryClient.invalidateQueries({ queryKey: companyQueryKey });
+      alert(`Something went wrong: ${error.message}`);
+    },
+    // onSettled: this is handled by updateEmployeeData
+  });
+
+  const setEmployeeData = async (companyId: string, userData, onSettled) => {
+    createEmployeeMutation.mutate({ companyId, userData, onSettled });
   };
-  await sendSignInLinkToEmail(auth, empData.email, actionCodeSettings);
-  // await setMyCompany(result.data.empID, companyID);
-  // update the cache
-  await getCompany(companyID);
+
+  return setEmployeeData;
 }
 
 // TODO: make mutation and/or invalidate some queries

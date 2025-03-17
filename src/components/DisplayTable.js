@@ -30,6 +30,7 @@ import {
   getAdminDataQuery,
   getCompanyEmployeeQuery,
   getUserWeekQuery,
+  useRemoveEmployee,
 } from "../utils/firebaseQueries.ts";
 
 function CreateCompanyPopup(props) {
@@ -207,30 +208,29 @@ const CustomToggle = React.forwardRef(({ children, onClick }, _ref) => (
   </button>
 ));
 
-function EmployeeLine(props) {
+function EmployeeLine({ empId, company, adminAble }) {
   const [blocked, setBlocked] = useState(false);
   const [showMore, setShowMore] = useState(false);
   const [editUser, setEditUser] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const empQuery = useQuery(
-    getCompanyEmployeeQuery(props.company.id, props.empId)
-  );
-  const empAdminQuery = useQuery(getAdminDataQuery(props.empId));
-  const hoursQuery = useQuery(
-    getUserWeekQuery(props.empId, selectedDate.value)
-  );
+  const empQuery = useQuery(getCompanyEmployeeQuery(company.id, empId));
+  const empAdminQuery = useQuery(getAdminDataQuery(empId));
+  const hoursQuery = useQuery(getUserWeekQuery(empId, selectedDate.value));
   const { data: empData } = empQuery;
   // what is empData supposed to be?
   // we need { id, firstName, lastName, name }
 
+  const removeEmployee = useRemoveEmployee();
+
   function deleteUser() {
-    console.log("missing implementation");
+    setBlocked(true);
+    removeEmployee(empId, company.id, () => setBlocked(false));
   }
 
   // const deleteUser = () => {
   //   setBlocked(true);
-  //   deleteCompanyEmployee(empData.id, props.company.id)
+  //   deleteCompanyEmployee(empData.id, company.id)
   //     .then(() => {
   //       props
   //         .refreshTable()
@@ -287,12 +287,12 @@ function EmployeeLine(props) {
   //   // setAdditionalHours(40 - currTotal);
   //   if (currTotal > 40) {
   //     setAdditionalHours(empData.id, selectedDate.value, 0).then(() => {
-  //       props.refreshTable();
+  //       refreshTable();
   //     });
   //   } else {
   //     setAdditionalHours(empData.id, selectedDate.value, 40 - currTotal).then(
   //       () => {
-  //         props.refreshTable();
+  //         refreshTable();
   //       }
   //     );
   //   }
@@ -307,14 +307,14 @@ function EmployeeLine(props) {
         <EmployeeInfoForm
           empData={empData}
           setFormOpen={setEditUser}
-          companyId={props.company.id}
+          companyId={company.id}
           edit
         />
       </ClickBlocker>
       <ClickBlocker
         block={confirmDelete}
         confirm
-        message={`Are you sure you want to remove ${empData.name} from ${props.company.name}?`}
+        message={`Are you sure you want to remove ${empData.name} from ${company.name}?`}
         messageEmphasized={"This action cannot be undone."}
         onConfirm={deleteUser}
         onCancel={() => setConfirmDelete(false)}
@@ -345,7 +345,7 @@ function EmployeeLine(props) {
           <Dropdown.Item onClick={() => setConfirmDelete(true)}>
             Remove Employee
           </Dropdown.Item>
-          {!props.adminAble ? (
+          {!adminAble ? (
             <></>
           ) : (
             <Dropdown.Item

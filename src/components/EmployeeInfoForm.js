@@ -1,4 +1,7 @@
-import { useUpdateEmployeeData } from "../utils/firebaseQueries.ts";
+import {
+  useCreateEmployee,
+  useUpdateEmployeeData,
+} from "../utils/firebaseQueries.ts";
 import ClickBlocker from "./ClickBlocker";
 
 import "./EmployeeInfoForm.css";
@@ -49,8 +52,8 @@ function EmployeeInfoForm({
     setIsAdmin(document.getElementById("admin-checkbox").checked);
   };
 
-  // const setEmployeeData = useUpdateEmployeeDataMutation();
   const setEmployeeData = useUpdateEmployeeData();
+  const createEmployee = useCreateEmployee();
 
   const submitChanges = (e) => {
     e.preventDefault();
@@ -68,42 +71,27 @@ function EmployeeInfoForm({
       firstName: firstName,
       lastName: lastName,
       rate: hourlyRate,
+      isAdmin: isAdmin,
     };
-    if (email) empData.email = email;
-    if (isAdmin) empData.isAdmin = true;
+    if (email) empData.email = email; // why wouldn't there be an email? -> when users edit instead of add
 
-    // if edit -> create company employee
-    // if add -> create Unclaimed Employee
     if (edit) {
       setEmployeeData(userData.id, companyId, empData, () => {
         setBlocked(false);
         setFormOpen(false);
       });
     } else if (add) {
-      //   createEmployeeAuth(empData, companyId)
-      //     .then(() => {
-      //       props
-      //         .deepRefresh()
-      //         .then(() => {
-      //           setBlocked(false);
-      //           setFormOpen(false);
-      //         })
-      //         .catch((_e) => {
-      //           alert(
-      //             `Error Code 3373. Error loading table. Please refresh the page.`
-      //           );
-      //           setBlocked(false);
-      //           setFormOpen(false);
-      //         });
-      //     })
-      //     .catch((e) => {
-      //       setBlocked(false);
-      //       setFormOpen(false);
-      //       console.error(e.message);
-      //       alert("Failed to add user: " + e.message);
-      //     });
+      const settleFunc = ({ error }) => {
+        // if an error, we don't close the form. Should we?
+        if (error) {
+          setBlocked(false);
+        } else {
+          setBlocked(false);
+          setFormOpen(false);
+        }
+      };
+      createEmployee(companyId, empData, settleFunc);
     }
-    // TODO: fix the cache
   };
 
   const trySetRate = (e) => {
