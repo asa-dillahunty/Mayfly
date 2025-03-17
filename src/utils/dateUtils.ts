@@ -5,14 +5,9 @@ const startOfPayPeriod = 4; // Thursday
 export const FAKE_EMAIL_EXTENSION = "@dillahuntyfarms.com";
 export const ABBREVIATIONS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-export const currentDate = signal(new Date(new Date().toDateString()));
 export const selectedDate = signal(new Date(new Date().toDateString()));
 export const setSelectedDate = (date) => {
   selectedDate.value = date;
-};
-
-export const refreshCurrentDate = () => {
-  currentDate.value = new Date(new Date().toDateString());
 };
 
 export const incrementDate = (thisDate) => {
