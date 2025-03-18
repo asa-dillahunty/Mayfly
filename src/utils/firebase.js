@@ -1,7 +1,6 @@
 import { getAuth, sendPasswordResetEmail } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { initializeApp } from "firebase/app";
-import { signal } from "@preact/signals-react";
 import "firebase/auth";
 import "firebase/functions";
 import { getFunctions, httpsCallable } from "firebase/functions";
@@ -35,11 +34,6 @@ export const transferEmployeeData = httpsCallable(
 // Initialize Firebase Authentication and get a reference to the service
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-
-export const selectedDate = signal(new Date(new Date().toDateString()));
-export const setSelectedDate = (date) => {
-  selectedDate.value = date;
-};
 
 export const performLogout = async (navigate) => {
   try {

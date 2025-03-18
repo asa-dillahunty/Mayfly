@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import ClickBlocker from "./ClickBlocker";
 
 import "./DisplayTable.css";
@@ -56,7 +56,7 @@ function CreateCompanyPopup(props) {
   );
 }
 
-export function DisplayTableSkeleton() {
+export function DisplayTableSkeleton({ selectedDate }) {
   return (
     <div className="company-display-table skeleton">
       <div className="shimmer-box"></div>
@@ -67,9 +67,9 @@ export function DisplayTableSkeleton() {
           <span className="date-row">
             <AiFillLeftSquare className="week-button" />
             <span className="week-string">
-              {getStartOfWeekString(selectedDate.value)}
+              {getStartOfWeekString(selectedDate)}
               &nbsp;&nbsp;&nbsp;&#x2015;&nbsp;&nbsp;&nbsp;
-              {getEndOfWeekString(selectedDate.value)}
+              {getEndOfWeekString(selectedDate)}
             </span>
             <AiFillRightSquare className="week-button" />
           </span>
@@ -109,14 +109,19 @@ export function DisplayTableSkeleton() {
   );
 }
 
-export function AdminCompanyDisplayTable(props) {
+export function AdminCompanyDisplayTable({
+  company,
+  adminAble,
+  selectedDate,
+  setSelectedDate,
+}) {
   // jumps selectedDate a week forward
   const jumpForward = () => {
     setSelectedDate(
       new Date(
-        selectedDate.value.getFullYear(),
-        selectedDate.value.getMonth(),
-        selectedDate.value.getDate() + 7
+        selectedDate.getFullYear(),
+        selectedDate.getMonth(),
+        selectedDate.getDate() + 7
       )
     );
   };
@@ -125,23 +130,23 @@ export function AdminCompanyDisplayTable(props) {
   const jumpBackward = () => {
     setSelectedDate(
       new Date(
-        selectedDate.value.getFullYear(),
-        selectedDate.value.getMonth(),
-        selectedDate.value.getDate() - 7
+        selectedDate.getFullYear(),
+        selectedDate.getMonth(),
+        selectedDate.getDate() - 7
       )
     );
   };
 
   let claimedList;
   let unclaimedList;
-  if (props.company && props.company.Employees) {
-    claimedList = props.company.Employees.filter((emp) => !emp.unclaimed);
-    unclaimedList = props.company.Employees.filter((emp) => emp.unclaimed);
+  if (company && company.Employees) {
+    claimedList = company.Employees.filter((emp) => !emp.unclaimed);
+    unclaimedList = company.Employees.filter((emp) => emp.unclaimed);
   }
 
   return (
     <div className="company-display-table">
-      {props.company.name === "H. T. Dillahunty & Sons" ? (
+      {company.name === "H. T. Dillahunty & Sons" ? (
         <h2>
           {" "}
           <img
@@ -151,7 +156,7 @@ export function AdminCompanyDisplayTable(props) {
           />{" "}
         </h2>
       ) : (
-        <h2> {props.company.name} </h2>
+        <h2> {company.name} </h2>
       )}
       <ul>
         <li key={0} className="table-key">
@@ -159,9 +164,9 @@ export function AdminCompanyDisplayTable(props) {
           <span className="date-row">
             <AiFillLeftSquare className="week-button" onClick={jumpBackward} />
             <span className="week-string">
-              {getStartOfWeekString(selectedDate.value)}
+              {getStartOfWeekString(selectedDate)}
               &nbsp;&nbsp;&nbsp;&#x2015;&nbsp;&nbsp;&nbsp;
-              {getEndOfWeekString(selectedDate.value)}
+              {getEndOfWeekString(selectedDate)}
             </span>
             <AiFillRightSquare className="week-button" onClick={jumpForward} />
           </span>
@@ -169,9 +174,10 @@ export function AdminCompanyDisplayTable(props) {
         {claimedList.map((emp) => (
           <EmployeeLine
             key={emp.id}
-            company={props.company}
+            company={company}
             empId={emp.id}
-            adminAble={props.adminAble}
+            adminAble={adminAble}
+            selectedDate={selectedDate}
           />
         ))}
 
@@ -189,8 +195,9 @@ export function AdminCompanyDisplayTable(props) {
           <EmployeeLine
             key={index + claimedList.length + 2}
             emp={emp}
-            company={props.company}
-            adminAble={props.adminAble}
+            company={company}
+            adminAble={adminAble}
+            selectedDate={selectedDate} // likely won't need selected date if unclaimed
           />
         ))}
       </ul>
@@ -211,7 +218,7 @@ const CustomToggle = React.forwardRef(({ children, onClick }, _ref) => (
   </button>
 ));
 
-function EmployeeLine({ empId, company, adminAble }) {
+function EmployeeLine({ empId, company, adminAble, selectedDate }) {
   const [blocked, setBlocked] = useState(false);
   const [showMore, setShowMore] = useState(false);
   const [editUser, setEditUser] = useState(false);
@@ -219,7 +226,7 @@ function EmployeeLine({ empId, company, adminAble }) {
 
   const empQuery = useQuery(getCompanyEmployeeQuery(company.id, empId));
   const empAdminQuery = useQuery(getAdminDataQuery(empId));
-  const hoursQuery = useQuery(getUserWeekQuery(empId, selectedDate.value));
+  const hoursQuery = useQuery(getUserWeekQuery(empId, selectedDate));
   const { data: weeklyHours } = hoursQuery;
   const { data: empData } = empQuery;
   // what is empData supposed to be?
@@ -260,11 +267,9 @@ function EmployeeLine({ empId, company, adminAble }) {
     setBlocked(true);
     const currTotal = countTotalHours();
     if (currTotal > 40) {
-      setAdditionalHours(empData.id, selectedDate.value, 0, () =>
-        setBlocked(false)
-      );
+      setAdditionalHours(empData.id, selectedDate, 0, () => setBlocked(false));
     } else {
-      setAdditionalHours(empData.id, selectedDate.value, 40 - currTotal, () =>
+      setAdditionalHours(empData.id, selectedDate, 40 - currTotal, () =>
         setBlocked(false)
       );
     }
@@ -340,7 +345,6 @@ function EmployeeLine({ empId, company, adminAble }) {
         </Dropdown.Menu>
       </Dropdown>
       <span className="employee-name"> {empData.name} </span>
-      {/* emp.HoursThisWeek is a computed signal */}
       {!weeklyHours ? (
         <span className="employee-weekly-hours">
           {" "}

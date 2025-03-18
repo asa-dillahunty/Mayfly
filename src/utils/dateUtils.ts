@@ -1,21 +1,14 @@
-import { signal } from "@preact/signals-react";
-
 const daysInChunk = 7;
 const startOfPayPeriod = 4; // Thursday
 export const FAKE_EMAIL_EXTENSION = "@dillahuntyfarms.com";
 export const ABBREVIATIONS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-export const selectedDate = signal(new Date(new Date().toDateString()));
-export const setSelectedDate = (date) => {
-  selectedDate.value = date;
-};
-
-export const incrementDate = (thisDate) => {
+export const incrementDate = (thisDate: Date) => {
   thisDate.setDate(thisDate.getDate() + 1);
   return thisDate;
 };
 
-export const decrementDate = (thisDate) => {
+export const decrementDate = (thisDate: Date) => {
   thisDate.setDate(thisDate.getDate() - 1);
   return thisDate;
 };
@@ -23,7 +16,7 @@ export const decrementDate = (thisDate) => {
 /**
  * This function does a lot of math. Is this something I want to cache? #dynamicProgramming
  */
-function getWeek(selectedDatetime) {
+function getWeek(selectedDatetime: Date) {
   // get the first day of the year of the pay period (Thursday)
   const selectedDateUTC = Date.UTC(
     selectedDatetime.getFullYear(),
@@ -53,7 +46,7 @@ function getWeek(selectedDatetime) {
   return weekNumber;
 }
 
-function getStartOfPayPeriod(date) {
+function getStartOfPayPeriod(date: Date) {
   let firstDay = new Date(date.getTime());
   while (firstDay.getDay() !== startOfPayPeriod) {
     firstDay.setDate(firstDay.getDate() - 1);
@@ -61,7 +54,7 @@ function getStartOfPayPeriod(date) {
   return firstDay;
 }
 
-function getEndOfPayPeriod(date) {
+function getEndOfPayPeriod(date: Date) {
   let finalDay = new Date(date.getTime());
   finalDay.setDate(finalDay.getDate() + 1);
   while (finalDay.getDay() !== startOfPayPeriod) {
@@ -70,7 +63,7 @@ function getEndOfPayPeriod(date) {
   return finalDay;
 }
 
-export function getWeekSpanString(selectedDate) {
+export function getWeekSpanString(selectedDate: Date) {
   // we move ahead one day just in case it is the day of the pay period
   let finalDay = getEndOfPayPeriod(selectedDate);
   let firstDay = getStartOfPayPeriod(selectedDate);
@@ -87,7 +80,7 @@ export function getWeekSpanString(selectedDate) {
   );
 }
 
-export function getStartOfWeekString(selectedDate) {
+export function getStartOfWeekString(selectedDate: Date) {
   let firstDay = new Date(selectedDate.getTime());
   while (firstDay.getDay() !== startOfPayPeriod) {
     firstDay.setDate(firstDay.getDate() - 1);
@@ -102,7 +95,7 @@ export function getStartOfWeekString(selectedDate) {
   );
 }
 
-export function getEndOfWeekString(selectedDate) {
+export function getEndOfWeekString(selectedDate: Date) {
   let finalDay = new Date(selectedDate.getTime());
   while (finalDay.getDay() !== startOfPayPeriod - 1) {
     finalDay.setDate(finalDay.getDate() + 1);
@@ -119,7 +112,7 @@ export function getEndOfWeekString(selectedDate) {
   );
 }
 
-export function buildDocName(date) {
+export function buildDocName(date: Date) {
   // if (date === undefined) return "";
   const weekNum = getWeek(date);
 

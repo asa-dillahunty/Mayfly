@@ -29,7 +29,6 @@ import {
 } from "firebase/auth";
 import { buildDocName, selectedDate } from "./dateUtils.ts";
 import { pageListEnum } from "../App.js";
-import { useEffect } from "react";
 
 const COMPANY_LIST_COLLECTION_NAME = "CompanyList";
 const UNCLAIMED_LIST_COLLECTION_NAME = "UnclaimedList";
@@ -453,6 +452,7 @@ export async function fetchCompanyEmployee(companyId: string, empId: string) {
 // TODO: refactor to improve performance
 export async function getCompanyEmployeeList(
   companyId: string,
+  selectedDate: Date,
   docName: string
 ) {
   const docList = (await queryClient.fetchQuery(getCompanyQuery(companyId)))[
@@ -463,15 +463,15 @@ export async function getCompanyEmployeeList(
     docList.map(async (emp) => {
       const hoursPaidThisWeek = await getHoursPaidThisWeek(
         emp.id,
-        selectedDate.value,
+        selectedDate,
         docName
       );
       const hoursWorkedThisWeek = await getHoursWorkedThisWeek(
         emp.id,
-        selectedDate.value,
+        selectedDate,
         docName
       );
-      const hoursList = await getHoursList(emp.id, selectedDate.value, docName);
+      const hoursList = await getHoursList(emp.id, selectedDate, docName);
       const hidden = (await fetchAdminData(emp.id)).hidden;
 
       return {

@@ -21,11 +21,6 @@ const buildDateArray = () => {
   return dateArray;
 };
 
-// const CalendarDates = signal(buildDateArray());
-// const refreshDateArray = () => {
-//   CalendarDates.value = buildDateArray();
-// };
-
 function DateCell({ date, onDayClick, uid, isSelected }) {
   const weeklyHoursQuery = useQuery(getUserWeekQuery(uid, date));
   const hours = weeklyHoursQuery.data?.[date.getDay()].hours;
