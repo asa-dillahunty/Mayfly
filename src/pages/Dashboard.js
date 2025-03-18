@@ -16,7 +16,7 @@ const claimedStateEnum = {
   unclaimed: 3,
 };
 
-function Dashboard(props) {
+function Dashboard({ setCurrPage }) {
   const [blocked, setBlocked] = useState(false);
 
   const adminDataQuery = useQuery(getAdminDataQuery(auth.currentUser.uid));
@@ -28,7 +28,7 @@ function Dashboard(props) {
 
   const handleLogout = () => {
     setBlocked(true);
-    performLogout(props.setCurrPage)
+    performLogout(setCurrPage)
       .then(() => {
         setBlocked(false);
       })
@@ -40,7 +40,9 @@ function Dashboard(props) {
   // if loading -> return a skeleton dashboard
   // if claimed -> return the normal dashboard
   // if unclaimed -> show them the the "enter code" screen
-  if (getClaimStatus() === claimedStateEnum.claimed) {
+  if (getClaimStatus() === claimedStateEnum.loading) {
+    return <></>;
+  } else if (getClaimStatus() === claimedStateEnum.claimed) {
     return (
       <div className="dashboard-container">
         <ClickBlocker block={blocked} />
@@ -63,25 +65,27 @@ function Dashboard(props) {
       </div>
     );
   } else if (getClaimStatus() === claimedStateEnum.unclaimed) {
-    <UnclaimedDashboard />;
+    return <UnclaimedDashboard setCurrPage={setCurrPage} />;
   }
 }
 
 export default Dashboard;
 
-function UnclaimedDashboard(props) {
+// TODO: investigate if this component should continue to exist
+function UnclaimedDashboard({ setCurrPage }) {
+  const [blocked, setBlocked] = useState(false);
   const [infoModal, setInfoModal] = useState(false);
-  // TODO: fix me
+
   const handleLogout = () => {
     alert("cant do that right now");
-    // setBlocked(true);
-    // performLogout(props.setCurrPage)
-    //   .then(() => {
-    //     setBlocked(false);
-    //   })
-    //   .catch((e) => {
-    //     console.error("Error code 7034: " + e.message);
-    //   });
+    setBlocked(true);
+    performLogout(setCurrPage)
+      .then(() => {
+        setBlocked(false);
+      })
+      .catch((e) => {
+        console.error("Error code 7034: " + e.message);
+      });
   };
 
   const executeClaim = () => {
@@ -89,6 +93,7 @@ function UnclaimedDashboard(props) {
     //        and decide how to handle 'unclaimed' users
     alert("not being implemented");
   };
+
   // const executeClaim = () => {
   //   let claimCode = "";
   //   const inputs = document.querySelectorAll("#claimCode input");
@@ -167,7 +172,7 @@ function UnclaimedDashboard(props) {
 
   return (
     <div className="dashboard-container">
-      {/* <ClickBlocker block={blocked} /> */}
+      <ClickBlocker block={blocked} />
       <ClickBlocker block={infoModal} custom={true}>
         <div className="info-modal-container">
           <p>

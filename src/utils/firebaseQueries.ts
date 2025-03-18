@@ -29,11 +29,12 @@ import {
 } from "firebase/auth";
 import { buildDocName, selectedDate } from "./dateUtils.ts";
 import { pageListEnum } from "../App.js";
+import { useEffect } from "react";
 
 const COMPANY_LIST_COLLECTION_NAME = "CompanyList";
 const UNCLAIMED_LIST_COLLECTION_NAME = "UnclaimedList";
 const ADMIN_DOC_NAME = "Administrative_Data";
-const COMPANY_DOCS_COLLECTION = "CompanyDocs";
+const COMPANY_DOCS_COLLECTION = "CompanyDocs"; // this is for 'last change' data
 const LAST_CHANGE_DOC_NAME = "Last_Change";
 const COMPANY_EMPLOYEE_COLLECTION = "Employees";
 export const FAKE_EMAIL_EXTENSION = "@dillahuntyfarms.com";
@@ -157,16 +158,22 @@ export function useSetHours() {
     onSettled?: ({ error, variables }) => void
   ) => {
     const docName = buildDocName(date);
-
     const currentWeek = await fetchWeek(userId, date, docName);
+
     // ASK: do we need to make a deep copy before altering these values?
-    currentWeek[date.getDay()].hours = hours;
-    setWeek.mutate({ userId, date, userWeek: currentWeek, onSettled });
+    const newCurrentWeek = {
+      ...currentWeek,
+      [date.getDay()]: {
+        ...currentWeek[date.getDay()],
+        hours: hours,
+      },
+    };
+    setWeek.mutate({ userId, date, userWeek: newCurrentWeek, onSettled });
   };
   return setHours;
 }
 
-export async function useSetAdditionalHours() {
+export function useSetAdditionalHours() {
   const setWeek = useMutation(userWeekMutation());
   const setAdditionalHours = async (
     userId: string,
@@ -177,15 +184,13 @@ export async function useSetAdditionalHours() {
     const docName = buildDocName(date);
     const currentWeek = await fetchWeek(userId, date, docName);
 
-    // ASK: do we need to make a deep copy before altering these values?
-    if (!currentWeek["additionalHours"]) {
-      currentWeek["additionalHours"] = { hours: hours };
-    } else if (currentWeek["additionalHours"].hours === hours) {
-      return;
-    }
+    // ASK: do we need to make a copy before altering these values?
+    const newCurrentWeek = {
+      ...currentWeek,
+      additionalHours: { hours: hours }, // no notes one this one
+    };
 
-    currentWeek["additionalHours"].hours = hours;
-    setWeek.mutate({ userId, date, userWeek: currentWeek, onSettled });
+    setWeek.mutate({ userId, date, userWeek: newCurrentWeek, onSettled });
   };
   return setAdditionalHours;
 }
@@ -201,8 +206,15 @@ export function useSetNotes() {
     const docName = buildDocName(date);
     const currentWeek = await fetchWeek(userId, date, docName);
     // ASK: do we need to make a deep copy before altering these values?
-    currentWeek[date.getDay()].notes = notes;
-    setWeek.mutate({ userId, date, userWeek: currentWeek, onSettled });
+    const newCurrentWeek = {
+      ...currentWeek,
+      [date.getDay()]: {
+        ...currentWeek[date.getDay()],
+        notes: notes,
+      },
+    };
+
+    setWeek.mutate({ userId, date, userWeek: newCurrentWeek, onSettled });
   };
   return setNotes;
 }
@@ -275,7 +287,7 @@ export function useMakeAdmin() {
 
     const docRef = doc(db, userId, ADMIN_DOC_NAME);
     // FIXME: this is currently failing permissions
-    const result = await setDoc(docRef, adminData);
+    const result = await updateDoc(docRef, adminData);
     console.log(result);
     // ASK: should we invalidate here instead?
     // ASK: should this hide the user?
@@ -285,6 +297,7 @@ export function useMakeAdmin() {
   return makeAdmin;
 }
 
+// TODO: investigate if we want to reimplement this 'last change' functionality
 // export async function pullLastChange(companyID) {
 //   // console.log("Pulling Last Change");
 //   const docRef = doc(
@@ -326,7 +339,6 @@ export function useMakeAdmin() {
 //   }
 // }
 
-// TODO: investigate if it still makes sense to use this
 // export async function setLastChange(empID, docName, companyID) {
 //   if (!companyID) companyID = await getMyCompanyID(empID);
 //   const docData = {
@@ -365,13 +377,19 @@ export function useMakeAdmin() {
 //   ][LAST_CHANGE_DOC_NAME] = docData;
 // }
 
-// TODO: make mutation and/or invalidate some queries
+// TODO: needs validation
+// used in claim user process
 export async function setMyCompany(userId: string, companyId: string) {
   const docRef = doc(db, userId, ADMIN_DOC_NAME);
-  // const docSnap = await getDoc(docRef);
 
-  await updateDoc(docRef, { company: companyId });
-  // Currently not possible with permissions for anyone but Asa
+  const adminData = await queryClient.fetchQuery(getAdminDataQuery(userId));
+  const newAdminData = {
+    ...adminData,
+    company: companyId,
+  };
+
+  await updateDoc(docRef, newAdminData);
+  queryClient.invalidateQueries({ queryKey: [ADMIN_DOC_NAME, userId] });
 }
 
 export function getAdminDataQuery(userId: string) {
@@ -419,9 +437,7 @@ export function getCompanyEmployeeQuery(companyId: string, empId: string) {
       if (docSnap.exists()) {
         return { ...docSnap.data(), id: empId };
       } else {
-        // TODO:
-        // throw an error
-        return {};
+        throw new Error("Employee doesn't exist");
       }
     },
   };
@@ -434,6 +450,7 @@ export async function fetchCompanyEmployee(companyId: string, empId: string) {
   );
 }
 
+// TODO: refactor to improve performance
 export async function getCompanyEmployeeList(
   companyId: string,
   docName: string
@@ -555,7 +572,6 @@ async function createNewCompany({
   return docRef;
 }
 
-// TODO: make mutation and/or invalidate some queries
 export function useCreateCompany() {
   const createCompanyMutation = useMutation({
     mutationFn: createNewCompany,
@@ -703,48 +719,31 @@ async function deleteCompanyEmployee({
   return true;
 }
 
-// TODO: make mutation and/or invalidate some queries
 export function useRemoveEmployee() {
   const removeEmployeeMutation = useMutation({
     mutationFn: deleteCompanyEmployee,
-    onSuccess: async (_data, variables) => {
-      const queryKey = [
-        COMPANY_LIST_COLLECTION_NAME,
-        variables.companyId,
-        COMPANY_EMPLOYEE_COLLECTION,
-        variables.userId,
-      ];
-
-      queryClient.invalidateQueries({ queryKey: queryKey });
-
+    onSuccess: async (_data, _variables) => {
       // user docs are currently inside the company docs, invalidating the company query
-      // TODO: consider updating the company query cache instead of invalidating it
-      const companyQueryKey = [
-        COMPANY_LIST_COLLECTION_NAME,
-        variables.companyId,
-      ];
-      queryClient.invalidateQueries({ queryKey: companyQueryKey });
+      // TODO: consider updating the company query cache instead of invalidating it in onSettled
     },
-    onError: async (_data, variables) => {
-      const queryKey = [
-        COMPANY_LIST_COLLECTION_NAME,
-        variables.companyId,
-        COMPANY_EMPLOYEE_COLLECTION,
-        variables.userId,
-      ];
-
+    onError: async (_data, _variables) => {
       // TODO: log the error
-      // Invalidate and refetch
-      queryClient.invalidateQueries({ queryKey: queryKey });
-
-      // invalidate company query
-      const companyQueryKey = [
-        COMPANY_LIST_COLLECTION_NAME,
-        variables.companyId,
-      ];
-      queryClient.invalidateQueries({ queryKey: companyQueryKey });
     },
     onSettled: (_data, error, variables, _context) => {
+      const queryKey = [
+        COMPANY_LIST_COLLECTION_NAME,
+        variables.companyId,
+        COMPANY_EMPLOYEE_COLLECTION,
+        variables.userId,
+      ];
+      queryClient.invalidateQueries({ queryKey: queryKey });
+
+      const companyQueryKey = [
+        COMPANY_LIST_COLLECTION_NAME,
+        variables.companyId,
+      ];
+      queryClient.invalidateQueries({ queryKey: companyQueryKey });
+
       if (variables.onSettled) {
         variables.onSettled({ error, variables });
       }
@@ -852,13 +851,18 @@ export function useCreateEmployee() {
   return setEmployeeData;
 }
 
-// TODO: make mutation and/or invalidate some queries
-export async function transferEmpData(oldID: string, newID: string) {
-  const data = { oldCollectionPath: oldID, newCollectionPath: newID };
-  const result = await transferEmployeeData(data);
-  if (!result.data.success) {
-    alert("Failed to remove emp company data");
-  }
+export function useTransferEmpData() {
+  const queryClient = useQueryClient();
+  const transferEmpData = async (oldId: string, newId: string) => {
+    const data = { oldCollectionPath: oldId, newCollectionPath: newId };
+    const result = await transferEmployeeData(data);
+    if (!result.data.success) {
+      throw new Error("Failed to remove emp company data");
+    }
+    // sure, this shouldn't be used, might as well clear everything
+    queryClient.clear();
+  };
+  return transferEmpData;
 }
 
 export async function resetPassword(email: string) {
@@ -875,7 +879,6 @@ export async function getClaimCodeInfo(claimCode) {
   return docSnap.data();
 }
 
-// TODO: make mutation and/or invalidate some queries
 // TODO: make epic for allowing strangers to create accounts?
 export async function createUser(userData) {
   throw new Error("This functionality is not currently supported");

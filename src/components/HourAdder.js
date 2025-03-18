@@ -18,8 +18,8 @@ export function HourAdder(props) {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [calendarView, setCalendarView] = useState(WEEK_VIEW);
 
-  // Todo: this functionality should be moved to the calendar component
-  const outsidePayPeriod = false; // (buildDocName(selectedDate) === buildDocName(new Date()));
+  // TODO: toggleView functionality should be moved to the calendar component
+  const outsidePayPeriod = false;
   const toggleView = () => {
     if (calendarView === WEEK_VIEW) setCalendarView(MONTH_VIEW);
     else setCalendarView(WEEK_VIEW);

@@ -28,6 +28,7 @@ import {
   useCreateCompany,
   useMakeAdmin,
   useRemoveEmployee,
+  useSetAdditionalHours,
 } from "../utils/firebaseQueries.ts";
 
 function CreateCompanyPopup(props) {
@@ -219,12 +220,14 @@ function EmployeeLine({ empId, company, adminAble }) {
   const empQuery = useQuery(getCompanyEmployeeQuery(company.id, empId));
   const empAdminQuery = useQuery(getAdminDataQuery(empId));
   const hoursQuery = useQuery(getUserWeekQuery(empId, selectedDate.value));
+  const { data: weeklyHours } = hoursQuery;
   const { data: empData } = empQuery;
   // what is empData supposed to be?
   // we need { id, firstName, lastName, name }
 
   const removeEmployee = useRemoveEmployee();
   const makeAdmin = useMakeAdmin();
+  const setAdditionalHours = useSetAdditionalHours();
 
   function deleteUser() {
     setBlocked(true);
@@ -239,9 +242,7 @@ function EmployeeLine({ empId, company, adminAble }) {
   };
 
   const countTotalHours = () => {
-    if (hoursQuery.isLoading) return 0;
-
-    const weeklyHours = hoursQuery.data;
+    if (!weeklyHours) return 0;
 
     var total = 0;
     for (var value in weeklyHours) {
@@ -252,31 +253,33 @@ function EmployeeLine({ empId, company, adminAble }) {
   };
 
   const findAdditionalHours = () => {
-    if (hoursQuery.isLoading) return 0;
-    return hoursQuery.data["additionalHours"]?.hours ?? 0;
+    return weeklyHours?.["additionalHours"]?.hours ?? 0;
   };
 
   function roundToFortyHours() {
-    console.log("missing implementation");
+    setBlocked(true);
+    const currTotal = countTotalHours();
+    if (currTotal > 40) {
+      setAdditionalHours(empData.id, selectedDate.value, 0, () =>
+        setBlocked(false)
+      );
+    } else {
+      setAdditionalHours(empData.id, selectedDate.value, 40 - currTotal, () =>
+        setBlocked(false)
+      );
+    }
   }
 
-  // function roundToFortyHours() {
-  //   const currTotal = countTotalHours();
-  //   // setAdditionalHours(40 - currTotal);
-  //   if (currTotal > 40) {
-  //     setAdditionalHours(empData.id, selectedDate.value, 0).then(() => {
-  //       refreshTable();
-  //     });
-  //   } else {
-  //     setAdditionalHours(empData.id, selectedDate.value, 40 - currTotal).then(
-  //       () => {
-  //         refreshTable();
-  //       }
-  //     );
-  //   }
-  // }
-
-  if (!empData?.id) return <></>; // TODO: should be a skeleton of some kind?
+  // TODO: should be a skeleton of some kind?
+  // ASK: if emp is hidden, this will vanish, might be bad to have a skeleton
+  if (!empData?.id)
+    return (
+      <li>
+        <span className="kebab">&#8942;</span>
+        <span className="employee-name"></span>
+        <span className="employee-weekly-hours"></span>
+      </li>
+    );
   if (empAdminQuery.data.hidden) return <></>;
   return (
     <li>
@@ -338,7 +341,7 @@ function EmployeeLine({ empId, company, adminAble }) {
       </Dropdown>
       <span className="employee-name"> {empData.name} </span>
       {/* emp.HoursThisWeek is a computed signal */}
-      {hoursQuery.isLoading ? (
+      {!weeklyHours ? (
         <span className="employee-weekly-hours">
           {" "}
           <ClipLoader size={16} color="#ffffff" />{" "}
@@ -375,7 +378,6 @@ function EmployeeLine({ empId, company, adminAble }) {
 }
 
 export function CompanyDisplayTable(props) {
-  const [blocked, setBlocked] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
 
   return (
