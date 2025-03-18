@@ -36,14 +36,25 @@ div.dashboard-content .big-screen {
   }
 
   div.dashboard-content .employee-daily-hours {
-    text-align: left;
+    text-align: center;
   }
 
   div.dashboard-content .employee-weekly-hours {
-    text-align: left;
-    margin-left: 4px;
-    padding-left: 1ch;
-    /* min-width: 10ch; */
+    text-align: center;
+    /* margin-left: 3ch; */
+    margin-left: 1ch;
+    /* padding-right: 1ch; */
+    width: 10ch;
+  }
+
+  div.dashboard-content span.employee-name {
+    min-width: 20ch;
+    width: max-content;
+    margin-right: auto;
+  }
+
+  div.dashboard-content .dropdown {
+    width: 1ch;
   }
 }
 

@@ -6,6 +6,7 @@ import "./DisplayTable.css";
 import {
   ABBREVIATIONS,
   getEndOfWeekString,
+  getPayPeriodArray,
   getStartOfWeekString,
 } from "../utils/dateUtils.ts";
 
@@ -151,13 +152,11 @@ export function AdminCompanyDisplayTable({
             </button> */}
           </div>
           <span className="employee-name"></span>
-          <span className="employee-daily-hours">{ABBREVIATIONS[4]}</span>
-          <span className="employee-daily-hours">{ABBREVIATIONS[5]}</span>
-          <span className="employee-daily-hours">{ABBREVIATIONS[6]}</span>
-          <span className="employee-daily-hours">{ABBREVIATIONS[0]}</span>
-          <span className="employee-daily-hours">{ABBREVIATIONS[1]}</span>
-          <span className="employee-daily-hours">{ABBREVIATIONS[2]}</span>
-          <span className="employee-daily-hours">{ABBREVIATIONS[3]}</span>
+          {getPayPeriodArray().map((val) => (
+            <span key={val} className="employee-daily-hours">
+              {ABBREVIATIONS[val]}
+            </span>
+          ))}
           <span className="employee-weekly-hours"></span>
         </li>
         {claimedList.map((emp) => (
@@ -271,13 +270,9 @@ function EmployeeLine({ empId, company, adminAble, selectedDate }) {
       <li>
         <span className="kebab">&#8942;</span>
         <span className="employee-name"></span>
-        <span className="employee-daily-hours big-screen"></span>
-        <span className="employee-daily-hours big-screen"></span>
-        <span className="employee-daily-hours big-screen"></span>
-        <span className="employee-daily-hours big-screen"></span>
-        <span className="employee-daily-hours big-screen"></span>
-        <span className="employee-daily-hours big-screen"></span>
-        <span className="employee-daily-hours big-screen"></span>
+        {getPayPeriodArray().map((val) => (
+          <span key={val} className="employee-daily-hours big-screen"></span>
+        ))}
         <span className="employee-weekly-hours"></span>
       </li>
     );
@@ -343,40 +338,20 @@ function EmployeeLine({ empId, company, adminAble, selectedDate }) {
       <span className="employee-name"> {empData.name} </span>
       {!weeklyHours ? (
         <>
-          <span className="employee-daily-hours big-screen"></span>
-          <span className="employee-daily-hours big-screen"></span>
-          <span className="employee-daily-hours big-screen"></span>
-          <span className="employee-daily-hours big-screen"></span>
-          <span className="employee-daily-hours big-screen"></span>
-          <span className="employee-daily-hours big-screen"></span>
-          <span className="employee-daily-hours big-screen"></span>
+          {getPayPeriodArray().map((val) => (
+            <span key={val} className="employee-daily-hours big-screen"></span>
+          ))}
           <span className="employee-weekly-hours">
             <ClipLoader size={16} color="#ffffff" />{" "}
           </span>
         </>
       ) : (
         <>
-          <span className="employee-daily-hours big-screen">
-            {weeklyHours[4].hours.toFixed(1)}
-          </span>
-          <span className="employee-daily-hours big-screen">
-            {weeklyHours[5].hours.toFixed(1)}
-          </span>
-          <span className="employee-daily-hours big-screen">
-            {weeklyHours[6].hours.toFixed(1)}
-          </span>
-          <span className="employee-daily-hours big-screen">
-            {weeklyHours[0].hours.toFixed(1)}
-          </span>
-          <span className="employee-daily-hours big-screen">
-            {weeklyHours[1].hours.toFixed(1)}
-          </span>
-          <span className="employee-daily-hours big-screen">
-            {weeklyHours[2].hours.toFixed(1)}
-          </span>
-          <span className="employee-daily-hours big-screen">
-            {weeklyHours[3].hours.toFixed(1)}
-          </span>
+          {getPayPeriodArray().map((val) => (
+            <span key={val} className="employee-daily-hours big-screen">
+              {weeklyHours[val].hours}
+            </span>
+          ))}
           <span className="employee-weekly-hours small-screen">
             {countTotalHours()}
             {findAdditionalHours() ? `+${findAdditionalHours()}` : ""}
@@ -410,6 +385,7 @@ function EmployeeLine({ empId, company, adminAble, selectedDate }) {
 
 export function CompanyDisplayTable(props) {
   const [formOpen, setFormOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   return (
     <details className="company-details">
@@ -418,6 +394,8 @@ export function CompanyDisplayTable(props) {
         company={props.company}
         refreshTable={props.refreshTable}
         adminAble={props.addAdmins}
+        selectedDate={selectedDate}
+        setSelectedDate={setSelectedDate}
       />
       <button
         className="add-emp"

@@ -63,6 +63,11 @@ function getEndOfPayPeriod(date: Date) {
   return finalDay;
 }
 
+export function getPayPeriodArray() {
+  return Array.from(Array(7)).map((_, index) => (index + startOfPayPeriod) % 7);
+  // [4,5,6,0,1,2,3];
+}
+
 export function getWeekSpanString(selectedDate: Date) {
   // we move ahead one day just in case it is the day of the pay period
   let finalDay = getEndOfPayPeriod(selectedDate);

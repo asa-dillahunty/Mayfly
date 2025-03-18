@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { performLogout, auth } from "../utils/firebase";
 
 import {
@@ -17,7 +17,7 @@ import ClickBlocker from "../components/ClickBlocker";
 import EmployeeInfoForm from "../components/EmployeeInfoForm";
 import jsPDF from "jspdf";
 import logo from "../assets/DillahuntyFarmsLogo.png";
-import { AiFillPlusCircle, AiOutlinePrinter } from "react-icons/ai";
+import { AiOutlinePrinter } from "react-icons/ai";
 import { useQuery } from "@tanstack/react-query";
 import {
   getAdminDataQuery,
@@ -92,7 +92,6 @@ function ContentContainer() {
             setInfoFormOpen(true);
           }}
         >
-          <AiFillPlusCircle />
           Add Employee
         </button>
         <button
