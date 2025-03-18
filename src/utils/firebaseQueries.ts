@@ -15,7 +15,12 @@ import {
   deleteEmpCompany,
   transferEmployeeData,
 } from "./firebase";
-import { useMutation, useQueries, useQuery } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { queryClient } from "..";
 import {
   createUserWithEmailAndPassword,
@@ -254,20 +259,30 @@ export async function getHoursList(
   return hoursList;
 }
 
-// uid - userID
-// cid - company ID
-// FIXME // TODO: make mutation and/or invalidate some queries
-export async function makeAdmin(uid: string, cid?: string) {
-  const docRef = doc(db, uid, ADMIN_DOC_NAME);
+export function useMakeAdmin() {
+  const queryClient = useQueryClient();
 
-  // grab current data from cache
-  const adminData = await fetchAdminData(uid);
-  adminData.isAdmin = true;
-  // does this auto update the cache?
+  const makeAdmin = async (userId: string) => {
+    const adminData = await queryClient.fetchQuery(getAdminDataQuery(userId));
+    const newAdminData = {
+      ...adminData,
+      isAdmin: true,
+    };
 
-  await setDoc(docRef, adminData);
-  // Todo:
-  //	update cache
+    console.log(adminData, newAdminData);
+
+    const queryKey = [ADMIN_DOC_NAME, userId];
+
+    const docRef = doc(db, userId, ADMIN_DOC_NAME);
+    // FIXME: this is currently failing permissions
+    const result = await setDoc(docRef, adminData);
+    console.log(result);
+    // ASK: should we invalidate here instead?
+    // ASK: should this hide the user?
+    queryClient.setQueryData(queryKey, newAdminData);
+  };
+
+  return makeAdmin;
 }
 
 // export async function pullLastChange(companyID) {
@@ -526,20 +541,48 @@ export function getCompanyDocsQuery() {
   return query;
 }
 
-// TODO: make mutation and/or invalidate some queries
-export function createCompany(companyName: string) {
+async function createNewCompany({
+  companyName,
+  onSettled,
+}: {
+  companyName: string;
+  onSettled?: ({ error, variables }) => void;
+}) {
   const companyList = collection(db, COMPANY_LIST_COLLECTION_NAME);
-  addDoc(companyList, {
+  const docRef = await addDoc(companyList, {
     name: companyName,
-  })
-    .then((docRef) => {
-      console.log("Added Company with ID: ", docRef.id);
-      // update displayed company list
-    })
-    .catch((error) => {
-      // do something to alert the user
+  });
+  return docRef;
+}
+
+// TODO: make mutation and/or invalidate some queries
+export function useCreateCompany() {
+  const createCompanyMutation = useMutation({
+    mutationFn: createNewCompany,
+    onSuccess: async (data) => {
+      const newCompanyId = data.id;
+      const companyQueryKey = [COMPANY_LIST_COLLECTION_NAME, newCompanyId];
+      queryClient.invalidateQueries({ queryKey: companyQueryKey });
+    },
+    onError: async (error, _variables) => {
+      // TODO: log the error
+      // Invalidate and refetch -> done in onSettled
       console.error(error);
-    });
+    },
+    onSettled: (_data, error, variables, _context) => {
+      const companiesQueryKey = [COMPANY_LIST_COLLECTION_NAME];
+      queryClient.invalidateQueries({ queryKey: companiesQueryKey });
+
+      if (variables.onSettled) {
+        variables.onSettled({ error, variables });
+      }
+    },
+  });
+
+  const createCompany = (companyName: string) => {
+    createCompanyMutation.mutate({ companyName: companyName });
+  };
+  return createCompany;
 }
 
 export async function setCompanyEmployee({

@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import ClickBlocker from "./ClickBlocker";
 
 import "./DisplayTable.css";
-import { createCompany, makeAdmin } from "../utils/firebase";
 
 import {
   getEndOfWeekString,
@@ -26,6 +25,8 @@ import {
   getAdminDataQuery,
   getCompanyEmployeeQuery,
   getUserWeekQuery,
+  useCreateCompany,
+  useMakeAdmin,
   useRemoveEmployee,
 } from "../utils/firebaseQueries.ts";
 
@@ -165,7 +166,12 @@ export function AdminCompanyDisplayTable(props) {
           </span>
         </li>
         {claimedList.map((emp) => (
-          <EmployeeLine key={emp.id} company={props.company} empId={emp.id} />
+          <EmployeeLine
+            key={emp.id}
+            company={props.company}
+            empId={emp.id}
+            adminAble={props.adminAble}
+          />
         ))}
 
         <li
@@ -183,7 +189,7 @@ export function AdminCompanyDisplayTable(props) {
             key={index + claimedList.length + 2}
             emp={emp}
             company={props.company}
-            admin={props.admin}
+            adminAble={props.adminAble}
           />
         ))}
       </ul>
@@ -218,36 +224,12 @@ function EmployeeLine({ empId, company, adminAble }) {
   // we need { id, firstName, lastName, name }
 
   const removeEmployee = useRemoveEmployee();
+  const makeAdmin = useMakeAdmin();
 
   function deleteUser() {
     setBlocked(true);
     removeEmployee(empId, company.id, () => setBlocked(false));
   }
-
-  // const deleteUser = () => {
-  //   setBlocked(true);
-  //   deleteCompanyEmployee(empData.id, company.id)
-  //     .then(() => {
-  //       props
-  //         .refreshTable()
-  //         .then(() => {
-  //           setBlocked(false);
-  //           setConfirmDelete(false);
-  //         })
-  //         .catch((_e) => {
-  //           alert(`Error Code 0012. Please refresh the page.`);
-  //           setBlocked(false);
-  //           setConfirmDelete(false);
-  //         });
-  //     })
-  //     .catch((_e) => {
-  //       alert(
-  //         `Error Code 7982. Failed to delete ${empData.id}. Please refresh the page.`
-  //       );
-  //       setBlocked(false);
-  //       setConfirmDelete(false);
-  //     });
-  // };
 
   const toggleShow = () => {
     setShowMore(!showMore);
@@ -430,11 +412,12 @@ export function CompanyDisplayTable(props) {
 
 function DisplayTable(props) {
   const [createVisible, setCreateVisible] = useState(false);
-
   const toggleCreateVisible = () => setCreateVisible(!createVisible);
 
+  const createCompany = useCreateCompany();
+
   const addCompany = (companyName) => {
-    createCompany(companyName);
+    createCompany(companyName, () => setCreateVisible(false));
   };
 
   const onCancel = () => {

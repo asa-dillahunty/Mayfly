@@ -1,17 +1,9 @@
-import React, { useEffect, useState } from "react";
-import {
-  getCompanies,
-  getCompanyFromCache,
-  performLogout,
-  transferEmpData,
-} from "../utils/firebase";
-// import { format } from 'date-fns';
-// import { DayPicker } from 'react-day-picker';
+import React, { useState } from "react";
+import { performLogout, transferEmpData } from "../utils/firebase";
 import "react-day-picker/dist/style.css";
 import "./OmniAdmin.css";
 import DisplayTable from "../components/DisplayTable";
 import ClickBlocker from "../components/ClickBlocker";
-import { useQuery } from "@tanstack/react-query";
 import { useCompanies } from "../utils/firebaseQueries.ts";
 
 function OmniAdminDashboard(props) {
