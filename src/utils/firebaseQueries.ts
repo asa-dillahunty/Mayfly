@@ -27,7 +27,7 @@ import {
   sendPasswordResetEmail,
   sendSignInLinkToEmail,
 } from "firebase/auth";
-import { buildDocName, selectedDate } from "./dateUtils.ts";
+import { buildDocName } from "./dateUtils.ts";
 import { pageListEnum } from "../App.js";
 
 const COMPANY_LIST_COLLECTION_NAME = "CompanyList";
@@ -450,6 +450,7 @@ export async function fetchCompanyEmployee(companyId: string, empId: string) {
 }
 
 // TODO: refactor to improve performance
+// - make a useEffect that uses useQueries
 export async function getCompanyEmployeeList(
   companyId: string,
   selectedDate: Date,
@@ -840,6 +841,11 @@ export function useCreateEmployee() {
       ];
       queryClient.invalidateQueries({ queryKey: companyQueryKey });
       alert(`Something went wrong: ${error.message}`);
+
+      // we have to settle up here, because updateEmployeeData won't be triggered
+      if (variables.onSettled) {
+        variables.onSettled({ error, variables });
+      }
     },
     // onSettled: this is handled by updateEmployeeData
   });

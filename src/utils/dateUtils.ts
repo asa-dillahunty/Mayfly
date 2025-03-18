@@ -113,7 +113,7 @@ export function getEndOfWeekString(selectedDate: Date) {
 }
 
 export function buildDocName(date: Date) {
-  // if (date === undefined) return "";
+  if (date === undefined) return ""; // ASK: should we allow date to be undefined?
   const weekNum = getWeek(date);
 
   /*

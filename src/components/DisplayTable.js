@@ -1,13 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import ClickBlocker from "./ClickBlocker";
 
 import "./DisplayTable.css";
 
 import {
+  ABBREVIATIONS,
   getEndOfWeekString,
   getStartOfWeekString,
-  selectedDate,
-  setSelectedDate,
 } from "../utils/dateUtils.ts";
 
 import Dropdown from "react-bootstrap/Dropdown";
@@ -74,36 +73,10 @@ export function DisplayTableSkeleton({ selectedDate }) {
             <AiFillRightSquare className="week-button" />
           </span>
         </li>
-        <li>
-          <span className="kebab"></span>
-          <span className="employee-name"></span>
-          <span className="employee-weekly-hours"></span>
-        </li>
-        <li>
-          <span className="kebab"></span>
-          <span className="employee-name"></span>
-          <span className="employee-weekly-hours"></span>
-        </li>
-        <li>
-          <span className="kebab"></span>
-          <span className="employee-name"></span>
-          <span className="employee-weekly-hours"></span>
-        </li>
-        <li>
-          <span className="kebab"></span>
-          <span className="employee-name"></span>
-          <span className="employee-weekly-hours"></span>
-        </li>
-        <li>
-          <span className="kebab"></span>
-          <span className="employee-name"></span>
-          <span className="employee-weekly-hours"></span>
-        </li>
-        <li>
-          <span className="kebab"></span>
-          <span className="employee-name"></span>
-          <span className="employee-weekly-hours"></span>
-        </li>
+
+        {Array.from(Array(6)).map((_, index) => (
+          <EmployeeLine key={index} /> // without emp.id, should be skeleton lines
+        ))}
       </ul>
     </div>
   );
@@ -171,6 +144,22 @@ export function AdminCompanyDisplayTable({
             <AiFillRightSquare className="week-button" onClick={jumpForward} />
           </span>
         </li>
+        <li className="big-screen">
+          <div className="dropdown">
+            {/* <button className="kebab-container">
+              <span className="kebab">&#8942;</span>
+            </button> */}
+          </div>
+          <span className="employee-name"></span>
+          <span className="employee-daily-hours">{ABBREVIATIONS[4]}</span>
+          <span className="employee-daily-hours">{ABBREVIATIONS[5]}</span>
+          <span className="employee-daily-hours">{ABBREVIATIONS[6]}</span>
+          <span className="employee-daily-hours">{ABBREVIATIONS[0]}</span>
+          <span className="employee-daily-hours">{ABBREVIATIONS[1]}</span>
+          <span className="employee-daily-hours">{ABBREVIATIONS[2]}</span>
+          <span className="employee-daily-hours">{ABBREVIATIONS[3]}</span>
+          <span className="employee-weekly-hours"></span>
+        </li>
         {claimedList.map((emp) => (
           <EmployeeLine
             key={emp.id}
@@ -186,7 +175,7 @@ export function AdminCompanyDisplayTable({
           className="table-key"
           hidden={unclaimedList.length < 1}
         >
-          <div className="dropdown"></div>{" "}
+          <div className="dropdown"></div>
           {/* fake kebab so we get spacing right */}
           <span className="employee-name">Unregistered Employees</span>
           <span className="employee-weekly-hours">Code</span>
@@ -224,7 +213,7 @@ function EmployeeLine({ empId, company, adminAble, selectedDate }) {
   const [editUser, setEditUser] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const empQuery = useQuery(getCompanyEmployeeQuery(company.id, empId));
+  const empQuery = useQuery(getCompanyEmployeeQuery(company?.id, empId));
   const empAdminQuery = useQuery(getAdminDataQuery(empId));
   const hoursQuery = useQuery(getUserWeekQuery(empId, selectedDate));
   const { data: weeklyHours } = hoursQuery;
@@ -277,11 +266,18 @@ function EmployeeLine({ empId, company, adminAble, selectedDate }) {
 
   // TODO: should be a skeleton of some kind?
   // ASK: if emp is hidden, this will vanish, might be bad to have a skeleton
-  if (!empData?.id)
+  if (!empData?.id || !empAdminQuery.data)
     return (
       <li>
         <span className="kebab">&#8942;</span>
         <span className="employee-name"></span>
+        <span className="employee-daily-hours big-screen"></span>
+        <span className="employee-daily-hours big-screen"></span>
+        <span className="employee-daily-hours big-screen"></span>
+        <span className="employee-daily-hours big-screen"></span>
+        <span className="employee-daily-hours big-screen"></span>
+        <span className="employee-daily-hours big-screen"></span>
+        <span className="employee-daily-hours big-screen"></span>
         <span className="employee-weekly-hours"></span>
       </li>
     );
@@ -346,15 +342,46 @@ function EmployeeLine({ empId, company, adminAble, selectedDate }) {
       </Dropdown>
       <span className="employee-name"> {empData.name} </span>
       {!weeklyHours ? (
-        <span className="employee-weekly-hours">
-          {" "}
-          <ClipLoader size={16} color="#ffffff" />{" "}
-        </span>
+        <>
+          <span className="employee-daily-hours big-screen"></span>
+          <span className="employee-daily-hours big-screen"></span>
+          <span className="employee-daily-hours big-screen"></span>
+          <span className="employee-daily-hours big-screen"></span>
+          <span className="employee-daily-hours big-screen"></span>
+          <span className="employee-daily-hours big-screen"></span>
+          <span className="employee-daily-hours big-screen"></span>
+          <span className="employee-weekly-hours">
+            <ClipLoader size={16} color="#ffffff" />{" "}
+          </span>
+        </>
       ) : (
-        <span className="employee-weekly-hours">
-          {countTotalHours()}
-          {findAdditionalHours() ? `+${findAdditionalHours()}` : ""}
-        </span>
+        <>
+          <span className="employee-daily-hours big-screen">
+            {weeklyHours[4].hours.toFixed(1)}
+          </span>
+          <span className="employee-daily-hours big-screen">
+            {weeklyHours[5].hours.toFixed(1)}
+          </span>
+          <span className="employee-daily-hours big-screen">
+            {weeklyHours[6].hours.toFixed(1)}
+          </span>
+          <span className="employee-daily-hours big-screen">
+            {weeklyHours[0].hours.toFixed(1)}
+          </span>
+          <span className="employee-daily-hours big-screen">
+            {weeklyHours[1].hours.toFixed(1)}
+          </span>
+          <span className="employee-daily-hours big-screen">
+            {weeklyHours[2].hours.toFixed(1)}
+          </span>
+          <span className="employee-daily-hours big-screen">
+            {weeklyHours[3].hours.toFixed(1)}
+          </span>
+          <span className="employee-weekly-hours small-screen">
+            {countTotalHours()}
+            {findAdditionalHours() ? `+${findAdditionalHours()}` : ""}
+          </span>
+        </>
       )}
       {empData.unclaimed ? (
         <></>

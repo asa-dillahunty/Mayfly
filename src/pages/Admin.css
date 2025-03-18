@@ -14,6 +14,39 @@ div.dashboard-content {
   margin-bottom: 20px;
 }
 
+div.dashboard-content .big-screen {
+  display: none;
+}
+
+@media (width >= 768px) {
+  div.dashboard-content {
+    width: 700px;
+  }
+
+  div.dashboard-content .big-screen {
+    display: inline-block;
+  }
+
+  div.dashboard-content li.big-screen {
+    display: flex;
+  }
+
+  div.dashboard-content li.big-screen span {
+    font-weight: bold;
+  }
+
+  div.dashboard-content .employee-daily-hours {
+    text-align: left;
+  }
+
+  div.dashboard-content .employee-weekly-hours {
+    text-align: left;
+    margin-left: 4px;
+    padding-left: 1ch;
+    /* min-width: 10ch; */
+  }
+}
+
 .pdfPreviewContainer,
 #pdfobject {
   height: 90vh;

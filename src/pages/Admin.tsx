@@ -1,10 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { performLogout, auth } from "../utils/firebase";
 
 import {
   getEndOfWeekString,
   getStartOfWeekString,
-  selectedDate,
   buildDocName,
   ABBREVIATIONS,
 } from "../utils/dateUtils.ts";
