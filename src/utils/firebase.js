@@ -964,6 +964,7 @@ export async function transferEmpData(oldID, newID) {
   }
 }
 
+// ASK: should this be a mutation and/or invalidate some queries
 export async function resetPassword(email) {
   const result = sendPasswordResetEmail(auth, email);
   return result;

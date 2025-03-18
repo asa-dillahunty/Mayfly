@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState } from "react";
+import { useLayoutEffect } from "react";
 import { DayPicker } from "react-day-picker";
 
 import "./Calendar.css";

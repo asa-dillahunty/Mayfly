@@ -1,12 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import ClickBlocker from "./ClickBlocker";
 
 import "./DisplayTable.css";
-import {
-  createCompany,
-  deleteCompanyEmployee,
-  makeAdmin,
-} from "../utils/firebase";
+import { createCompany, makeAdmin } from "../utils/firebase";
 
 import {
   getEndOfWeekString,

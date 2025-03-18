@@ -2,10 +2,11 @@
 import React, { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 
-import { auth, createUser, resetPassword } from "../utils/firebase";
+import { auth, resetPassword } from "../utils/firebase";
 import "./Login.css";
 import ClickBlocker from "../components/ClickBlocker";
 import { pageListEnum } from "../App";
+import { createUser } from "../utils/firebaseQueries.ts";
 
 function Login(props) {
   const [email, setEmail] = useState("");

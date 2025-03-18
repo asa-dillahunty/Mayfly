@@ -15,7 +15,7 @@ import {
   deleteEmpCompany,
   transferEmployeeData,
 } from "./firebase";
-import { QueryClient, useMutation } from "@tanstack/react-query";
+import { useMutation, useQueries, useQuery } from "@tanstack/react-query";
 import { queryClient } from "..";
 import {
   createUserWithEmailAndPassword,
@@ -459,7 +459,7 @@ export function getCompanyQuery(companyId: string) {
   const query = {
     queryKey: [COMPANY_LIST_COLLECTION_NAME, companyId],
     queryFn: async () => {
-      // TODO: replace the "major error occurred with actual error handling"
+      // TODO: add actual error handling
       // TODO: investigate use and see if this is dumb
       if (!companyId || companyId === "") {
         throw new Error("Invalid Arguments");
@@ -496,20 +496,34 @@ export async function getCompany(companyId: string) {
   return await queryClient.fetchQuery(getCompanyQuery(companyId));
 }
 
-export function getCompaniesQuery() {
+export function useCompanies() {
+  // I have to get docs
+  const { data: companyDocList } = useQuery(getCompanyDocsQuery());
+  const docList = companyDocList ?? [];
+  const dataList = useQueries({
+    queries: docList.map((doc) => getCompanyQuery(doc.id)),
+    combine: (results) => {
+      return {
+        data: results.map((result) => result.data),
+        pending: results.some((result) => result.isPending),
+      };
+    },
+  });
+
+  return dataList;
+}
+
+export function getCompanyDocsQuery() {
   const query = {
     queryKey: [COMPANY_LIST_COLLECTION_NAME],
     queryFn: async () => {
       console.log("getCompaniesQuery");
       const companyList = collection(db, COMPANY_LIST_COLLECTION_NAME);
-      return await getDocs(companyList); // Fetch documents from the "Companies" collection
+      const companiesCollectionSnapshot = await getDocs(companyList); // Fetch documents from the "Companies" collection
+      return companiesCollectionSnapshot.docs;
     },
   };
   return query;
-}
-
-export async function getCompanies() {
-  return await queryClient.fetchQuery(getCompaniesQuery());
 }
 
 // TODO: make mutation and/or invalidate some queries
@@ -804,7 +818,6 @@ export async function transferEmpData(oldID: string, newID: string) {
   }
 }
 
-// TODO: make mutation and/or invalidate some queries
 export async function resetPassword(email: string) {
   const result = sendPasswordResetEmail(auth, email);
   return result;
@@ -820,8 +833,9 @@ export async function getClaimCodeInfo(claimCode) {
 }
 
 // TODO: make mutation and/or invalidate some queries
-// TODO: standardize userData
+// TODO: make epic for allowing strangers to create accounts?
 export async function createUser(userData) {
+  throw new Error("This functionality is not currently supported");
   const email = userData.username + FAKE_EMAIL_EXTENSION;
   const userCredential = await createUserWithEmailAndPassword(
     auth,
