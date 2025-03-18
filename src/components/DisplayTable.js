@@ -1,21 +1,14 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import ClickBlocker from "./ClickBlocker";
 
 import "./DisplayTable.css";
+
 import {
-  ADMIN_DOC_NAME,
-  buildDocName,
-  createCompany,
-  deleteCompanyEmployee,
+  ABBREVIATIONS,
   getEndOfWeekString,
-  getHours,
+  getPayPeriodArray,
   getStartOfWeekString,
-  makeAdmin,
-  selectedDate,
-  setAdditionalHours,
-  setHours,
-  setSelectedDate,
-} from "../utils/firebase";
+} from "../utils/dateUtils.ts";
 
 import Dropdown from "react-bootstrap/Dropdown";
 import HourAdder from "./HourAdder";
@@ -25,9 +18,18 @@ import {
   AiFillRightSquare,
   AiOutlineMore,
 } from "react-icons/ai";
-import ConnectionHandler, { dataStatusEnum } from "../utils/ConnectionHandler";
 import { ClipLoader } from "react-spinners";
 import logo from "../assets/DillahuntyFarmsLogo.png";
+import { useQuery } from "@tanstack/react-query";
+import {
+  getAdminDataQuery,
+  getCompanyEmployeeQuery,
+  getUserWeekQuery,
+  useCreateCompany,
+  useMakeAdmin,
+  useRemoveEmployee,
+  useSetAdditionalHours,
+} from "../utils/firebaseQueries.ts";
 
 function CreateCompanyPopup(props) {
   const [companyName, setCompanyName] = useState("");
@@ -54,7 +56,7 @@ function CreateCompanyPopup(props) {
   );
 }
 
-export function DisplayTableSkeleton() {
+export function DisplayTableSkeleton({ selectedDate }) {
   return (
     <div className="company-display-table skeleton">
       <div className="shimmer-box"></div>
@@ -65,83 +67,60 @@ export function DisplayTableSkeleton() {
           <span className="date-row">
             <AiFillLeftSquare className="week-button" />
             <span className="week-string">
-              {getStartOfWeekString(selectedDate.value)}
+              {getStartOfWeekString(selectedDate)}
               &nbsp;&nbsp;&nbsp;&#x2015;&nbsp;&nbsp;&nbsp;
-              {getEndOfWeekString(selectedDate.value)}
+              {getEndOfWeekString(selectedDate)}
             </span>
             <AiFillRightSquare className="week-button" />
           </span>
         </li>
-        <li>
-          <span className="kebab"></span>
-          <span className="employee-name"></span>
-          <span className="employee-weekly-hours"></span>
-        </li>
-        <li>
-          <span className="kebab"></span>
-          <span className="employee-name"></span>
-          <span className="employee-weekly-hours"></span>
-        </li>
-        <li>
-          <span className="kebab"></span>
-          <span className="employee-name"></span>
-          <span className="employee-weekly-hours"></span>
-        </li>
-        <li>
-          <span className="kebab"></span>
-          <span className="employee-name"></span>
-          <span className="employee-weekly-hours"></span>
-        </li>
-        <li>
-          <span className="kebab"></span>
-          <span className="employee-name"></span>
-          <span className="employee-weekly-hours"></span>
-        </li>
-        <li>
-          <span className="kebab"></span>
-          <span className="employee-name"></span>
-          <span className="employee-weekly-hours"></span>
-        </li>
+
+        {Array.from(Array(6)).map((_, index) => (
+          <EmployeeLine key={index} /> // without emp.id, should be skeleton lines
+        ))}
       </ul>
     </div>
   );
 }
 
-export function AdminCompanyDisplayTable(props) {
+export function AdminCompanyDisplayTable({
+  company,
+  adminAble,
+  selectedDate,
+  setSelectedDate,
+}) {
   // jumps selectedDate a week forward
   const jumpForward = () => {
     setSelectedDate(
       new Date(
-        selectedDate.value.getFullYear(),
-        selectedDate.value.getMonth(),
-        selectedDate.value.getDate() + 7
+        selectedDate.getFullYear(),
+        selectedDate.getMonth(),
+        selectedDate.getDate() + 7
       )
     );
-    props.refreshTable();
   };
 
   // jumps selectedDate a week forward
   const jumpBackward = () => {
     setSelectedDate(
       new Date(
-        selectedDate.value.getFullYear(),
-        selectedDate.value.getMonth(),
-        selectedDate.value.getDate() - 7
+        selectedDate.getFullYear(),
+        selectedDate.getMonth(),
+        selectedDate.getDate() - 7
       )
     );
-    props.refreshTable();
   };
 
   let claimedList;
   let unclaimedList;
-  if (props.company && props.company.Employees) {
-    claimedList = props.company.Employees.filter((emp) => !emp.unclaimed);
-    unclaimedList = props.company.Employees.filter((emp) => emp.unclaimed);
+  if (company && company.Employees) {
+    claimedList = company.Employees.filter((emp) => !emp.unclaimed);
+    unclaimedList = company.Employees.filter((emp) => emp.unclaimed);
   }
 
   return (
     <div className="company-display-table">
-      {props.company.name === "H. T. Dillahunty & Sons" ? (
+      {company.name === "H. T. Dillahunty & Sons" ? (
         <h2>
           {" "}
           <img
@@ -151,7 +130,7 @@ export function AdminCompanyDisplayTable(props) {
           />{" "}
         </h2>
       ) : (
-        <h2> {props.company.name} </h2>
+        <h2> {company.name} </h2>
       )}
       <ul>
         <li key={0} className="table-key">
@@ -159,25 +138,35 @@ export function AdminCompanyDisplayTable(props) {
           <span className="date-row">
             <AiFillLeftSquare className="week-button" onClick={jumpBackward} />
             <span className="week-string">
-              {getStartOfWeekString(selectedDate.value)}
+              {getStartOfWeekString(selectedDate)}
               &nbsp;&nbsp;&nbsp;&#x2015;&nbsp;&nbsp;&nbsp;
-              {getEndOfWeekString(selectedDate.value)}
+              {getEndOfWeekString(selectedDate)}
             </span>
             <AiFillRightSquare className="week-button" onClick={jumpForward} />
           </span>
         </li>
-        {claimedList.map((emp, index) => (
-          <ConnectionHandler
-            key={index + 1}
-            emp
-            empID={emp.id}
-            companyData={props.company}
-          >
-            <EmployeeLine
-              refreshTable={props.refreshTable}
-              company={props.company}
-            />
-          </ConnectionHandler>
+        <li className="big-screen">
+          <div className="dropdown">
+            {/* <button className="kebab-container">
+              <span className="kebab">&#8942;</span>
+            </button> */}
+          </div>
+          <span className="employee-name"></span>
+          {getPayPeriodArray().map((val) => (
+            <span key={val} className="employee-daily-hours">
+              {ABBREVIATIONS[val]}
+            </span>
+          ))}
+          <span className="employee-weekly-hours"></span>
+        </li>
+        {claimedList.map((emp) => (
+          <EmployeeLine
+            key={emp.id}
+            company={company}
+            empId={emp.id}
+            adminAble={adminAble}
+            selectedDate={selectedDate}
+          />
         ))}
 
         <li
@@ -185,7 +174,7 @@ export function AdminCompanyDisplayTable(props) {
           className="table-key"
           hidden={unclaimedList.length < 1}
         >
-          <div className="dropdown"></div>{" "}
+          <div className="dropdown"></div>
           {/* fake kebab so we get spacing right */}
           <span className="employee-name">Unregistered Employees</span>
           <span className="employee-weekly-hours">Code</span>
@@ -194,9 +183,9 @@ export function AdminCompanyDisplayTable(props) {
           <EmployeeLine
             key={index + claimedList.length + 2}
             emp={emp}
-            company={props.company}
-            refreshTable={props.refreshTable}
-            admin={props.admin}
+            company={company}
+            adminAble={adminAble}
+            selectedDate={selectedDate} // likely won't need selected date if unclaimed
           />
         ))}
       </ul>
@@ -217,39 +206,28 @@ const CustomToggle = React.forwardRef(({ children, onClick }, _ref) => (
   </button>
 ));
 
-function EmployeeLine(props) {
+function EmployeeLine({ empId, company, adminAble, selectedDate }) {
   const [blocked, setBlocked] = useState(false);
   const [showMore, setShowMore] = useState(false);
   const [editUser, setEditUser] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [status, setStatus] = useState(dataStatusEnum.loading);
 
-  const empData = props.dataObject;
+  const empQuery = useQuery(getCompanyEmployeeQuery(company?.id, empId));
+  const empAdminQuery = useQuery(getAdminDataQuery(empId));
+  const hoursQuery = useQuery(getUserWeekQuery(empId, selectedDate));
+  const { data: weeklyHours } = hoursQuery;
+  const { data: empData } = empQuery;
+  // what is empData supposed to be?
+  // we need { id, firstName, lastName, name }
 
-  const deleteUser = () => {
+  const removeEmployee = useRemoveEmployee();
+  const makeAdmin = useMakeAdmin();
+  const setAdditionalHours = useSetAdditionalHours();
+
+  function deleteUser() {
     setBlocked(true);
-    deleteCompanyEmployee(empData.id, props.company.id)
-      .then(() => {
-        props
-          .refreshTable()
-          .then(() => {
-            setBlocked(false);
-            setConfirmDelete(false);
-          })
-          .catch((_e) => {
-            alert(`Error Code 0012. Please refresh the page.`);
-            setBlocked(false);
-            setConfirmDelete(false);
-          });
-      })
-      .catch((_e) => {
-        alert(
-          `Error Code 7982. Failed to delete ${empData.id}. Please refresh the page.`
-        );
-        setBlocked(false);
-        setConfirmDelete(false);
-      });
-  };
+    removeEmployee(empId, company.id, () => setBlocked(false));
+  }
 
   const toggleShow = () => {
     setShowMore(!showMore);
@@ -259,75 +237,61 @@ function EmployeeLine(props) {
   };
 
   const countTotalHours = () => {
-    const docName = buildDocName(selectedDate.value);
-    if (!empData[docName]) {
-      setStatus(dataStatusEnum.loading);
-      props.requestData({
-        type: "hours",
-        params: {
-          date: selectedDate.value,
-          docName: docName,
-        },
-      });
-    } else {
-      var total = 0;
-      for (var value in empData[docName]) {
-        if (value === "additionalHours") continue;
-        total += empData[docName][value].hours;
-      }
-      return total;
+    if (!weeklyHours) return 0;
+
+    var total = 0;
+    for (var value in weeklyHours) {
+      if (value === "additionalHours") continue;
+      total += weeklyHours[value].hours;
     }
-    return 0;
+    return total;
   };
 
   const findAdditionalHours = () => {
-    const docName = buildDocName(selectedDate.value);
-    return empData?.[docName]?.["additionalHours"]?.hours ?? 0;
+    return weeklyHours?.["additionalHours"]?.hours ?? 0;
   };
 
   function roundToFortyHours() {
+    setBlocked(true);
     const currTotal = countTotalHours();
-    // setAdditionalHours(40 - currTotal);
     if (currTotal > 40) {
-      setAdditionalHours(empData.id, selectedDate.value, 0).then(() => {
-        props.refreshTable();
-      });
+      setAdditionalHours(empData.id, selectedDate, 0, () => setBlocked(false));
     } else {
-      setAdditionalHours(empData.id, selectedDate.value, 40 - currTotal).then(
-        () => {
-          props.refreshTable();
-        }
+      setAdditionalHours(empData.id, selectedDate, 40 - currTotal, () =>
+        setBlocked(false)
       );
     }
   }
 
-  useEffect(() => {
-    if (status !== dataStatusEnum.loaded) setStatus(dataStatusEnum.loaded);
-  }, [props]);
-
-  if (!empData.id) return <></>;
-  if (empData[ADMIN_DOC_NAME].hidden) return <></>;
-  // console.log(empData);
+  // TODO: should be a skeleton of some kind?
+  // ASK: if emp is hidden, this will vanish, might be bad to have a skeleton
+  if (!empData?.id || !empAdminQuery.data)
+    return (
+      <li>
+        <span className="kebab">&#8942;</span>
+        <span className="employee-name"></span>
+        {getPayPeriodArray().map((val) => (
+          <span key={val} className="employee-daily-hours big-screen"></span>
+        ))}
+        <span className="employee-weekly-hours"></span>
+      </li>
+    );
+  if (empAdminQuery.data.hidden) return <></>;
   return (
     <li>
       {/* <span className='kebab'>&#8942;</span> */}
       <ClickBlocker block={editUser} custom>
         <EmployeeInfoForm
-          setFormOpen={setEditUser}
-          refreshTable={props.refreshTable}
-          deepRefresh={props.deepDataRefresh}
-          empID={empData.id}
-          companyID={props.company.id}
-          edit
-          fn={empData.firstName}
-          ln={empData.lastName}
           empData={empData}
+          setFormOpen={setEditUser}
+          companyId={company.id}
+          edit
         />
       </ClickBlocker>
       <ClickBlocker
         block={confirmDelete}
         confirm
-        message={`Are you sure you want to remove ${empData.name} from ${props.company.name}?`}
+        message={`Are you sure you want to remove ${empData.name} from ${company.name}?`}
         messageEmphasized={"This action cannot be undone."}
         onConfirm={deleteUser}
         onCancel={() => setConfirmDelete(false)}
@@ -358,7 +322,7 @@ function EmployeeLine(props) {
           <Dropdown.Item onClick={() => setConfirmDelete(true)}>
             Remove Employee
           </Dropdown.Item>
-          {!props.adminAble ? (
+          {!adminAble ? (
             <></>
           ) : (
             <Dropdown.Item
@@ -372,17 +336,27 @@ function EmployeeLine(props) {
         </Dropdown.Menu>
       </Dropdown>
       <span className="employee-name"> {empData.name} </span>
-      {/* emp.HoursThisWeek is a computed signal */}
-      {status === dataStatusEnum.loading ? (
-        <span className="employee-weekly-hours">
-          {" "}
-          <ClipLoader size={16} color="#ffffff" />{" "}
-        </span>
+      {!weeklyHours ? (
+        <>
+          {getPayPeriodArray().map((val) => (
+            <span key={val} className="employee-daily-hours big-screen"></span>
+          ))}
+          <span className="employee-weekly-hours">
+            <ClipLoader size={16} color="#ffffff" />{" "}
+          </span>
+        </>
       ) : (
-        <span className="employee-weekly-hours">
-          {countTotalHours()}
-          {findAdditionalHours() ? `+${findAdditionalHours()}` : ""}
-        </span>
+        <>
+          {getPayPeriodArray().map((val) => (
+            <span key={val} className="employee-daily-hours big-screen">
+              {weeklyHours[val].hours}
+            </span>
+          ))}
+          <span className="employee-weekly-hours small-screen">
+            {countTotalHours()}
+            {findAdditionalHours() ? `+${findAdditionalHours()}` : ""}
+          </span>
+        </>
       )}
       {empData.unclaimed ? (
         <></>
@@ -397,7 +371,6 @@ function EmployeeLine(props) {
             <button
               className="toggler"
               onClick={() => {
-                props.refreshTable();
                 toggleShow();
               }}
             >
@@ -411,8 +384,8 @@ function EmployeeLine(props) {
 }
 
 export function CompanyDisplayTable(props) {
-  const [blocked, setBlocked] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   return (
     <details className="company-details">
@@ -421,6 +394,8 @@ export function CompanyDisplayTable(props) {
         company={props.company}
         refreshTable={props.refreshTable}
         adminAble={props.addAdmins}
+        selectedDate={selectedDate}
+        setSelectedDate={setSelectedDate}
       />
       <button
         className="add-emp"
@@ -434,7 +409,7 @@ export function CompanyDisplayTable(props) {
         <EmployeeInfoForm
           setFormOpen={setFormOpen}
           refreshTable={props.refreshTable}
-          companyID={props.company.id}
+          companyId={props.company.id}
           admin
           add
         />
@@ -448,11 +423,12 @@ export function CompanyDisplayTable(props) {
 
 function DisplayTable(props) {
   const [createVisible, setCreateVisible] = useState(false);
-
   const toggleCreateVisible = () => setCreateVisible(!createVisible);
 
+  const createCompany = useCreateCompany();
+
   const addCompany = (companyName) => {
-    createCompany(companyName);
+    createCompany(companyName, () => setCreateVisible(false));
   };
 
   const onCancel = () => {

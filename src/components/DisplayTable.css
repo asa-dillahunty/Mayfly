@@ -6,6 +6,7 @@ details > summary {
 }
 
 .company-display-table {
+  width: 100%;
   text-align: left;
 }
 
@@ -63,8 +64,15 @@ span.employee-name {
   text-align: left;
   padding-left: 10px;
 }
+
+span.employee-daily-hours {
+  min-width: 5ch;
+  text-align: center;
+}
+
 span.employee-weekly-hours {
   width: 25%;
+  min-width: 7ch;
   background-color: var(--secondary);
   text-align: center;
 }

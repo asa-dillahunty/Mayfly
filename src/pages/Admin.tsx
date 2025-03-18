@@ -1,14 +1,13 @@
 import React, { useState } from "react";
+import { performLogout, auth } from "../utils/firebase";
+
 import {
-  performLogout,
-  selectedDate,
+  getEndOfWeekString,
+  getStartOfWeekString,
   buildDocName,
   ABBREVIATIONS,
-  getStartOfWeekString,
-  getEndOfWeekString,
-  getCompanyEmployeeList,
-  getHours,
-} from "../utils/firebase";
+} from "../utils/dateUtils.ts";
+
 import "./Admin.css";
 import {
   AdminCompanyDisplayTable,
@@ -18,8 +17,13 @@ import ClickBlocker from "../components/ClickBlocker";
 import EmployeeInfoForm from "../components/EmployeeInfoForm";
 import jsPDF from "jspdf";
 import logo from "../assets/DillahuntyFarmsLogo.png";
-import { AiFillPlusCircle, AiOutlinePrinter } from "react-icons/ai";
-import ConnectionHandler, { dataStatusEnum } from "../utils/ConnectionHandler";
+import { AiOutlinePrinter } from "react-icons/ai";
+import { useQuery } from "@tanstack/react-query";
+import {
+  getAdminDataQuery,
+  getCompanyQuery,
+  getCompanyEmployeeList,
+} from "../utils/firebaseQueries.ts";
 
 function AdminDashboard(props) {
   return (
@@ -33,36 +37,99 @@ function AdminDashboard(props) {
           Log Out
         </button>
       </div>
-      <ConnectionHandler company>
-        <ContentContainer />
-      </ConnectionHandler>
+      <ContentContainer />
     </div>
   );
 }
 
-function ContentContainer({
-  dataObject,
-  dataRefresh,
-  deepDataRefresh,
-  blocked,
-}) {
+function ContentContainer() {
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [infoFormOpen, setInfoFormOpen] = useState(false);
   const [previewPDF, setPreviewPDF] = useState(false);
+  const { data: adminData, isLoading: isLoadingId } = useQuery(
+    getAdminDataQuery(auth.currentUser.uid)
+  );
+  const { data: companyData, isLoading: isLoadingCompany } = useQuery(
+    getCompanyQuery(adminData?.company)
+  );
 
-  const createPrintable = () => {
-    const newDoc = new jsPDF();
-    const logoPrint = new Image();
-    const docName = buildDocName(selectedDate.value);
-    logoPrint.src = logo;
+  const isLoading = isLoadingId || isLoadingCompany;
 
-    const defaultFontSize = 16;
-    const smallFontSize = 12;
-    const lineHeight = 8;
-    // const defaultFont = newDoc.getFontSize();
-    // console.log(defaultFont);
+  if (isLoading) {
+    return (
+      <div className="dashboard-content contain-click-blocker skeleton">
+        <DisplayTableSkeleton selectedDate={selectedDate} />
+      </div>
+    );
+  }
 
-    // get the employee list, how?
-    getCompanyEmployeeList(dataObject.id, docName).then(async (empList) => {
+  if (!companyData) {
+    return (
+      <div className="dashboard-content contain-click-blocker skeleton">
+        <h3>There has been an error. Please refresh and report the issue</h3>
+      </div>
+    );
+  }
+
+  return (
+    <div className="dashboard-content contain-click-blocker">
+      {/* <ClickBlocker block={blocked} loading /> */}
+      {/* <ClickBlocker block={previewPDF !== false} custom>
+          <iframe id="pdfobject" title="pdfObject" src={previewPDF} />
+        </ClickBlocker> */}
+
+      <AdminCompanyDisplayTable
+        company={companyData}
+        selectedDate={selectedDate}
+        setSelectedDate={setSelectedDate}
+        adminAble={false}
+      />
+
+      <div className="admin-button-container">
+        <button
+          className="add-emp"
+          onClick={() => {
+            setInfoFormOpen(true);
+          }}
+        >
+          Add Employee
+        </button>
+        <button
+          className="print-table"
+          onClick={() => createPrintable(companyData, selectedDate)}
+        >
+          <AiOutlinePrinter className="print-table" />
+        </button>
+      </div>
+
+      <ClickBlocker custom={true} block={infoFormOpen}>
+        <EmployeeInfoForm
+          setFormOpen={setInfoFormOpen}
+          companyId={companyData.id}
+          add
+        />
+      </ClickBlocker>
+    </div>
+  );
+}
+
+export default AdminDashboard;
+
+const createPrintable = (dataObject, selectedDate: Date) => {
+  const newDoc = new jsPDF();
+  const logoPrint = new Image();
+  const docName = buildDocName(selectedDate);
+  logoPrint.src = logo;
+
+  const defaultFontSize = 16;
+  const smallFontSize = 12;
+  const lineHeight = 8;
+  // const defaultFont = newDoc.getFontSize();
+  // console.log(defaultFont);
+
+  // get the employee list, how?
+  getCompanyEmployeeList(dataObject.id, selectedDate, docName).then(
+    async (empList) => {
       let line = 0;
       let shownEmps = 0;
       for (let i = 0; i < empList.length; i++) {
@@ -101,8 +168,8 @@ function ContentContainer({
         // newDoc.text(`Week:`, 10, line * lineHeight);
         newDoc.text(
           `${getStartOfWeekString(
-            selectedDate.value
-          )}   -   ${getEndOfWeekString(selectedDate.value)}`,
+            selectedDate
+          )}   -   ${getEndOfWeekString(selectedDate)}`,
           11,
           line * lineHeight
         );
@@ -117,7 +184,6 @@ function ContentContainer({
           );
         }
 
-        console.log(empList);
         newDoc.text(
           "Hours Worked    Hours Offered    Hours Paid",
           15 + 13 * 8 - 5,
@@ -206,61 +272,6 @@ function ContentContainer({
       window.open(url, "_blank");
       //   setPreviewPDF(url);
       // newDoc.save(`${dataObject.name}-hours-week-${docName}.pdf`);
-    });
-  };
-
-  if (dataObject.status === dataStatusEnum.loading) {
-    return (
-      <div className="dashboard-content contain-click-blocker skeleton">
-        <DisplayTableSkeleton />
-      </div>
-    );
-  } else if (dataObject.status === dataStatusEnum.loaded) {
-    return (
-      <div className="dashboard-content contain-click-blocker">
-        <ClickBlocker block={blocked} loading />
-        {/* <ClickBlocker block={previewPDF !== false} custom>
-          <iframe id="pdfobject" title="pdfObject" src={previewPDF} />
-        </ClickBlocker> */}
-
-        <AdminCompanyDisplayTable
-          company={dataObject}
-          refreshTable={dataRefresh}
-        />
-
-        <div className="admin-button-container">
-          <button
-            className="add-emp"
-            onClick={() => {
-              setInfoFormOpen(true);
-            }}
-          >
-            <AiFillPlusCircle />
-            Add Employee
-          </button>
-          <button className="print-table" onClick={createPrintable}>
-            <AiOutlinePrinter className="print-table" />
-          </button>
-        </div>
-
-        <ClickBlocker custom={true} block={infoFormOpen}>
-          <EmployeeInfoForm
-            setFormOpen={setInfoFormOpen}
-            refreshTable={dataRefresh}
-            deepRefresh={deepDataRefresh}
-            companyID={dataObject.id}
-            add
-          />
-        </ClickBlocker>
-      </div>
-    );
-  } else if (dataObject.status === dataStatusEnum.error) {
-    return (
-      <div className="dashboard-content contain-click-blocker skeleton">
-        <h3>There has been an error. Please refresh</h3>
-      </div>
-    );
-  }
-}
-
-export default AdminDashboard;
+    }
+  );
+};

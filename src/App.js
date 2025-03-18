@@ -5,12 +5,13 @@ import "bootstrap/dist/css/bootstrap.min.css"; // need this for the react-bootst
 
 import Login, { ForgotPassword, Signup } from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
-import Admin from "./pages/Admin";
+import Admin from "./pages/Admin.tsx";
 import OmniAdmin from "./pages/OmniAdmin";
-import { auth, navigateUser } from "./utils/firebase";
+import { auth } from "./utils/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import ClickBlocker from "./components/ClickBlocker";
 import PasswordReset from "./pages/PasswordReset";
+import { navigateUser } from "./utils/firebaseQueries.ts";
 
 function App() {
   const [currPage, setCurrPage] = useState(pageListEnum.Login);
