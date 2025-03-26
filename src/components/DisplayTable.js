@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import ClickBlocker from "./ClickBlocker";
 
 import "./DisplayTable.css";
@@ -18,9 +18,10 @@ import {
   AiFillRightSquare,
   AiOutlineMore,
 } from "react-icons/ai";
+import { FaSave } from "react-icons/fa";
 import { ClipLoader } from "react-spinners";
 import logo from "../assets/DillahuntyFarmsLogo.png";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   getAdminDataQuery,
   getCompanyEmployeeQuery,
@@ -28,7 +29,9 @@ import {
   useCreateCompany,
   useMakeAdmin,
   useRemoveEmployee,
+  userWeekMutation,
   useSetAdditionalHours,
+  useSetHours,
 } from "../utils/firebaseQueries.ts";
 
 function CreateCompanyPopup(props) {
@@ -158,6 +161,9 @@ export function AdminCompanyDisplayTable({
             </span>
           ))}
           <span className="employee-weekly-hours"></span>
+          <button className="save-button big-screen" disabled={true}>
+            <FaSave />
+          </button>
         </li>
         {claimedList.map((emp) => (
           <EmployeeLine
@@ -211,6 +217,7 @@ function EmployeeLine({ empId, company, adminAble, selectedDate }) {
   const [showMore, setShowMore] = useState(false);
   const [editUser, setEditUser] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [editedHours, setEditedHours] = useState({});
 
   const empQuery = useQuery(getCompanyEmployeeQuery(company?.id, empId));
   const empAdminQuery = useQuery(getAdminDataQuery(empId));
@@ -263,6 +270,60 @@ function EmployeeLine({ empId, company, adminAble, selectedDate }) {
     }
   }
 
+  const setWeek = useMutation(userWeekMutation());
+  const saveEdits = () => {
+    setBlocked(true);
+    setWeek.mutate({
+      userId: empId,
+      date: selectedDate,
+      userWeek: editedHours,
+      onSettled: () => setBlocked(false),
+    });
+  };
+
+  const handleChange = (day, value) => {
+    // console.log(value);
+    if (value > 24 || value < 0) {
+      // we assume typo
+      return;
+    }
+    if (value % 1 !== 0 && value % 1 !== 0.5) {
+      // we assume typo again
+      return;
+    }
+    const newHours = {
+      ...editedHours,
+      [day]: { ...editedHours[day], hours: value },
+    };
+    setEditedHours(newHours);
+  };
+
+  useEffect(() => {
+    if (!weeklyHours) return;
+    const initialHours = getPayPeriodArray().reduce((acc, day) => {
+      acc[day] = { ...weeklyHours[day] };
+      return acc;
+    }, {});
+    setEditedHours(initialHours);
+  }, [weeklyHours]);
+
+  // const isEdited = JSON.stringify(editedHours) !== JSON.stringify(weeklyHours);
+  const checkIsEdited = () => {
+    if (!weeklyHours || !editedHours) return false; // we're still loading
+    for (const day in editedHours) {
+      if (editedHours[day].hours === weeklyHours[day].hours) {
+        continue;
+      }
+      return true;
+    }
+    return false;
+  };
+
+  const isEdited = useMemo(() => {
+    return checkIsEdited();
+  }, [editedHours, weeklyHours]);
+  // console.log(isEdited);
+
   // TODO: should be a skeleton of some kind?
   // ASK: if emp is hidden, this will vanish, might be bad to have a skeleton
   if (!empData?.id || !empAdminQuery.data)
@@ -274,6 +335,9 @@ function EmployeeLine({ empId, company, adminAble, selectedDate }) {
           <span key={val} className="employee-daily-hours big-screen"></span>
         ))}
         <span className="employee-weekly-hours"></span>
+        <button className="save-button big-screen" disabled={true}>
+          <FaSave />
+        </button>
       </li>
     );
   if (empAdminQuery.data.hidden) return <></>;
@@ -344,18 +408,40 @@ function EmployeeLine({ empId, company, adminAble, selectedDate }) {
           <span className="employee-weekly-hours">
             <ClipLoader size={16} color="#ffffff" />{" "}
           </span>
+          <button className="save-button big-screen" disabled={true}>
+            <FaSave />
+          </button>
         </>
       ) : (
         <>
-          {getPayPeriodArray().map((val) => (
-            <span key={val} className="employee-daily-hours big-screen">
-              {weeklyHours[val].hours}
-            </span>
+          {getPayPeriodArray().map((day) => (
+            <input
+              key={day}
+              type="number"
+              className="employee-daily-hours big-screen"
+              value={Number(editedHours[day]?.hours || 0).toString()}
+              onChange={(e) =>
+                handleChange(day, parseFloat(e.target.value) || 0)
+              }
+              min="0"
+              max="24"
+              step="0.5"
+              onFocus={(event) => {
+                event.target.select();
+              }}
+            />
           ))}
           <span className="employee-weekly-hours small-screen">
             {countTotalHours()}
             {findAdditionalHours() ? `+${findAdditionalHours()}` : ""}
           </span>
+          <button
+            className="save-button big-screen"
+            disabled={!isEdited}
+            onClick={saveEdits}
+          >
+            <FaSave />
+          </button>
         </>
       )}
       {empData.unclaimed ? (

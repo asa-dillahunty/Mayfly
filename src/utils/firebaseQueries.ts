@@ -119,6 +119,7 @@ export function userWeekMutation() {
       onSettled?: ({ error, variables }) => void;
     }) => {
       const docName = buildDocName(date);
+      console.log("saving week", userWeek);
       await setDoc(doc(db, userId, docName), userWeek);
       return userWeek;
     },
@@ -132,6 +133,7 @@ export function userWeekMutation() {
       // queryClient.invalidateQueries([userId, docName])
     },
     onError: async (_data, variables) => {
+      console.log("on userWeekMutation error", _data, variables);
       const docName = buildDocName(variables.date);
       const queryKey = ["WeeklyHours", variables.userId, docName];
 

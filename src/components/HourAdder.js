@@ -156,9 +156,9 @@ function HourSelector({
             onClick={handleAddHours}
             disabled={blocked}
           >
-            Add Hours
+            Update Hours
           </button>
-          {showNotes ? (
+          {showNotes && (
             <button
               className="add-notes-button"
               onClick={() => setNotes(true)}
@@ -166,8 +166,6 @@ function HourSelector({
             >
               <AiOutlineSnippets />
             </button>
-          ) : (
-            ""
           )}
         </div>
       </div>
