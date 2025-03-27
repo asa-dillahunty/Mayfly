@@ -11,6 +11,7 @@ import {
   updatePassword,
 } from "firebase/auth";
 
+// TODO: investigate renaming?
 export default function PasswordReset(props) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -77,6 +78,7 @@ export default function PasswordReset(props) {
     }
   };
 
+  // TODO: Replace Toast with something better. Consider removing it since the page changes immediately on success
   return (
     <div className="login-container">
       <ClickBlocker block={blocked} loading={true} />

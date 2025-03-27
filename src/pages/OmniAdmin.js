@@ -1,19 +1,12 @@
-import React, { useEffect, useState } from "react";
-import {
-  getCompanies,
-  getCompanyFromCache,
-  performLogout,
-  transferEmpData,
-} from "../utils/firebase";
-// import { format } from 'date-fns';
-// import { DayPicker } from 'react-day-picker';
+import React, { useState } from "react";
+import { performLogout, transferEmpData } from "../utils/firebase";
 import "react-day-picker/dist/style.css";
 import "./OmniAdmin.css";
 import DisplayTable from "../components/DisplayTable";
 import ClickBlocker from "../components/ClickBlocker";
+import { useCompanies } from "../utils/firebaseQueries.ts";
 
 function OmniAdminDashboard(props) {
-  const [companies, setCompanies] = useState([]);
   const [oldUserID, setOldUserID] = useState("");
   const [newUserID, setNewUserID] = useState("");
   const [blocked, setBlocked] = useState(false);
@@ -22,26 +15,7 @@ function OmniAdminDashboard(props) {
     performLogout(props.setCurrPage);
   };
 
-  const fetchCompanies = async () => {
-    const companiesCollectionSnapshot = await getCompanies();
-
-    const promiseCompanies = await Promise.all(
-      companiesCollectionSnapshot.docs.map(async (doc) => {
-        return await fetchCompanyData({ id: doc.id, ...doc.data() });
-      })
-    );
-    await Promise.all(promiseCompanies);
-
-    // const updatedCompanies = promiseCompanies.map(item => ({ item.Object}));
-    setCompanies(promiseCompanies);
-  };
-
-  const fetchCompanyData = async (data) => {
-    const companyObj = await getCompanyFromCache(data.id);
-    companyObj.id = data.id;
-    companyObj.name = data.name;
-    return companyObj;
-  };
+  const { data: companies, pending } = useCompanies();
 
   const addCompany = (company) => {
     console.log("add company: " + company);
@@ -64,10 +38,9 @@ function OmniAdminDashboard(props) {
       });
   };
 
-  useEffect(() => {
-    fetchCompanies();
-  }, []);
-
+  if (!companies || pending) {
+    return <div>Loading</div>;
+  }
   return (
     <div className="dashboard-container">
       <ClickBlocker block={blocked} loading />
@@ -88,7 +61,6 @@ function OmniAdminDashboard(props) {
           displayItems={companies}
           onAdd={addCompany}
           onDelete={deleteCompany}
-          refreshTable={fetchCompanies}
           addAdmins
         />
         <details className="data-transfer-details">
