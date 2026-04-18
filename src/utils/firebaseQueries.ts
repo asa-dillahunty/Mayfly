@@ -14,14 +14,13 @@ import {
   db,
   deleteEmpCompany,
   transferEmployeeData,
-} from "./firebase";
+} from "./firebase.ts";
 import {
   useMutation,
   useQueries,
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { queryClient } from "..";
 import {
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
@@ -29,6 +28,7 @@ import {
 } from "firebase/auth";
 import { buildDocName } from "./dateUtils.ts";
 import { pageListEnum } from "../App.js";
+import { queryClient } from "../main.tsx";
 
 const COMPANY_LIST_COLLECTION_NAME = "CompanyList";
 const UNCLAIMED_LIST_COLLECTION_NAME = "UnclaimedList";
@@ -74,7 +74,7 @@ const getEmptyWeek = (): WeeklyHours => ({
 export function getUserWeekQuery(
   userId: string,
   date: Date,
-  docName: string = buildDocName(date)
+  docName: string = buildDocName(date),
 ) {
   const query = {
     queryKey: ["WeeklyHours", userId, docName],
@@ -100,7 +100,7 @@ export function getUserWeekQuery(
 async function fetchWeek(
   userId: string,
   date: Date,
-  docName: string = buildDocName(date)
+  docName: string = buildDocName(date),
 ) {
   return await queryClient.fetchQuery(getUserWeekQuery(userId, date, docName));
 }
@@ -156,7 +156,7 @@ export function useSetHours() {
     userId: string,
     date: Date,
     hours: number,
-    onSettled?: ({ error, variables }) => void
+    onSettled?: ({ error, variables }) => void,
   ) => {
     const docName = buildDocName(date);
     const currentWeek = await fetchWeek(userId, date, docName);
@@ -180,7 +180,7 @@ export function useSetAdditionalHours() {
     userId: string,
     date: Date,
     hours: number,
-    onSettled?: ({ error, variables }) => void
+    onSettled?: ({ error, variables }) => void,
   ) => {
     const docName = buildDocName(date);
     const currentWeek = await fetchWeek(userId, date, docName);
@@ -202,7 +202,7 @@ export function useSetNotes() {
     userId: string,
     date: Date,
     notes: string,
-    onSettled?: ({ error, variables }) => void
+    onSettled?: ({ error, variables }) => void,
   ) => {
     const docName = buildDocName(date);
     const currentWeek = await fetchWeek(userId, date, docName);
@@ -223,10 +223,10 @@ export function useSetNotes() {
 export async function getHoursWorkedThisWeek(
   userId: string,
   date: Date,
-  docName?: string
+  docName?: string,
 ) {
   const userWeek = await queryClient.fetchQuery(
-    getUserWeekQuery(userId, date, docName)
+    getUserWeekQuery(userId, date, docName),
   );
 
   let totalHours = 0;
@@ -240,10 +240,10 @@ export async function getHoursWorkedThisWeek(
 export async function getHoursPaidThisWeek(
   userId: string,
   date: Date,
-  docName?: string
+  docName?: string,
 ) {
   const userWeek = await queryClient.fetchQuery(
-    getUserWeekQuery(userId, date, docName)
+    getUserWeekQuery(userId, date, docName),
   );
 
   let totalHours = 0;
@@ -256,7 +256,7 @@ export async function getHoursPaidThisWeek(
 export async function getHoursList(
   userId: string,
   date: Date,
-  docName: string = buildDocName(date)
+  docName: string = buildDocName(date),
 ) {
   const hoursList = [];
   const userWeek = await fetchWeek(userId, date, docName);
@@ -432,7 +432,7 @@ export function getCompanyEmployeeQuery(companyId: string, empId: string) {
           companyId +
           "/" +
           COMPANY_EMPLOYEE_COLLECTION,
-        empId
+        empId,
       );
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
@@ -447,7 +447,7 @@ export function getCompanyEmployeeQuery(companyId: string, empId: string) {
 
 export async function fetchCompanyEmployee(companyId: string, empId: string) {
   return await queryClient.fetchQuery(
-    getCompanyEmployeeQuery(companyId, empId)
+    getCompanyEmployeeQuery(companyId, empId),
   );
 }
 
@@ -456,7 +456,7 @@ export async function fetchCompanyEmployee(companyId: string, empId: string) {
 export async function getCompanyEmployeeList(
   companyId: string,
   selectedDate: Date,
-  docName: string
+  docName: string,
 ) {
   const docList = (await queryClient.fetchQuery(getCompanyQuery(companyId)))[
     COMPANY_EMPLOYEE_COLLECTION
@@ -467,12 +467,12 @@ export async function getCompanyEmployeeList(
       const hoursPaidThisWeek = await getHoursPaidThisWeek(
         emp.id,
         selectedDate,
-        docName
+        docName,
       );
       const hoursWorkedThisWeek = await getHoursWorkedThisWeek(
         emp.id,
         selectedDate,
-        docName
+        docName,
       );
       const hoursList = await getHoursList(emp.id, selectedDate, docName);
       const hidden = (await fetchAdminData(emp.id)).hidden;
@@ -484,7 +484,7 @@ export async function getCompanyEmployeeList(
         hoursList,
         hidden,
       };
-    })
+    }),
   );
 
   return empList;
@@ -508,7 +508,7 @@ export function getCompanyQuery(companyId: string) {
           "/" +
           companyId +
           "/" +
-          COMPANY_EMPLOYEE_COLLECTION
+          COMPANY_EMPLOYEE_COLLECTION,
       );
       const docListSnapshot = await getDocs(employeeCollection);
       const docList = docListSnapshot.docs.map((doc) => ({
@@ -625,11 +625,11 @@ export async function setCompanyEmployee({
         companyId +
         "/" +
         COMPANY_EMPLOYEE_COLLECTION,
-      userId
+      userId,
     ),
     {
       ...userDataNoId, // without id
-    }
+    },
   );
   return userDataNoId;
 }
@@ -686,7 +686,7 @@ export function useUpdateEmployeeData() {
     userId: string,
     companyId: string,
     userData,
-    onSettled?
+    onSettled?,
   ) => {
     setEmployeeDataMutation.mutate({ userId, companyId, userData, onSettled });
   };
@@ -710,7 +710,7 @@ async function deleteCompanyEmployee({
       companyId +
       "/" +
       COMPANY_EMPLOYEE_COLLECTION,
-    userId
+    userId,
   );
   await deleteDoc(docRef);
 
@@ -756,7 +756,7 @@ export function useRemoveEmployee() {
   const removeEmployee = async (
     userId: string,
     companyId: string,
-    onSettled
+    onSettled,
   ) => {
     removeEmployeeMutation.mutate({ userId, companyId, onSettled });
   };
@@ -894,7 +894,7 @@ export async function createUser(userData) {
   const userCredential = await createUserWithEmailAndPassword(
     auth,
     email,
-    userData.password
+    userData.password,
   );
   const user = userCredential.user;
 

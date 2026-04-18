@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { performLogout, auth } from "../utils/firebase";
+import { performLogout, auth } from "../utils/firebase.ts";
 
 import {
   getEndOfWeekString,
@@ -47,10 +47,10 @@ function ContentContainer() {
   const [infoFormOpen, setInfoFormOpen] = useState(false);
   const [previewPDF, setPreviewPDF] = useState(false);
   const { data: adminData, isLoading: isLoadingId } = useQuery(
-    getAdminDataQuery(auth.currentUser.uid)
+    getAdminDataQuery(auth.currentUser.uid),
   );
   const { data: companyData, isLoading: isLoadingCompany } = useQuery(
-    getCompanyQuery(adminData?.company)
+    getCompanyQuery(adminData?.company),
   );
 
   const isLoading = isLoadingId || isLoadingCompany;
@@ -168,10 +168,10 @@ const createPrintable = (dataObject, selectedDate: Date) => {
         // newDoc.text(`Week:`, 10, line * lineHeight);
         newDoc.text(
           `${getStartOfWeekString(
-            selectedDate
+            selectedDate,
           )}   -   ${getEndOfWeekString(selectedDate)}`,
           11,
-          line * lineHeight
+          line * lineHeight,
         );
         line++;
 
@@ -180,14 +180,14 @@ const createPrintable = (dataObject, selectedDate: Date) => {
           newDoc.text(
             `${ABBREVIATIONS[(j + 4) % 7]}`,
             15 + 13 * j,
-            line * lineHeight
+            line * lineHeight,
           );
         }
 
         newDoc.text(
           "Hours Worked    Hours Offered    Hours Paid",
           15 + 13 * 8 - 5,
-          line * lineHeight
+          line * lineHeight,
         );
         const leftX = 15 + 13 * 8 - 10;
         const midLeftX = 15 + 13 * 8 + 24;
@@ -211,7 +211,7 @@ const createPrintable = (dataObject, selectedDate: Date) => {
           newDoc.text(
             `${empList[i].hoursList[(j + 4) % 7]}`,
             15 + 13 * j,
-            line * lineHeight
+            line * lineHeight,
           );
         }
 
@@ -219,12 +219,12 @@ const createPrintable = (dataObject, selectedDate: Date) => {
         newDoc.text(
           `${empList[i].hoursWorkedThisWeek}`,
           15 + 13 * 8 + 3,
-          line * lineHeight
+          line * lineHeight,
         );
         newDoc.text(
           `${empList[i].hoursPaidThisWeek}`,
           15 + 13 * 8 + 65,
-          line * lineHeight
+          line * lineHeight,
         );
         line -= 0.5;
 
@@ -246,7 +246,7 @@ const createPrintable = (dataObject, selectedDate: Date) => {
             100
           ).toFixed(2)}`,
           70,
-          line * lineHeight
+          line * lineHeight,
         );
         line += 0.2;
         // line++;
@@ -255,7 +255,7 @@ const createPrintable = (dataObject, selectedDate: Date) => {
         newDoc.text(
           `Date Paid:   ${new Date().toDateString()}`,
           140,
-          line * lineHeight
+          line * lineHeight,
         );
         line++;
 
@@ -272,6 +272,6 @@ const createPrintable = (dataObject, selectedDate: Date) => {
       window.open(url, "_blank");
       //   setPreviewPDF(url);
       // newDoc.save(`${dataObject.name}-hours-week-${docName}.pdf`);
-    }
+    },
   );
 };

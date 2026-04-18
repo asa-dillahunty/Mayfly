@@ -1,17 +1,15 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import "./App.css";
-import "bootstrap/dist/css/bootstrap.min.css"; // need this for the react-bootstrap package
-
-import Login, { ForgotPassword, Signup } from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
 import Admin from "./pages/Admin.tsx";
-import OmniAdmin from "./pages/OmniAdmin";
-import { auth } from "./utils/firebase";
+import { auth } from "./utils/firebase.ts";
 import { onAuthStateChanged } from "firebase/auth";
-import ClickBlocker from "./components/ClickBlocker";
-import PasswordReset from "./pages/PasswordReset";
 import { navigateUser } from "./utils/firebaseQueries.ts";
+import ClickBlocker from "./components/ClickBlocker.tsx";
+import Login, { ForgotPassword, Signup } from "./pages/Login.tsx";
+import PasswordReset from "./pages/PasswordReset.tsx";
+import Dashboard from "./pages/Dashboard.tsx";
+import OmniAdminDashboard from "./pages/OmniAdmin.tsx";
 
 function App() {
   const [currPage, setCurrPage] = useState(pageListEnum.Login);
@@ -76,7 +74,7 @@ function App() {
     case pageListEnum.Admin:
       return <Admin setCurrPage={setCurrPage} />;
     case pageListEnum.OmniAdmin:
-      return <OmniAdmin setCurrPage={setCurrPage} />;
+      return <OmniAdminDashboard setCurrPage={setCurrPage} />;
 
     default:
       return <Login setCurrPage={setCurrPage} />;

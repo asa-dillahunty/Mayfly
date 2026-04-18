@@ -1,6 +1,6 @@
 // Dashboard.js
 import React, { useState } from "react";
-import { auth, performLogout } from "../utils/firebase";
+import { auth, performLogout } from "../utils/firebase.ts";
 // import { format } from 'date-fns';
 // import { DayPicker } from 'react-day-picker';
 import "react-day-picker/dist/style.css";

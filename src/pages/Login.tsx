@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 
-import { auth, resetPassword } from "../utils/firebase";
+import { auth, resetPassword } from "../utils/firebase.ts";
 import "./Login.css";
 import ClickBlocker from "../components/ClickBlocker";
 import { pageListEnum } from "../App";

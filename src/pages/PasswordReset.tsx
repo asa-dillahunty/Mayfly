@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { pageListEnum } from "../App";
-import ClickBlocker from "../components/ClickBlocker";
-import { auth } from "../utils/firebase";
-import Toast from "react-bootstrap/Toast";
+import ClickBlocker from "../components/ClickBlocker.tsx";
+import { auth } from "../utils/firebase.ts";
 
 import "./PasswordReset.css";
 import {
@@ -25,7 +24,7 @@ export default function PasswordReset(props) {
     return String(email)
       .toLowerCase()
       .match(
-        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
       );
   };
 
@@ -82,14 +81,14 @@ export default function PasswordReset(props) {
   return (
     <div className="login-container">
       <ClickBlocker block={blocked} loading={true} />
-      <Toast
+      {/* <Toast
         onClose={() => setShowToast(false)}
         show={showToast}
         delay={2000}
         autohide
       >
         <Toast.Body>Password set successfully!</Toast.Body>
-      </Toast>
+      </Toast> */}
       <div className="login-form">
         <h1 className="login-title">
           {/* <img src={logo} className="login-logo" alt="logo" />

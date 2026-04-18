@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { performLogout, transferEmpData } from "../utils/firebase";
+import { performLogout, transferEmpData } from "../utils/firebase.ts";
 import "react-day-picker/dist/style.css";
 import "./OmniAdmin.css";
-import DisplayTable from "../components/DisplayTable";
-import ClickBlocker from "../components/ClickBlocker";
+import DisplayTable from "../components/DisplayTable.tsx";
+import ClickBlocker from "../components/ClickBlocker.tsx";
 import { useCompanies } from "../utils/firebaseQueries.ts";
 
 function OmniAdminDashboard(props) {

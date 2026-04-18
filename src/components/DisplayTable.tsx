@@ -10,7 +10,6 @@ import {
   getStartOfWeekString,
 } from "../utils/dateUtils.ts";
 
-import Dropdown from "react-bootstrap/Dropdown";
 import HourAdder from "./HourAdder";
 import EmployeeInfoForm from "./EmployeeInfoForm";
 import {
@@ -98,8 +97,8 @@ export function AdminCompanyDisplayTable({
       new Date(
         selectedDate.getFullYear(),
         selectedDate.getMonth(),
-        selectedDate.getDate() + 7
-      )
+        selectedDate.getDate() + 7,
+      ),
     );
   };
 
@@ -109,8 +108,8 @@ export function AdminCompanyDisplayTable({
       new Date(
         selectedDate.getFullYear(),
         selectedDate.getMonth(),
-        selectedDate.getDate() - 7
-      )
+        selectedDate.getDate() - 7,
+      ),
     );
   };
 
@@ -265,7 +264,7 @@ function EmployeeLine({ empId, company, adminAble, selectedDate }) {
       setAdditionalHours(empData.id, selectedDate, 0, () => setBlocked(false));
     } else {
       setAdditionalHours(empData.id, selectedDate, 40 - currTotal, () =>
-        setBlocked(false)
+        setBlocked(false),
       );
     }
   }
@@ -361,7 +360,7 @@ function EmployeeLine({ empId, company, adminAble, selectedDate }) {
         onCancel={() => setConfirmDelete(false)}
       />
       <ClickBlocker block={blocked} loading />
-      <Dropdown>
+      {/* <Dropdown>
         <Dropdown.Toggle as={CustomToggle}>
           <span className="kebab">
             <AiOutlineMore />
@@ -398,7 +397,7 @@ function EmployeeLine({ empId, company, adminAble, selectedDate }) {
             </Dropdown.Item>
           )}
         </Dropdown.Menu>
-      </Dropdown>
+      </Dropdown> */}
       <span className="employee-name"> {empData.name} </span>
       {!weeklyHours ? (
         <>
