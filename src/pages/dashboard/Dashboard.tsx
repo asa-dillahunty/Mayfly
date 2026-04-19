@@ -1,14 +1,15 @@
 // Dashboard.js
 import React, { useState } from "react";
-import { auth, performLogout } from "../utils/firebase.ts";
+import { auth, performLogout } from "../../utils/firebase.ts";
 // import { format } from 'date-fns';
 // import { DayPicker } from 'react-day-picker';
 import "react-day-picker/dist/style.css";
 import "./Dashboard.css";
-import HourAdder from "../components/HourAdder";
-import ClickBlocker from "../components/ClickBlocker";
+import HourAdder from "../../components/HourAdder.tsx";
+import ClickBlocker from "../../components/ClickBlocker.tsx";
 import { useQuery } from "@tanstack/react-query";
-import { getAdminDataQuery } from "../utils/firebaseQueries.ts";
+import { getAdminDataQuery } from "../../utils/firebaseQueries.ts";
+import { useNavigate } from "react-router-dom";
 
 const claimedStateEnum = {
   loading: 1,
@@ -16,8 +17,9 @@ const claimedStateEnum = {
   unclaimed: 3,
 };
 
-function Dashboard({ setCurrPage }) {
+function Dashboard() {
   const [blocked, setBlocked] = useState(false);
+  const navigate = useNavigate();
 
   const adminDataQuery = useQuery(getAdminDataQuery(auth.currentUser.uid));
   const getClaimStatus = () => {
@@ -28,7 +30,7 @@ function Dashboard({ setCurrPage }) {
 
   const handleLogout = () => {
     setBlocked(true);
-    performLogout(setCurrPage)
+    performLogout(navigate)
       .then(() => {
         setBlocked(false);
       })
@@ -75,11 +77,12 @@ export default Dashboard;
 function UnclaimedDashboard({ setCurrPage }) {
   const [blocked, setBlocked] = useState(false);
   const [infoModal, setInfoModal] = useState(false);
+  const navigate = useNavigate();
 
   const handleLogout = () => {
     alert("cant do that right now");
     setBlocked(true);
-    performLogout(setCurrPage)
+    performLogout(navigate)
       .then(() => {
         setBlocked(false);
       })

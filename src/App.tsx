@@ -1,48 +1,43 @@
 import { useEffect, useState } from "react";
 
-import "./App.css";
-import Admin from "./pages/Admin.tsx";
+import "./App.scss";
 import { auth } from "./utils/firebase.ts";
 import { onAuthStateChanged } from "firebase/auth";
-import { navigateUser } from "./utils/firebaseQueries.ts";
 import ClickBlocker from "./components/ClickBlocker.tsx";
-import Login, { ForgotPassword, Signup } from "./pages/Login.tsx";
-import PasswordReset from "./pages/PasswordReset.tsx";
-import Dashboard from "./pages/Dashboard.tsx";
-import OmniAdminDashboard from "./pages/OmniAdmin.tsx";
+import Login from "./pages/auth/Login.tsx";
+import PasswordReset from "./pages/auth/PasswordReset.tsx";
+import Dashboard from "./pages/dashboard/Dashboard.tsx";
+import { Route, Routes, useNavigate } from "react-router-dom";
+import { useSetAtom } from "jotai";
+import { ResetToken, UID } from "./utils/atoms.tsx";
+import ForgotPassword from "./pages/auth/ForgotPassword.tsx";
+import Signup from "./pages/auth/Signup.tsx";
 
 function App() {
-  const [currPage, setCurrPage] = useState(pageListEnum.Login);
   const [loading, setLoading] = useState(true);
-  const [resetToken, setResetToken] = useState(null);
+  const setResetToken = useSetAtom(ResetToken);
+  const setUID = useSetAtom(UID);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get("oobCode");
     const mode = urlParams.get("mode");
-    if (token && mode === "resetPassword") {
+
+    if (token) {
       setLoading(false);
       setResetToken(token);
-      setCurrPage(pageListEnum.Reset);
-      return;
-    } else if (token && mode === "signIn") {
-      setLoading(false);
-      setResetToken(token);
-      setCurrPage(pageListEnum.SignInToken);
+      if (mode === "resetPassword") navigate(pageRoutes.passwordReset.path);
+      else if (mode === "signUp") navigate(pageRoutes.signup.path);
     }
+
     const unsubscribe = onAuthStateChanged(auth, (_user) => {
       // in case user is logging out
+      setLoading(false);
+
       if (auth.currentUser) {
-        navigateUser(auth.currentUser.uid, setCurrPage)
-          .then(() => {
-            setLoading(false);
-          })
-          .catch((_e) => {
-            alert(`Error code 4573. Please refresh the page`);
-          });
-      } else {
-        // setCurrPage(pageListEnum.Login);
-        setLoading(false);
+        setUID(auth.currentUser.uid);
+        navigate(pageRoutes.dashboard.path);
       }
     });
 
@@ -50,46 +45,39 @@ function App() {
   }, []);
 
   if (loading) return <ClickBlocker loading block />;
-  switch (currPage) {
-    case pageListEnum.Login:
-      return <Login setCurrPage={setCurrPage} />;
-    case pageListEnum.Signup:
-      return <Signup setCurrPage={setCurrPage} />;
-    case pageListEnum.Forgot:
-      return <ForgotPassword setCurrPage={setCurrPage} />;
-    case pageListEnum.Reset:
-      return (
-        <PasswordReset setCurrPage={setCurrPage} token={resetToken} reset />
-      );
-    case pageListEnum.SignInToken:
-      return (
-        <PasswordReset
-          setCurrPage={setCurrPage}
-          token={resetToken}
-          reset={false}
-        />
-      );
-    case pageListEnum.Dashboard:
-      return <Dashboard setCurrPage={setCurrPage} />;
-    case pageListEnum.Admin:
-      return <Admin setCurrPage={setCurrPage} />;
-    case pageListEnum.OmniAdmin:
-      return <OmniAdminDashboard setCurrPage={setCurrPage} />;
 
-    default:
-      return <Login setCurrPage={setCurrPage} />;
-  }
+  return (
+    <main>
+      <Routes>
+        {Object.values(pageRoutes).map(({ path, element }) => (
+          <Route key={path} path={path} element={element} />
+        ))}
+      </Routes>
+    </main>
+  );
 }
 
-export const pageListEnum = {
-  Login: "login",
-  Signup: "signup",
-  Dashboard: "dashboard",
-  Admin: "admin",
-  OmniAdmin: "omniAdmin",
-  Reset: "reset",
-  SignInToken: "signInToken",
-  Forgot: "forgot",
+export const pageRoutes = {
+  login: {
+    path: "/",
+    element: <Login />,
+  },
+  dashboard: {
+    path: "/dashboard",
+    element: <Dashboard />,
+  },
+  forgot: {
+    path: "/forgot",
+    element: <ForgotPassword />,
+  },
+  passwordReset: {
+    path: "/password-reset",
+    element: <PasswordReset />,
+  },
+  signup: {
+    path: "/signup",
+    element: <Signup />,
+  },
 };
 
 // signInWithEmailAndPassword(auth, email, password)

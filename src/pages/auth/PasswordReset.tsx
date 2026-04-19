@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { pageListEnum } from "../App";
-import ClickBlocker from "../components/ClickBlocker.tsx";
-import { auth } from "../utils/firebase.ts";
+import ClickBlocker from "../../components/ClickBlocker.tsx";
+import { auth } from "../../utils/firebase.ts";
 
 import "./PasswordReset.css";
 import {
@@ -9,6 +8,8 @@ import {
   signInWithEmailLink,
   updatePassword,
 } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
+import { pageRoutes } from "../../App.tsx";
 
 // TODO: investigate renaming?
 export default function PasswordReset(props) {
@@ -16,6 +17,7 @@ export default function PasswordReset(props) {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [email, setEmail] = useState("");
   const [blocked, setBlocked] = useState(false);
+  const navigate = useNavigate();
 
   const [errorMessage, setErrorMessage] = useState("");
   const [showToast, setShowToast] = useState(false);
@@ -57,7 +59,7 @@ export default function PasswordReset(props) {
           // we do that because I am afraid of users bookmarking a page with
           //	and indefinitely being directed to the wrong page
           window.history.replaceState(null, "", window.location.pathname);
-          props.setCurrPage(pageListEnum.Login);
+          navigate(pageRoutes.login.path);
         }, 1000);
       } else {
         await signInWithEmailLink(auth, email, window.location.href);
@@ -68,7 +70,7 @@ export default function PasswordReset(props) {
         // we do that because I am afraid of users bookmarking a page with
         //	and indefinitely being directed to the wrong page
         window.history.replaceState(null, "", window.location.pathname);
-        props.setCurrPage(pageListEnum.Dashboard);
+        navigate(pageRoutes.dashboard.path);
       }
     } catch (error) {
       // Display error message
@@ -130,7 +132,7 @@ export default function PasswordReset(props) {
             Already done this?&nbsp;
             <span
               onClick={() => {
-                props.setCurrPage(pageListEnum.Login);
+                navigate(pageRoutes.login.path);
               }}
             >
               Login

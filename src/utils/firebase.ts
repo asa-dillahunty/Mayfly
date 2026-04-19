@@ -4,7 +4,7 @@ import { initializeApp } from "firebase/app";
 import "firebase/auth";
 import "firebase/functions";
 import { getFunctions, httpsCallable } from "firebase/functions";
-import { pageListEnum } from "../App";
+import { pageRoutes } from "../App";
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -24,11 +24,11 @@ const functions = getFunctions(app);
 export const createEmp = httpsCallable(functions, "createEmployee");
 export const deleteEmpCompany = httpsCallable(
   functions,
-  "removeEmployeeCompany"
+  "removeEmployeeCompany",
 );
 export const transferEmployeeData = httpsCallable(
   functions,
-  "transferEmployeeData"
+  "transferEmployeeData",
 );
 
 // Initialize Firebase Authentication and get a reference to the service
@@ -38,7 +38,7 @@ export const db = getFirestore(app);
 export const performLogout = async (navigate) => {
   try {
     await auth.signOut();
-    navigate(pageListEnum.Login);
+    navigate(pageRoutes.login.path);
   } catch (error) {
     console.error("Error signing out:", error.message);
   }

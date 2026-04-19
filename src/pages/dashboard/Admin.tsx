@@ -1,20 +1,20 @@
 import React, { useState } from "react";
-import { performLogout, auth } from "../utils/firebase.ts";
+import { performLogout, auth } from "../../utils/firebase.ts";
 
 import {
   getEndOfWeekString,
   getStartOfWeekString,
   buildDocName,
   ABBREVIATIONS,
-} from "../utils/dateUtils.ts";
+} from "../../utils/dateUtils.ts";
 
 import "./Admin.css";
 import {
   AdminCompanyDisplayTable,
   DisplayTableSkeleton,
-} from "../components/DisplayTable";
-import ClickBlocker from "../components/ClickBlocker";
-import EmployeeInfoForm from "../components/EmployeeInfoForm";
+} from "../../components/DisplayTable.tsx";
+import ClickBlocker from "../../components/ClickBlocker.tsx";
+import EmployeeInfoForm from "../../components/EmployeeInfoForm.tsx";
 import jsPDF from "jspdf";
 import logo from "../assets/DillahuntyFarmsLogo.png";
 import { AiOutlinePrinter } from "react-icons/ai";
@@ -23,7 +23,7 @@ import {
   getAdminDataQuery,
   getCompanyQuery,
   getCompanyEmployeeList,
-} from "../utils/firebaseQueries.ts";
+} from "../../utils/firebaseQueries.ts";
 
 function AdminDashboard(props) {
   return (
