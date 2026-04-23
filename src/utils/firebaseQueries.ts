@@ -28,6 +28,7 @@ import {
 } from "firebase/auth";
 import { buildDocName } from "./dateUtils.ts";
 import { queryClient } from "../main.tsx";
+import type { AdminData, WeeklyHours } from "./dataModels.ts";
 
 const COMPANY_LIST_COLLECTION_NAME = "CompanyList";
 const UNCLAIMED_LIST_COLLECTION_NAME = "UnclaimedList";
@@ -36,17 +37,6 @@ const COMPANY_DOCS_COLLECTION = "CompanyDocs"; // this is for 'last change' data
 const LAST_CHANGE_DOC_NAME = "Last_Change";
 const COMPANY_EMPLOYEE_COLLECTION = "Employees";
 export const FAKE_EMAIL_EXTENSION = "@dillahuntyfarms.com";
-
-type WeeklyHours = {
-  0: { hours: number; notes?: string };
-  1: { hours: number; notes?: string };
-  2: { hours: number; notes?: string };
-  3: { hours: number; notes?: string };
-  4: { hours: number; notes?: string };
-  5: { hours: number; notes?: string };
-  6: { hours: number; notes?: string };
-  additionalHours?: { hours: number };
-};
 
 const getEmptyWeek = (): WeeklyHours => ({
   0: { hours: 0 },
@@ -380,18 +370,18 @@ export async function setMyCompany(userId: string, companyId: string) {
   queryClient.invalidateQueries({ queryKey: [ADMIN_DOC_NAME, userId] });
 }
 
-export function getAdminDataQuery(userId: string) {
+export function getAdminDataQuery(userId: string | undefined | null) {
   const query = {
     queryKey: [ADMIN_DOC_NAME, userId],
     queryFn: async () => {
-      if (!userId) return {};
+      if (!userId) return null;
       console.log("getAdminDataQuery");
       const docRef = doc(db, userId, ADMIN_DOC_NAME);
       const docSnap = await getDoc(docRef);
 
       if (docSnap.exists()) {
-        return docSnap.data();
-      } else return {};
+        return docSnap.data() as AdminData;
+      } else return null;
     },
   };
   return query;

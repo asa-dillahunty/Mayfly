@@ -5,6 +5,7 @@ import "firebase/auth";
 import "firebase/functions";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { pageRoutes } from "../App";
+import { useNavigate, type NavigateFunction } from "react-router-dom";
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -35,14 +36,24 @@ export const transferEmployeeData = httpsCallable(
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
-export const performLogout = async (navigate) => {
+export async function performLogout(navigate: NavigateFunction) {
   try {
     await auth.signOut();
     navigate(pageRoutes.login.path);
   } catch (error) {
-    console.error("Error signing out:", error.message);
+    if (error?.message) {
+      console.error("Error signing out:", error.message);
+    }
   }
-};
+}
+
+export function usePerformLogout() {
+  const navigate = useNavigate();
+
+  return async () => {
+    await performLogout(navigate);
+  };
+}
 
 // TODO: this should invalidate some queries
 export async function transferEmpData(oldID, newID) {

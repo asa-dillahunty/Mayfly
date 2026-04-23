@@ -12,6 +12,8 @@ import { useSetAtom } from "jotai";
 import { ResetToken, UID } from "./utils/atoms.tsx";
 import ForgotPassword from "./pages/auth/ForgotPassword.tsx";
 import Signup from "./pages/auth/Signup.tsx";
+import { DashboardRoot } from "./pages/dashboard/DashboardRoot.tsx";
+import Lost from "./pages/Lost.tsx";
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -64,7 +66,7 @@ export const pageRoutes = {
   },
   dashboard: {
     path: "/dashboard",
-    element: <Dashboard />,
+    element: <DashboardRoot />,
   },
   forgot: {
     path: "/forgot",
@@ -77,6 +79,10 @@ export const pageRoutes = {
   signup: {
     path: "/signup",
     element: <Signup />,
+  },
+  lost: {
+    path: "/*",
+    element: <Lost />,
   },
 };
 
