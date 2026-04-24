@@ -20,6 +20,10 @@
   box-sizing: border-box;
 }
 
+main {
+  background-color: $bg-page;
+}
+
 button {
   font-family: Verdana, Geneva, Tahoma, sans-serif;
   border: none;

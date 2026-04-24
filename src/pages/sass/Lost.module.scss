@@ -7,24 +7,23 @@
 
   margin: 0;
 
-  background-color: $bg-main;
+  background-color: white;
   width: 100vw;
   height: 100vh;
   height: 100svh; // for mobile
 }
 
 .message {
-  // background: white;
+  @include flex-default(column);
+  align-items: start;
+
   background-color: $bg-main;
   max-width: 380px;
   padding: 32px 24px 16px;
-  border-radius: 3px;
 
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-
-  border: 0.2rem solid black;
+  border: 1px solid #ccc; // TODO: what is this color? Also border/shadow is stolen from login. Should be consolidated?
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
   h2 {
     text-align: left;
@@ -56,6 +55,7 @@
     padding: 16px;
     border-radius: 4px;
     margin-top: 16px;
+    width: 100%;
   }
 }
 

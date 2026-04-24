@@ -1,5 +1,6 @@
 $fg-main: #0e1b08;
 
+$bg-page: white;
 $bg-main: #f7fcf5;
 $bg-secondary: #f7f7f7;
 $bg-third: #f1f1f1;
@@ -10,6 +11,28 @@ $accent: #76a8c9;
 
 $title-font: "Lobster Two";
 
+/********** Dark Mode (dev only) **********/
+
+// $fg-main: #f7fcf5;
+
+// $bg-page: darkslategrey;
+// $bg-main: #0e1b08;
+// $bg-secondary: #f7f7f7;
+// $bg-third: #f1f1f1;
+
+// $primary: #54bc55;
+// $secondary: #9dd7d9;
+// $accent: #76a8c9;
+
+// $title-font: "Lobster Two";
+
+@mixin flex-default($direction: row) {
+  display: flex;
+  flex-direction: $direction;
+  align-items: center;
+  justify-content: center;
+}
+
 @mixin primary-button {
   background-color: $primary;
   color: $bg-main;
@@ -17,6 +40,8 @@ $title-font: "Lobster Two";
   border-radius: 0.2rem;
   cursor: pointer;
   font-family: Verdana, Geneva, Tahoma, sans-serif;
+
+  transition: background-color 0.3s;
 
   &:hover {
     background-color: $secondary;

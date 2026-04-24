@@ -1,8 +1,68 @@
 @use "../../../variables" as *;
 
-.login-button {
+.loginButton {
   @include primary-button;
 
   width: 100%;
   padding: 0.75rem;
+}
+
+.loginContainer {
+  @include flex-default(column);
+  height: 100vh; // TODO: verify this is what we want on mobile
+}
+
+.loginForm {
+  width: 300px;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: $bg-main;
+  margin-bottom: 20%;
+
+  form {
+    @include flex-default(column);
+  }
+}
+
+.loginTitle {
+  font-size: 24px;
+  margin-bottom: 20px;
+  text-align: center;
+
+  > span {
+    font-family: Georgia, "Times New Roman", Times, serif;
+    font-family: $title-font;
+    display: inline-block;
+    font-size: 30px;
+    color: $primary;
+  }
+}
+
+.loginInput {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc; //TODO: what is this color
+  border-radius: 3px;
+  box-sizing: border-box;
+}
+
+.forgotLink {
+  text-align: center;
+  margin: auto;
+  margin-top: 15px;
+
+  & > span {
+    color: $accent;
+    text-decoration: underline;
+    transition: all 0.2s;
+
+    &:hover {
+      color: $secondary;
+      text-decoration: none;
+      cursor: pointer;
+    }
+  }
 }

@@ -6,7 +6,6 @@ import ClickBlocker from "../../components/ClickBlocker.tsx";
 import { useNavigate } from "react-router-dom";
 import { pageRoutes } from "../../App.tsx";
 
-import "./Login.css";
 import styles from "./sass/Login.module.scss";
 
 function Login() {
@@ -42,35 +41,35 @@ function Login() {
   };
 
   return (
-    <div className="login-container">
+    <div className={styles.loginContainer}>
       <ClickBlocker block={blocked} loading={true} />
-      <div className="login-form">
-        <h1 className="login-title">
-          <span className="title">Mayfly</span> Login
+      <div className={styles.loginForm}>
+        <h1 className={styles.loginTitle}>
+          <span className={styles.title}>Mayfly</span> Login
         </h1>
         <form onSubmit={handleSignIn}>
           <input
             type="username"
-            className="login-input"
+            className={styles.loginInput}
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
           <input
             type="password"
-            className="login-input"
+            className={styles.loginInput}
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
           <button
             type="submit"
-            className={styles["login-button"]}
+            className={styles.loginButton}
             disabled={blocked}
           >
             Sign In
           </button>
-          <p className="signup-p">
+          <p className={styles.forgotLink}>
             <span
               onClick={() => {
                 navigate(pageRoutes.forgot.path);

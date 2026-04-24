@@ -4,6 +4,8 @@ import { resetPassword } from "../../utils/firebase";
 import { useState } from "react";
 import { pageRoutes } from "../../App";
 
+import "./Login.css";
+
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [blocked, setBlocked] = useState(false);
