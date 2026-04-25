@@ -1,0 +1,50 @@
+@use "../../variables.scss" as *;
+
+.pickerContainer {
+  @include flex-default(row);
+  position: relative;
+  padding: 0;
+  margin: 0;
+}
+
+.selectContainer {
+  --height: 200px;
+  --item-height: 38px;
+
+  overflow-y: scroll;
+  height: var(--height);
+  width: 50%;
+  scroll-behavior: smooth;
+  /* padding should be ( height - item height )/2
+  currently height is 200px and item height is 24px for
+  the line height plus 7px on each side for the padding, so 38px*/
+  padding: calc((var(--height) - var(--item-height)) / 2) 0;
+
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+    -webkit-appearance: none;
+    width: 0px;
+    background: transparent;
+  }
+
+  .selectItem {
+    @include flex-default(row);
+    /* CANNOT trust line height here. Minor details can cause rounding errors in javascript. Must set height here explicitly */
+    height: var(--item-height);
+    /* margin-bottom: 10px; */
+    margin: 0;
+  }
+}
+
+.selectBar {
+  --bar-height: 30px;
+  position: absolute;
+  top: calc(50% - var(--bar-height) / 2);
+
+  width: 100%;
+  height: var(--bar-height);
+  background-color: var(--accent);
+  opacity: 0.3;
+  pointer-events: none;
+}

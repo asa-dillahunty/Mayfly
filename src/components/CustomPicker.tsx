@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import "./CustomPicker.css";
+import styles from "./sass/CustomPicker.module.scss";
 
 const hours = [
   0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
@@ -35,7 +35,7 @@ export default function Picker({ value, onChange }) {
   }, [value, setSelectedHour, setSelectedMinutes]);
 
   return (
-    <div className="picker-container">
+    <div className={styles.pickerContainer}>
       <PickerWheel
         values={hours}
         value={selectedHour}
@@ -46,7 +46,7 @@ export default function Picker({ value, onChange }) {
         value={selectedMinutes}
         onChange={setMinFromInside}
       />
-      <div className="select-bar"></div>
+      <div className={styles.selectBar}></div>
     </div>
   );
 }
@@ -150,17 +150,17 @@ function PickerWheel({ value, values, onChange }) {
 
   return (
     <div
-      className="select-container"
+      className={styles.selectContainer}
       onScroll={handleScroll}
       onTouchStart={() => (currentlyTouching.current = true)}
       onTouchEnd={handleTouchEnd}
       ref={selectContainerRef}
     >
-      <div className="select-list">
+      <div className={styles.selectList}>
         {values.map((val, index) => (
           <div
             key={index}
-            className="select-item"
+            className={styles.selectItem}
             onClick={() => handleChange(val)}
           >
             {val}
