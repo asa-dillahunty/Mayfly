@@ -1,18 +1,14 @@
 import { useState, useEffect } from "react";
+import { AiOutlineSnippets } from "react-icons/ai";
+import { useQuery } from "@tanstack/react-query";
 
 import Calendar, { WEEK_VIEW, MONTH_VIEW } from "./Calendar";
 import ClickBlocker from "./ClickBlocker";
 import Picker from "./CustomPicker";
+import { getUserWeekQuery, useSetHours } from "../utils/firebaseQueries.ts";
 
 import "./HourAdder.css";
-
-import { AiOutlineSnippets } from "react-icons/ai";
-import { useQuery } from "@tanstack/react-query";
-import {
-  getUserWeekQuery,
-  useSetHours,
-  useSetNotes,
-} from "../utils/firebaseQueries.ts";
+import NotesForm from "./NotesForm.tsx";
 
 export function HourAdder(props) {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -64,7 +60,7 @@ function HourSelector({
   locked,
   showNotes,
   selectedDate,
-  hide,
+  hide = false,
 }) {
   const [notes, setNotes] = useState(false);
   const [hoursWorked, setHoursWorked] = useState(-2);
@@ -171,60 +167,6 @@ function HourSelector({
       </div>
     );
   }
-}
-
-function NotesForm({ setBlocked, uid, date, defaultNotes }) {
-  const [myNotes, setMyNotes] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-
-  const setNotes = useSetNotes();
-  const submitChanges = (e) => {
-    e.preventDefault();
-    setSubmitting(true);
-    setNotes(uid, date, myNotes, () => {
-      setSubmitting(false);
-      setBlocked(false); // close the form
-    });
-  };
-
-  const cancelForm = (e) => {
-    e.preventDefault();
-    setBlocked(false);
-  };
-
-  useEffect(() => {
-    const notes = defaultNotes ? defaultNotes : "";
-    setMyNotes(notes);
-  }, [defaultNotes]);
-
-  return (
-    <form className="add-notes-form" onSubmit={submitChanges}>
-      <ClickBlocker block={submitting} loading />
-      <textarea
-        name="notes-area"
-        className="notes-input"
-        placeholder="Notes"
-        value={myNotes}
-        onChange={(e) => setMyNotes(e.target.value)}
-      />
-      <div className="button-container">
-        <button
-          className="submit-button"
-          onClick={submitChanges}
-          disabled={submitting}
-        >
-          Save
-        </button>
-        <button
-          className="cancel-button"
-          onClick={cancelForm}
-          disabled={submitting}
-        >
-          Cancel
-        </button>
-      </div>
-    </form>
-  );
 }
 
 export default HourAdder;

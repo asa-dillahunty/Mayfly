@@ -61,17 +61,19 @@ function PickerWheel({ value, values, onChange }) {
     (value) => {
       const container = selectContainerRef.current;
       const padding = parseFloat(
-        getComputedStyle(container).getPropertyValue("padding-top")
+        getComputedStyle(container).getPropertyValue("padding-top"),
       );
       const itemHeight = container.firstChild.firstChild.clientHeight;
       const selectedIndex = values.indexOf(value);
+
       const scrollPosition =
         (selectedIndex + 0.5) * itemHeight -
         container.clientHeight / 2 +
         padding;
+
       return scrollPosition;
     },
-    [values]
+    [values],
   );
 
   const centerOnValue = useCallback(
@@ -79,7 +81,7 @@ function PickerWheel({ value, values, onChange }) {
       const container = selectContainerRef.current;
       container.scrollTop = getScrollPosition(value);
     },
-    [getScrollPosition]
+    [getScrollPosition],
   );
 
   useEffect(() => {
@@ -117,7 +119,7 @@ function PickerWheel({ value, values, onChange }) {
     const scrollTop = container.scrollTop;
     const itemHeight = container.firstChild.firstChild.clientHeight;
     const padding = parseFloat(
-      getComputedStyle(container).getPropertyValue("padding-top")
+      getComputedStyle(container).getPropertyValue("padding-top"),
     );
     const si =
       (scrollTop + container.clientHeight / 2 - padding) / itemHeight - 0.5;

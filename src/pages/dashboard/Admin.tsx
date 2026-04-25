@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { performLogout, auth } from "../../utils/firebase.ts";
 
 import {
