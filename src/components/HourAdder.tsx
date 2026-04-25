@@ -7,10 +7,22 @@ import ClickBlocker from "./ClickBlocker";
 import Picker from "./CustomPicker";
 import { getUserWeekQuery, useSetHours } from "../utils/firebaseQueries.ts";
 
-import "./HourAdder.css";
 import NotesForm from "./NotesForm.tsx";
+import styles from "./sass/HourAdder.module.scss";
 
-export function HourAdder(props) {
+interface HourAdderProps {
+  uid: string;
+  showNotes: boolean;
+  blocked: boolean;
+  setBlocked: (value: boolean) => void;
+}
+
+export function HourAdder({
+  uid,
+  showNotes,
+  blocked,
+  setBlocked,
+}: HourAdderProps) {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [calendarView, setCalendarView] = useState(WEEK_VIEW);
 
@@ -26,14 +38,14 @@ export function HourAdder(props) {
   };
 
   return (
-    <div className="hour-adder-content">
+    <div className={styles.hourAdderContent}>
       <button onClick={toggleView}>
         {calendarView === WEEK_VIEW ? "Month View" : "Week View"}{" "}
       </button>
-      <div className="form">
-        <label className="date-picker-label">
+      <div>
+        <label className={styles.datePickerLabel}>
           <Calendar
-            uid={props.uid}
+            uid={uid}
             view={calendarView}
             onDayClick={handleDateChange}
             startSelected={true}
@@ -41,16 +53,26 @@ export function HourAdder(props) {
           />
         </label>
         <HourSelector
-          uid={props.uid}
-          blocked={props.blocked}
-          setBlocked={props.setBlocked}
+          uid={uid}
+          blocked={blocked}
+          setBlocked={setBlocked}
           locked={outsidePayPeriod}
-          showNotes={props.showNotes === true}
+          showNotes={showNotes === true}
           selectedDate={selectedDate}
         />
       </div>
     </div>
   );
+}
+
+interface HourSelectorProps {
+  uid: string;
+  blocked: boolean;
+  setBlocked: (value: boolean) => void;
+  locked: boolean;
+  showNotes: boolean;
+  selectedDate: Date;
+  hide?: boolean;
 }
 
 function HourSelector({
@@ -61,7 +83,7 @@ function HourSelector({
   showNotes,
   selectedDate,
   hide = false,
-}) {
+}: HourSelectorProps) {
   const [notes, setNotes] = useState(false);
   const [hoursWorked, setHoursWorked] = useState(-2);
   const [pickerValue, setPickerValue] = useState({
@@ -126,7 +148,7 @@ function HourSelector({
     return <></>;
   } else {
     return (
-      <div className="hours-and-picker-container">
+      <div>
         <ClickBlocker block={blocked || locked} locked={locked} />
         <ClickBlocker block={notes} custom>
           <NotesForm
@@ -136,19 +158,21 @@ function HourSelector({
             defaultNotes={weeklyHours[selectedDate.getDay()].notes}
           />
         </ClickBlocker>
-        <div className="worked-hours-container">
-          <p className="worked-hours-label">Hours Worked:</p>
-          <p className="worked-hours">{hoursWorked < 0 ? "" : hoursWorked}</p>
-          <p className="weekly-total">
+        <div className={styles.workedHoursContainer}>
+          <p className={styles.workedHoursLabel}>Hours Worked:</p>
+          <p className={styles.workedHours}>
+            {hoursWorked < 0 ? "" : hoursWorked}
+          </p>
+          <p className={styles.weeklyTotal}>
             {hoursThisWeek() < 0.5 ? "" : "Weekly total: " + hoursThisWeek()}
           </p>
         </div>
-        <div className="killScroll">
+        <div className={styles.killScroll}>
           <Picker value={pickerValue} onChange={setPickerValue} />
         </div>
-        <div className="add-hours-button-container">
+        <div className={styles.addHoursButtonContainer}>
           <button
-            className="add-hours-button"
+            className={styles.addHoursButton}
             onClick={handleAddHours}
             disabled={blocked}
           >
@@ -156,7 +180,7 @@ function HourSelector({
           </button>
           {showNotes && (
             <button
-              className="add-notes-button"
+              className={styles.addNotesButton}
               onClick={() => setNotes(true)}
               disabled={blocked}
             >

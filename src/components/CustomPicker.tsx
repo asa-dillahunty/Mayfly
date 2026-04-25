@@ -7,11 +7,21 @@ const hours = [
 ];
 const minutes = [0, 0.5];
 
-export default function Picker({ value, onChange }) {
+interface PickerProps {
+  value: HoursAndMinutes;
+  onChange: (val: HoursAndMinutes) => void;
+}
+
+interface HoursAndMinutes {
+  hours: number;
+  minutes: number;
+}
+
+export default function Picker({ value, onChange }: PickerProps) {
   const [selectedHour, setSelectedHour] = useState(value.hours);
   const [selectedMinutes, setSelectedMinutes] = useState(value.minutes);
 
-  const setHourFromInside = (hours) => {
+  const setHourFromInside = (hours: number) => {
     if (value.hours !== hours) {
       onChange({
         hours: hours,
@@ -20,7 +30,7 @@ export default function Picker({ value, onChange }) {
     }
   };
 
-  const setMinFromInside = (min) => {
+  const setMinFromInside = (min: number) => {
     if (value.minutes !== min) {
       onChange({
         hours: value.hours,
@@ -51,19 +61,28 @@ export default function Picker({ value, onChange }) {
   );
 }
 
-function PickerWheel({ value, values, onChange }) {
+interface PickerWheelProps {
+  value: number;
+  values: number[];
+  onChange: (val: number) => void;
+}
+
+function PickerWheel({ value, values, onChange }: PickerWheelProps) {
   const [selectedValue, setSelectedValue] = useState(value);
-  const [scrollTimeoutID, setScrollTimeoutID] = useState();
+  const [scrollTimeoutID, setScrollTimeoutID] = useState<number | undefined>();
   const currentlyTouching = useRef(false);
-  const selectContainerRef = useRef(null);
+  const selectContainerRef = useRef<HTMLDivElement>(null);
 
   const getScrollPosition = useCallback(
-    (value) => {
+    (value: number) => {
       const container = selectContainerRef.current;
+      if (container === null) return 0; // this should be impossible
+
       const padding = parseFloat(
         getComputedStyle(container).getPropertyValue("padding-top"),
       );
-      const itemHeight = container.firstChild.firstChild.clientHeight;
+      const itemHeight =
+        container?.firstElementChild?.firstElementChild?.clientHeight ?? 0;
       const selectedIndex = values.indexOf(value);
 
       const scrollPosition =
@@ -77,8 +96,10 @@ function PickerWheel({ value, values, onChange }) {
   );
 
   const centerOnValue = useCallback(
-    (value) => {
+    (value: number) => {
       const container = selectContainerRef.current;
+      if (container === null) return;
+
       container.scrollTop = getScrollPosition(value);
     },
     [getScrollPosition],
@@ -106,6 +127,7 @@ function PickerWheel({ value, values, onChange }) {
     const selectedIndex = getSelectedIndex();
     const newValue = values[selectedIndex];
     const newPosition = getScrollPosition(newValue);
+    if (container === null) return;
 
     // do the snap
     if (container.scrollTop !== newPosition) container.scrollTop = newPosition;
@@ -116,8 +138,11 @@ function PickerWheel({ value, values, onChange }) {
 
   const getSelectedIndex = () => {
     const container = selectContainerRef.current;
+    if (container === null) return 0; // should never happen
+
     const scrollTop = container.scrollTop;
-    const itemHeight = container.firstChild.firstChild.clientHeight;
+    const itemHeight =
+      container?.firstElementChild?.firstElementChild?.clientHeight ?? 0;
     const padding = parseFloat(
       getComputedStyle(container).getPropertyValue("padding-top"),
     );
@@ -134,7 +159,7 @@ function PickerWheel({ value, values, onChange }) {
     return selectedIndex;
   };
 
-  const handleChange = (num) => {
+  const handleChange = (num: number) => {
     setSelectedValue(num);
     onChange(num);
   };
