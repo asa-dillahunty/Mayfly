@@ -1,10 +1,11 @@
 import { useLayoutEffect } from "react";
 import { DayPicker } from "react-day-picker";
 
-import "./Calendar.css";
 import { ABBREVIATIONS } from "../utils/dateUtils.ts";
 import { useQuery } from "@tanstack/react-query";
 import { getUserWeekQuery } from "../utils/firebaseQueries.ts";
+
+import styles from "./sass/Calendar.module.scss";
 
 export const WEEK_VIEW = 0;
 export const MONTH_VIEW = 1;
@@ -21,30 +22,51 @@ const buildDateArray = () => {
   return dateArray;
 };
 
-function DateCell({ date, onDayClick, uid, isSelected }) {
+interface DateCellProps {
+  date: Date;
+  onDayClick: () => void;
+  uid: string;
+  isSelected: boolean;
+}
+
+function DateCell({ date, onDayClick, uid, isSelected }: DateCellProps) {
   const weeklyHoursQuery = useQuery(getUserWeekQuery(uid, date));
   const hours = weeklyHoursQuery.data?.[date.getDay()].hours;
 
   return (
     <td
-      className={"date" + (isSelected ? " selected" : "")}
+      className={styles.date + (isSelected ? " " + styles.selected : "")}
       onClick={() => onDayClick(date)}
     >
-      <p className="dateDay">{ABBREVIATIONS[date.getUTCDay()]}</p>
-      <p className="dateNum">{date.getUTCDate()}</p>
-      <p className="dateHours">{hours !== undefined ? hours : ""}</p>
+      <p className={styles.dateDay}>{ABBREVIATIONS[date.getUTCDay()]}</p>
+      <p className={styles.dateNum}>{date.getUTCDate()}</p>
+      <p className={styles.dateHours}>{hours !== undefined ? hours : ""}</p>
       <div
         className={
           hours !== undefined && hours > 6
-            ? "statusCircle goodHours"
-            : "statusCircle badHours"
+            ? `${styles.statusCircle} ${styles.goodHours}`
+            : `${styles.statusCircle} ${styles.badHours}`
         }
       ></div>
     </td>
   );
 }
 
-function Calendar({ uid, view, onDayClick, startSelected, selectedDate }) {
+interface CalendarProps {
+  uid: string;
+  view: number;
+  onDayClick: () => void;
+  startSelected;
+  selectedDate: Date;
+}
+
+export default function Calendar({
+  uid,
+  view,
+  onDayClick,
+  startSelected,
+  selectedDate,
+}: CalendarProps) {
   const onVisibilityChange = () => {
     if (document.visibilityState !== "visible") return;
   };
@@ -59,8 +81,8 @@ function Calendar({ uid, view, onDayClick, startSelected, selectedDate }) {
 
   if (view === WEEK_VIEW) {
     return (
-      <div className="carouselWrapper" dir="rtl">
-        <table className="dateCarousel">
+      <div className={styles.carouselWrapper} dir="rtl">
+        <table className={styles.dateCarousel}>
           <tbody>
             <tr>
               {calendarDates.map((currDate, i) => (
@@ -80,14 +102,6 @@ function Calendar({ uid, view, onDayClick, startSelected, selectedDate }) {
       </div>
     );
   } else if (view === MONTH_VIEW) {
-    return (
-      <DayPicker
-        selected={selectedDate}
-        onDayClick={onDayClick}
-        className="DayPicker"
-      />
-    );
+    return <DayPicker selected={selectedDate} onDayClick={onDayClick} />;
   }
 }
-
-export default Calendar;
