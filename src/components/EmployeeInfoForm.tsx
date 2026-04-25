@@ -1,3 +1,4 @@
+import type { EmployeeData } from "../utils/dataModels.ts";
 import {
   useCreateEmployee,
   useUpdateEmployeeData,
@@ -16,14 +17,14 @@ const userDataDefault = {
   isAdmin: false,
 };
 
-// type EmpInfoFormProps = {
-//   edit?: boolean;
-//   add?: boolean;
-//   empData?: UserDate;
-//   companyId: string;
-//   setFormOpen: (val:boolean)=>{};
-//   admin?:boolean;
-// }
+type EmpInfoFormProps = {
+  edit?: boolean;
+  add?: boolean;
+  empData?: EmployeeData;
+  companyId: string;
+  setFormOpen: (val: boolean) => void;
+  admin?: boolean;
+};
 
 function EmployeeInfoForm({
   edit,
@@ -32,7 +33,7 @@ function EmployeeInfoForm({
   companyId,
   setFormOpen,
   admin,
-}) {
+}: EmpInfoFormProps) {
   const userData = { ...userDataDefault, ...empData };
 
   const [firstName, setFirstName] = useState(userData.firstName);

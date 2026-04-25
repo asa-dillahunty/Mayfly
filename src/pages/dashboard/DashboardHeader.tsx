@@ -2,7 +2,7 @@ import { useState } from "react";
 import { usePerformLogout } from "../../utils/firebase.ts";
 import styles from "./sass/DashboardHeader.module.scss";
 
-export function DashboardHeader() {
+export default function DashboardHeader() {
   const [blocked, setBlocked] = useState(false);
   // TODO: we do not need blocked here. We can use react query to prevent multiple posts and get loading status for logging out
   const performLogout = usePerformLogout();

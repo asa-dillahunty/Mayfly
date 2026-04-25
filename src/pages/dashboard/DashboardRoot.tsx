@@ -1,13 +1,14 @@
-import { auth } from "../../utils/firebase.ts";
+import { getCurrentUserId } from "../../utils/firebase.ts";
 import { useQuery } from "@tanstack/react-query";
 import { getAdminDataQuery } from "../../utils/firebaseQueries.ts";
-import { DashboardHeader } from "./DashboardHeader.tsx";
+import DashboardHeader from "./DashboardHeader.tsx";
+import EmployeeDashboard from "./EmployeeDashboard.tsx";
+import AdminDashboard from "./AdminDashboard.tsx";
 
 import styles from "./sass/Dashboard.module.scss";
-import EmployeeDashboard from "./EmployeeDashboard.tsx";
 
-export function DashboardRoot() {
-  const currentUserId = auth?.currentUser?.uid ?? "";
+export default function DashboardRoot() {
+  const currentUserId = getCurrentUserId();
 
   const { data: adminData } = useQuery(getAdminDataQuery(currentUserId));
   // TODO: test for no admin data. how to handle? consider going to login
@@ -23,10 +24,7 @@ export function DashboardRoot() {
           {currentUserId}
         </div>
       ) : adminData.isAdmin ? (
-        <div>
-          is admin
-          {currentUserId}
-        </div>
+        <AdminDashboard />
       ) : (
         <EmployeeDashboard />
       )}

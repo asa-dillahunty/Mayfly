@@ -36,6 +36,10 @@ export const transferEmployeeData = httpsCallable(
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
+export function getCurrentUserId() {
+  return auth?.currentUser?.uid ?? "";
+}
+
 export async function performLogout(navigate: NavigateFunction) {
   try {
     await auth.signOut();

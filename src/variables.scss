@@ -11,6 +11,8 @@ $accent: #76a8c9;
 
 $title-font: "Lobster Two";
 
+$mobile-breakpoint: 768px;
+
 /********** Dark Mode (dev only) **********/
 
 // $fg-main: #f7fcf5;
@@ -40,10 +42,16 @@ $title-font: "Lobster Two";
   border-radius: 0.2rem;
   cursor: pointer;
   font-family: Verdana, Geneva, Tahoma, sans-serif;
+  padding: 0.75rem 1rem;
 
   transition: background-color 0.3s;
 
   &:hover {
     background-color: $secondary;
   }
+}
+
+@mixin secondary-button {
+  @include primary-button;
+  background-color: $accent;
 }
