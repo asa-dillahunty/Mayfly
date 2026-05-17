@@ -8,6 +8,7 @@ from datetime import datetime
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.fernet import Fernet
+import gzip
 
 # Load Firebase credentials from GitHub Secrets
 firebase_credentials = json.loads(os.getenv("FIREBASE_SERVICE_ACCOUNT"))
@@ -30,7 +31,7 @@ def derive_key(password: str, salt: bytes) -> bytes:
         algorithm=hashes.SHA256(),
         length=32,
         salt=salt,
-        iterations=100000,
+        iterations=600000,
     )
     return base64.urlsafe_b64encode(kdf.derive(password.encode()))
 
@@ -60,11 +61,12 @@ def backup_firestore():
             data[collection_name][doc.id] = doc.to_dict()
     
     # Convert the data to a JSON string and then to bytes.
-    json_data = json.dumps(data, indent=4, default=firestore_serializer).encode("utf-8")
+    json_data = json.dumps(data, indent=2, default=firestore_serializer).encode("utf-8")
     return json_data
 
 if __name__ == "__main__":
     json_data = backup_firestore()
+    compressed_data = gzip.compress(json_data)
     encrypted_data = encrypt_data(json_data, backup_password)
     
     backup_filename = f"firestore_backup_{datetime.now().strftime('%Y-%m-%d')}.enc"
