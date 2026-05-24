@@ -37,6 +37,24 @@ div.dashboard-content .big-screen {
 
   div.dashboard-content .employee-daily-hours {
     text-align: center;
+    background-color: inherit;
+    border: none;
+    border-radius: 0;
+  }
+
+  input.employee-daily-hours::-webkit-inner-spin-button,
+  input.employee-daily-hours::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+  }
+
+  div.dashboard-content .save-button {
+    transition: opacity 0.3s;
+  }
+
+  div.dashboard-content .save-button:disabled {
+    opacity: 0;
   }
 
   div.dashboard-content .employee-weekly-hours {
@@ -55,6 +73,10 @@ div.dashboard-content .big-screen {
 
   div.dashboard-content .dropdown {
     width: 1ch;
+  }
+
+  div.dashboard-content .admin-button-container button.print-table {
+    right: 28px;
   }
 }
 
