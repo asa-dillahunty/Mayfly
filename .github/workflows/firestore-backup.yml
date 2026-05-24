@@ -10,8 +10,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout Backup Branch
         uses: actions/checkout@v6
+        with:
+          ref: backups
+          fetch-depth: 0
 
       - name: Set Up Python
         uses: actions/setup-python@v6
@@ -31,7 +34,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions@github.com"
-          git checkout backups
           mkdir -p backups
           mv firestore_backup_*.enc backups/
           git add backups/
