@@ -467,7 +467,7 @@ export async function getCompanyEmployeeList(
   return empList;
 }
 
-export function getCompanyQuery(companyId: string) {
+export function getCompanyQuery(companyId?: string) {
   const query = {
     queryKey: [COMPANY_LIST_COLLECTION_NAME, companyId],
     queryFn: async () => {
@@ -500,6 +500,7 @@ export function getCompanyQuery(companyId: string) {
       };
       return companyData;
     },
+    enabled: companyId !== undefined,
   };
   return query;
 }
