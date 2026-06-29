@@ -15,6 +15,7 @@ import { useQuery } from "@tanstack/react-query";
 import { createPrintable } from "../../utils/reporting";
 
 import styles from "./sass/AdminDashboard.module.scss";
+import { NewDisplayTable } from "../../components/NewDisplayTable";
 
 export default function AdminDashboard() {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -50,12 +51,17 @@ export default function AdminDashboard() {
 
   return (
     <div className={styles.dashboardContainer}>
-      <AdminCompanyDisplayTable
+      <NewDisplayTable
+        company={companyData.id}
+        selectedDate={selectedDate}
+        setSelectedDate={setSelectedDate}
+      />
+      {/* <AdminCompanyDisplayTable
         company={companyData}
         selectedDate={selectedDate}
         setSelectedDate={setSelectedDate}
         adminAble={false}
-      />
+      /> */}
 
       <div className={styles.adminButtonsContainer}>
         <button

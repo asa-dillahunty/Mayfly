@@ -3,14 +3,26 @@ import styles from "./sass/NewDisplayTable.module.scss";
 import { getAdminDataQuery, getCompanyQuery } from "../utils/firebaseQueries";
 import { getCurrentUserId } from "../utils/firebase";
 
-export function NewDisplayTable() {
+interface DisplayTableProps {
+  companyId?: string;
+  selectedDate: Date;
+  setSelectedDate: () => {}; // TODO: update this
+}
+
+export function NewDisplayTable({
+  companyId,
+  selectedDate,
+  setSelectedDate,
+}: DisplayTableProps) {
   const currentUserId = getCurrentUserId();
 
   const { data: adminData, isLoading: isLoadingUser } = useQuery(
     getAdminDataQuery(currentUserId),
   );
+
+  // if not provided a companyId, infer it from current user
   const { data: companyData, isLoading: isLoadingCompany } = useQuery(
-    getCompanyQuery(adminData?.company),
+    getCompanyQuery(companyId ? companyId : adminData?.company),
   );
 
   return (
