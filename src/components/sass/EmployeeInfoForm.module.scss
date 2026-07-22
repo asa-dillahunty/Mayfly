@@ -2,16 +2,21 @@
 
 .employeeInfoForm {
   width: min(100%, 24rem);
+  max-height: calc(100svh - 2rem);
+  box-sizing: border-box;
+  overflow-y: auto;
   padding: 1.5rem;
   border-radius: 0.5rem;
   background: $bg-main;
   box-shadow: 0 0.25rem 1rem rgb(0 0 0 / 20%);
 
-  form {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: left;
 }
 
 .title {
@@ -23,6 +28,7 @@
 
 .input {
   width: 100%;
+  box-sizing: border-box;
   padding: 0.6rem;
   border: 1px solid $accent;
   border-radius: 0.25rem;
@@ -51,4 +57,25 @@
 
 .cancelButton {
   @include secondary-button;
+}
+
+@media (max-width: $mobile-breakpoint) {
+  .employeeInfoForm {
+    padding: 1rem;
+  }
+
+  .input,
+  .submitButton,
+  .cancelButton {
+    min-height: 2.75rem;
+  }
+
+  .buttonContainer {
+    flex-wrap: wrap;
+  }
+
+  .submitButton,
+  .cancelButton {
+    flex: 1;
+  }
 }

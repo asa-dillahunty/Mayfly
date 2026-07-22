@@ -56,3 +56,9 @@ $mobile-breakpoint: 768px;
   @include primary-button;
   background-color: $accent;
 }
+
+@mixin cell-outline($color) {
+  border: 1px solid $color;
+  outline: 2px solid $color;
+  outline-offset: 1px;
+}

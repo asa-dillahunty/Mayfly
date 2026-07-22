@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AiOutlineLeft, AiOutlineRight } from "react-icons/ai";
 
@@ -29,6 +29,7 @@ function jumpWeek(date: Date, amount: number) {
 export function NewDisplayTable({ companyId }: DisplayTableProps) {
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [addingEmployee, setAddingEmployee] = useState(false);
+  const addEmployeeButtonRef = useRef<HTMLButtonElement>(null);
   const currentUserId = getCurrentUserId();
   const adminQuery = useQuery(getAdminDataQuery(currentUserId));
   const companyQuery = useQuery(getCompanyQuery(companyId));
@@ -126,6 +127,7 @@ export function NewDisplayTable({ companyId }: DisplayTableProps) {
       <button
         className={styles.addEmployeeButton}
         onClick={() => setAddingEmployee(true)}
+        ref={addEmployeeButtonRef}
         type="button"
       >
         Add employee
@@ -138,7 +140,12 @@ export function NewDisplayTable({ companyId }: DisplayTableProps) {
           add
           admin={adminData?.omniAdmin === true}
           companyId={companyId}
-          setFormOpen={setAddingEmployee}
+          setFormOpen={(open) => {
+            setAddingEmployee(open);
+            if (!open) {
+              requestAnimationFrame(() => addEmployeeButtonRef.current?.focus());
+            }
+          }}
         />
       </ClickBlocker>
     </section>
