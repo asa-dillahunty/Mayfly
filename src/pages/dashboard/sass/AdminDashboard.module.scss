@@ -2,111 +2,11 @@
 
 .dashboardContainer {
   @include flex-default(column);
-
   position: relative;
-
+  margin-bottom: 20px;
   background-color: $bg-main;
   padding: 20px;
   border-radius: 5px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   text-align: center;
-
-  width: 340px;
-
-  margin-bottom: 20px;
-}
-
-.adminButtonsContainer {
-  @include flex-default(row);
-  position: relative;
-  width: 100%;
-  margin-top: 1rem;
-
-  .addEmpButton {
-    @include primary-button;
-  }
-
-  .printButton {
-    @include flex-default(column);
-    position: absolute;
-    right: 30px;
-
-    height: 100%;
-    aspect-ratio: 1;
-    font-size: 20px;
-
-    border-radius: 3px;
-    box-sizing: border-box;
-    color: $bg-main;
-    background-color: $fg-main;
-
-    transition: background-color 0.2s;
-
-    &:hover {
-      cursor: pointer;
-      background-color: $accent;
-    }
-  }
-}
-
-@media (width >= 768px) {
-  div.dashboardContainer {
-    width: 700px;
-  }
-
-  //   div.dashboard-content .big-screen {
-  //     display: inline-block;
-  //   }
-
-  //   div.dashboard-content li.big-screen {
-  //     display: flex;
-  //   }
-
-  //   div.dashboard-content li.big-screen span {
-  //     font-weight: bold;
-  //   }
-
-  //   div.dashboard-content .employee-daily-hours {
-  //     text-align: center;
-  //     background-color: inherit;
-  //     border: none;
-  //     border-radius: 0;
-  //   }
-
-  //   input.employee-daily-hours::-webkit-inner-spin-button,
-  //   input.employee-daily-hours::-webkit-outer-spin-button {
-  //     -webkit-appearance: none;
-  //     -moz-appearance: none;
-  //     appearance: none;
-  //   }
-
-  //   div.dashboard-content .save-button {
-  //     transition: opacity 0.3s;
-  //   }
-
-  //   div.dashboard-content .save-button:disabled {
-  //     opacity: 0;
-  //   }
-
-  //   div.dashboard-content .employee-weekly-hours {
-  //     text-align: center;
-  //     /* margin-left: 3ch; */
-  //     margin-left: 1ch;
-  //     /* padding-right: 1ch; */
-  //     width: 10ch;
-  //   }
-
-  //   div.dashboard-content span.employee-name {
-  //     min-width: 20ch;
-  //     width: max-content;
-  //     margin-right: auto;
-  //   }
-
-  //   div.dashboard-content .dropdown {
-  //     width: 1ch;
-  //   }
-
-  //   div.dashboard-content .admin-button-container button.print-table {
-  //     right: 28px;
-  //   }
 }

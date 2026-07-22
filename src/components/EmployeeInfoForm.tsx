@@ -1,12 +1,13 @@
-import type { EmployeeData } from "../utils/dataModels.ts";
+import type { CompanyEmployee, EmployeeData } from "../utils/dataModels.ts";
 import {
   useCreateEmployee,
   useUpdateEmployeeData,
 } from "../utils/firebaseQueries.ts";
 import ClickBlocker from "./ClickBlocker";
 
-import "./EmployeeInfoForm.css";
-import { useState } from "react";
+import { useId, useState } from "react";
+import type { ChangeEvent, MouseEvent, SubmitEvent } from "react";
+import styles from "./sass/EmployeeInfoForm.module.scss";
 
 const userDataDefault = {
   firstName: "",
@@ -20,7 +21,7 @@ const userDataDefault = {
 type EmpInfoFormProps = {
   edit?: boolean;
   add?: boolean;
-  empData?: EmployeeData;
+  empData?: CompanyEmployee;
   companyId: string;
   setFormOpen: (val: boolean) => void;
   admin?: boolean;
@@ -35,28 +36,40 @@ function EmployeeInfoForm({
   admin,
 }: EmpInfoFormProps) {
   const userData = { ...userDataDefault, ...empData };
+  const fieldId = useId();
+  const firstNameId = `${fieldId}-first-name`;
+  const lastNameId = `${fieldId}-last-name`;
+  const rateId = `${fieldId}-rate`;
+  const rateErrorId = `${fieldId}-rate-error`;
+  const emailId = `${fieldId}-email`;
+  const adminId = `${fieldId}-admin`;
 
   const [firstName, setFirstName] = useState(userData.firstName);
   const [lastName, setLastName] = useState(userData.lastName);
   const [email, setEmail] = useState(userData.email);
-  const [hourlyRate, setRate] = useState(userData.rate);
+  const [hourlyRate, setRate] = useState(String(userData.rate));
   const [isAdmin, setIsAdmin] = useState(userData.isAdmin);
-  const [wageError, setRateError] = useState(false);
   const [blocked, setBlocked] = useState(false);
 
-  const cancelForm = (e) => {
+  const parsedHourlyRate = Number(hourlyRate);
+  const wageError =
+    hourlyRate.trim() === "" ||
+    !Number.isFinite(parsedHourlyRate) ||
+    parsedHourlyRate < 0;
+
+  const cancelForm = (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     setFormOpen(false);
   };
 
-  const toggleIsAdmin = (_e) => {
-    setIsAdmin(document.getElementById("admin-checkbox").checked);
+  const toggleIsAdmin = (e: ChangeEvent<HTMLInputElement>) => {
+    setIsAdmin(e.target.checked);
   };
 
   const setEmployeeData = useUpdateEmployeeData();
   const createEmployee = useCreateEmployee();
 
-  const submitChanges = (e) => {
+  const submitChanges = (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (wageError) {
       alert("Hourly Wage not valid");
@@ -65,24 +78,24 @@ function EmployeeInfoForm({
     setBlocked(true);
     // TODO:
     // 	do some checking on the data gathered from the form
-    //	Edit needs to check if a user is "unclaimed" and persist that property
 
-    const empData = {
-      name: firstName + " " + lastName,
-      firstName: firstName,
-      lastName: lastName,
-      rate: hourlyRate,
-      isAdmin: isAdmin,
-    };
-    if (email) empData.email = email; // why wouldn't there be an email? -> when users edit instead of add
+    const updatedEmployee: EmployeeData & { email?: string; isAdmin: boolean } =
+      {
+        name: firstName + " " + lastName,
+        firstName: firstName,
+        lastName: lastName,
+        rate: parsedHourlyRate,
+        isAdmin: isAdmin,
+      };
+    if (email) updatedEmployee.email = email;
 
     if (edit) {
-      setEmployeeData(userData.id, companyId, empData, () => {
+      setEmployeeData(userData.id!, companyId, updatedEmployee, () => {
         setBlocked(false);
         setFormOpen(false);
       });
     } else if (add) {
-      const settleFunc = ({ error }) => {
+      const settleFunc = ({ error }: { error?: unknown }) => {
         // if an error, we don't close the form. Should we?
         if (error) {
           setBlocked(false);
@@ -91,57 +104,67 @@ function EmployeeInfoForm({
           setFormOpen(false);
         }
       };
-      createEmployee(companyId, empData, settleFunc);
+      createEmployee(companyId, updatedEmployee, settleFunc);
     }
   };
 
-  const trySetRate = (e) => {
+  const trySetRate = (e: ChangeEvent<HTMLInputElement>) => {
     setRate(e.target.value);
-    setRateError(isNaN(e.target.value) || isNaN(parseFloat(e.target.value)));
   };
 
   return (
-    <div className="employee-info-form">
-      <h1 className="login-title">
+    <div className={styles.employeeInfoForm}>
+      <h1 className={styles.title}>
         {edit ? "Edit Employee Info" : "Create New Employee"}
       </h1>
       <ClickBlocker block={blocked} loading />
       <form onSubmit={submitChanges}>
-        <label htmlFor="employee-first-name">First Name:</label>
+        <label htmlFor={firstNameId}>First Name:</label>
         <input
-          type="name"
-          className="name-input"
+          className={styles.input}
+          id={firstNameId}
           placeholder="First Name"
+          type="text"
           value={firstName}
           onChange={(e) => setFirstName(e.target.value)}
         />
-        <label htmlFor="employee-last-name">Last Name:</label>
+        <label htmlFor={lastNameId}>Last Name:</label>
         <input
-          type="name"
-          className="name-input"
+          className={styles.input}
+          id={lastNameId}
           placeholder="Last Name"
+          type="text"
           value={lastName}
           onChange={(e) => setLastName(e.target.value)}
         />
-        <label htmlFor="employee-wage">
-          Rate Per Hour:
-          {wageError && <span className="error-asterisk">*</span>}
-        </label>
+        <label htmlFor={rateId}>Rate Per Hour:</label>
         <input
-          type="number"
-          className="name-input"
-          value={hourlyRate}
+          aria-describedby={wageError ? rateErrorId : undefined}
+          aria-invalid={wageError}
+          className={styles.input}
+          id={rateId}
+          min="0"
           onChange={trySetRate}
+          required
+          step="0.01"
+          type="number"
+          value={hourlyRate}
         />
+        {wageError && (
+          <span className={styles.validationError} id={rateErrorId}>
+            Enter an hourly rate of zero or greater.
+          </span>
+        )}
         {!add ? (
           ""
         ) : (
           <>
-            <label htmlFor="employee-email">Email:</label>
+            <label htmlFor={emailId}>Email:</label>
             <input
-              type="email"
-              className="name-input"
+              className={styles.input}
+              id={emailId}
               placeholder="Email"
+              type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
@@ -150,28 +173,30 @@ function EmployeeInfoForm({
         {!admin ? (
           ""
         ) : (
-          <div className="checkbox-container">
+          <div className={styles.checkboxContainer}>
             <input
-              type="checkbox"
-              id="admin-checkbox"
+              checked={isAdmin}
+              id={adminId}
               name="isAdmin"
-              onChange={(e) => toggleIsAdmin(e)}
+              onChange={toggleIsAdmin}
+              type="checkbox"
             />
-            <label htmlFor="isAdmin">Is Admin?</label>
+            <label htmlFor={adminId}>Is Admin?</label>
           </div>
         )}
-        <div className="button-container">
+        <div className={styles.buttonContainer}>
           <button
-            className="submit-button"
-            onClick={submitChanges}
-            disabled={blocked}
+            className={styles.submitButton}
+            disabled={blocked || wageError}
+            type="submit"
           >
             Submit
           </button>
           <button
-            className="cancel-button"
+            className={styles.cancelButton}
             onClick={cancelForm}
             disabled={blocked}
+            type="button"
           >
             Cancel
           </button>

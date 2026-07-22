@@ -1,0 +1,54 @@
+@use "../../variables" as *;
+
+.employeeInfoForm {
+  width: min(100%, 24rem);
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  background: $bg-main;
+  box-shadow: 0 0.25rem 1rem rgb(0 0 0 / 20%);
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
+.title {
+  margin-bottom: 1rem;
+  color: $fg-main;
+  font-size: 1.35rem;
+  text-align: center;
+}
+
+.input {
+  width: 100%;
+  padding: 0.6rem;
+  border: 1px solid $accent;
+  border-radius: 0.25rem;
+}
+
+.validationError {
+  color: $danger;
+  font-size: 0.875rem;
+}
+
+.checkboxContainer,
+.buttonContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.buttonContainer {
+  justify-content: flex-end;
+  margin-top: 0.75rem;
+}
+
+.submitButton {
+  @include primary-button;
+}
+
+.cancelButton {
+  @include secondary-button;
+}

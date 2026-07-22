@@ -21,20 +21,20 @@ function getWeek(selectedDatetime: Date) {
   const selectedDateUTC = Date.UTC(
     selectedDatetime.getFullYear(),
     selectedDatetime.getMonth(),
-    selectedDatetime.getDate()
+    selectedDatetime.getDate(),
   );
 
   const dayOfWeekOfDayOne = new Date(
     selectedDatetime.getFullYear(),
     0,
-    1
+    1,
   ).getDay();
   // this actually gets the first wednesday
   // we do +6 instead of -1 to avoid negative output from the mod
   const firstThursday = Date.UTC(
     selectedDatetime.getFullYear(),
     0,
-    1 + ((startOfPayPeriod - dayOfWeekOfDayOne + 6) % 7)
+    1 + ((startOfPayPeriod - dayOfWeekOfDayOne + 6) % 7),
   );
   // add a check here for the cusp of the year. Go back to last year. (or maybe return -1)
   if (firstThursday >= selectedDateUTC) {

@@ -8,6 +8,7 @@ $bg-third: #f1f1f1;
 $primary: #54bc55;
 $secondary: #9dd7d9;
 $accent: #76a8c9;
+$danger: #9d1c1c;
 
 $title-font: "Lobster Two";
 
@@ -39,10 +40,10 @@ $mobile-breakpoint: 768px;
   background-color: $primary;
   color: $bg-main;
   border: none;
-  border-radius: 0.2rem;
+  border-radius: 0.2em;
   cursor: pointer;
   font-family: Verdana, Geneva, Tahoma, sans-serif;
-  padding: 0.75rem 1rem;
+  padding: 0.75em 1em;
 
   transition: background-color 0.3s;
 
