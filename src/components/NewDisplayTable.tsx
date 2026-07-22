@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AiOutlineLeft, AiOutlineRight } from "react-icons/ai";
 
@@ -29,6 +29,9 @@ function jumpWeek(date: Date, amount: number) {
 export function NewDisplayTable({ companyId }: DisplayTableProps) {
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [addingEmployee, setAddingEmployee] = useState(false);
+  const [openEmployeeMenuId, setOpenEmployeeMenuId] = useState<string | null>(
+    null,
+  );
   const addEmployeeButtonRef = useRef<HTMLButtonElement>(null);
   const currentUserId = getCurrentUserId();
   const adminQuery = useQuery(getAdminDataQuery(currentUserId));
@@ -45,6 +48,18 @@ export function NewDisplayTable({ companyId }: DisplayTableProps) {
   const employees = (
     (companyData?.Employees ?? []) as CompanyEmployee[]
   ).filter((employee) => !employee.unclaimed);
+
+  const changeWeek = (amount: number) => {
+    setOpenEmployeeMenuId(null);
+    setSelectedDate((date) => jumpWeek(date, amount));
+  };
+
+  const handleEmployeeMenuOpenChange = useCallback(
+    (employeeId: string, open: boolean) => {
+      setOpenEmployeeMenuId(open ? employeeId : null);
+    },
+    [],
+  );
 
   if (adminQuery.isLoading || companyQuery.isLoading)
     return <div className={styles.loading}>Loading employee table...</div>;
@@ -68,7 +83,7 @@ export function NewDisplayTable({ companyId }: DisplayTableProps) {
         <div className={styles.dateRow}>
           <button
             aria-label="Previous week"
-            onClick={() => setSelectedDate((date) => jumpWeek(date, -7))}
+            onClick={() => changeWeek(-7)}
             type="button"
           >
             <AiOutlineLeft />
@@ -79,7 +94,7 @@ export function NewDisplayTable({ companyId }: DisplayTableProps) {
           </span>
           <button
             aria-label="Next week"
-            onClick={() => setSelectedDate((date) => jumpWeek(date, 7))}
+            onClick={() => changeWeek(7)}
             type="button"
           >
             <AiOutlineRight />
@@ -118,6 +133,8 @@ export function NewDisplayTable({ companyId }: DisplayTableProps) {
                 companyName={companyData.name ?? "this company"}
                 employee={employee}
                 key={`${employee.id}-${selectedDate.toDateString()}`}
+                menuOpen={openEmployeeMenuId === employee.id}
+                onMenuOpenChange={handleEmployeeMenuOpenChange}
                 selectedDate={selectedDate}
               />
             ))}
@@ -126,7 +143,10 @@ export function NewDisplayTable({ companyId }: DisplayTableProps) {
       </div>
       <button
         className={styles.addEmployeeButton}
-        onClick={() => setAddingEmployee(true)}
+        onClick={() => {
+          setOpenEmployeeMenuId(null);
+          setAddingEmployee(true);
+        }}
         ref={addEmployeeButtonRef}
         type="button"
       >
