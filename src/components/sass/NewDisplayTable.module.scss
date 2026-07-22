@@ -62,7 +62,6 @@
 
   th {
     padding: 0.6rem 0.4rem;
-    border-bottom: 1px solid $bg-third;
   }
 
   thead {
@@ -125,8 +124,6 @@ th.saveHeader {
     tbody {
       display: grid;
       grid-template-columns: minmax(0, 1fr) max-content 2.75rem;
-      row-gap: 0.75rem;
-      column-gap: 0;
     }
   }
 

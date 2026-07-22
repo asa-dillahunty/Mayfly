@@ -48,7 +48,6 @@
   background: $bg-main;
   box-shadow: 0 0.25rem 0.75rem rgb(0 0 0 / 18%);
   font-size: 1.05rem;
-
 }
 
 .menuItem {
@@ -129,14 +128,10 @@
     width: 100%;
     display: grid;
     grid-column: 1 / -1;
-    grid-template-columns: minmax(0, 1fr) max-content 2.75rem;
     grid-template-columns: subgrid;
     align-items: stretch;
     overflow: visible;
-    border: 1px solid $bg-third;
-    border-radius: 0.35rem;
     background: $bg-main;
-    box-shadow: 0 0.1rem 0.35rem rgb(0 0 0 / 8%);
   }
 
   .employeeRow > :where(th, td) {
