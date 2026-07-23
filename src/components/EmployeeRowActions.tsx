@@ -7,14 +7,14 @@ import EmployeeInfoForm from "./EmployeeInfoForm";
 import { MobileWeeklyHoursDialog } from "./MobileWeeklyHoursDialog";
 import { useRemoveEmployee } from "../utils/firebaseQueries";
 import type { CompanyEmployee } from "../utils/dataModels";
-import type { EmployeeWeekEditor } from "./useEmployeeWeekEditor";
+import type { WeeklyHoursEditor } from "../hooks/useWeeklyHoursEditor";
 import styles from "./sass/EmployeeRow.module.scss";
 
 interface EmployeeRowActionsProps {
   canManage: boolean;
   companyId: string;
   companyName: string;
-  editor: EmployeeWeekEditor;
+  editor: WeeklyHoursEditor;
   employee: CompanyEmployee;
   menuOpen: boolean;
   onMenuOpenChange: (employeeId: string, open: boolean) => void;
@@ -84,8 +84,7 @@ export function EmployeeRowActions({
     if (event.key === "ArrowDown") {
       nextIndex = (currentIndex + 1) % menuItems.length;
     } else if (event.key === "ArrowUp") {
-      nextIndex =
-        (currentIndex - 1 + menuItems.length) % menuItems.length;
+      nextIndex = (currentIndex - 1 + menuItems.length) % menuItems.length;
     } else if (event.key === "Home") {
       nextIndex = 0;
     } else if (event.key === "End") {

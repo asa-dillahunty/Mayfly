@@ -6,6 +6,7 @@ import Calendar, { WEEK_VIEW, MONTH_VIEW } from "./Calendar";
 import ClickBlocker from "./ClickBlocker";
 import Picker from "./CustomPicker";
 import { getUserWeekQuery, useSetHours } from "../utils/firebaseQueries.ts";
+import { getRegularHoursTotal } from "../utils/weeklyHours";
 
 import NotesForm from "./NotesForm.tsx";
 import styles from "./sass/HourAdder.module.scss";
@@ -93,16 +94,7 @@ function HourSelector({
 
   const weeklyHoursQuery = useQuery(getUserWeekQuery(uid, selectedDate));
   const weeklyHours = weeklyHoursQuery.data;
-
-  const hoursThisWeek = () => {
-    if (!weeklyHours) return 0;
-    let total = 0;
-    for (const day in weeklyHours) {
-      if (day === "additionalHours") continue;
-      total += weeklyHours[day].hours;
-    }
-    return total;
-  };
+  const hoursThisWeek = getRegularHoursTotal(weeklyHours);
 
   useEffect(() => {
     // this should trigger every time the user touches the picker
@@ -164,7 +156,7 @@ function HourSelector({
             {hoursWorked < 0 ? "" : hoursWorked}
           </p>
           <p className={styles.weeklyTotal}>
-            {hoursThisWeek() < 0.5 ? "" : "Weekly total: " + hoursThisWeek()}
+            {hoursThisWeek < 0.5 ? "" : "Weekly total: " + hoursThisWeek}
           </p>
         </div>
         <div className={styles.killScroll}>

@@ -2,13 +2,13 @@ import { useQuery } from "@tanstack/react-query";
 import { FaSave } from "react-icons/fa";
 
 import { EmployeeRowActions } from "./EmployeeRowActions";
-import { useEmployeeWeekEditor } from "./useEmployeeWeekEditor";
+import { HoursInput } from "./HoursInput";
+import { useWeeklyHoursEditor } from "../hooks/useWeeklyHoursEditor";
 import {
   getAdminDataQuery,
   getCompanyEmployeeQuery,
 } from "../utils/firebaseQueries";
 import { ABBREVIATIONS, getPayPeriodArray } from "../utils/dateUtils";
-import { isValidHoursInput } from "../utils/hourValidation";
 import type { CompanyEmployee, WeekDay } from "../utils/dataModels";
 import styles from "./sass/EmployeeRow.module.scss";
 
@@ -37,7 +37,7 @@ export function EmployeeRow({
     getCompanyEmployeeQuery(companyId, employee.id),
   );
   const employeeAdminQuery = useQuery(getAdminDataQuery(employee.id));
-  const editor = useEmployeeWeekEditor(employee.id, selectedDate);
+  const editor = useWeeklyHoursEditor(employee.id, selectedDate);
   const queriedEmployee = employeeQuery.data as
     | Partial<CompanyEmployee>
     | undefined;
@@ -66,56 +66,29 @@ export function EmployeeRow({
         const value =
           editor.editedHours[day] ??
           String(editor.weeklyHours?.[day].hours ?? 0);
-        const isInvalid =
-          editor.editedHours[day] !== undefined &&
-          !isValidHoursInput(editor.editedHours[day], 24);
         return (
           <td className={styles.dayCell} key={day}>
-            <input
-              aria-invalid={isInvalid}
-              aria-label={`${ABBREVIATIONS[day]} hours for ${employeeData.name}`}
+            <HoursInput
+              ariaLabel={`${ABBREVIATIONS[day]} hours for ${employeeData.name}`}
               className={styles.hoursInput}
               disabled={!canManage || !editor.weeklyHours || editor.saving}
-              max="24"
-              min="0"
+              draftValue={editor.editedHours[day]}
+              maximum={24}
               onBlur={() => editor.normalizeDayHours(day)}
-              onChange={(event) =>
-                editor.setDayHours(day, event.target.value)
-              }
-              step="0.5"
-              title={
-                isInvalid
-                  ? "Enter 0 to 24 hours in half-hour increments."
-                  : undefined
-              }
-              type="number"
+              onChange={(newValue) => editor.setDayHours(day, newValue)}
               value={value}
             />
           </td>
         );
       })}
       <td className={styles.additionalCell}>
-        <input
-          aria-invalid={
-            editor.editedAdditionalHours !== undefined &&
-            !isValidHoursInput(editor.editedAdditionalHours)
-          }
-          aria-label={`Additional hours for ${employeeData.name}`}
+        <HoursInput
+          ariaLabel={`Additional hours for ${employeeData.name}`}
           className={styles.hoursInput}
           disabled={!canManage || !editor.weeklyHours || editor.saving}
-          min="0"
+          draftValue={editor.editedAdditionalHours}
           onBlur={editor.normalizeAdditionalHours}
-          onChange={(event) =>
-            editor.setAdditionalHours(event.target.value)
-          }
-          step="0.5"
-          title={
-            editor.editedAdditionalHours !== undefined &&
-            !isValidHoursInput(editor.editedAdditionalHours)
-              ? "Enter zero or more hours in half-hour increments."
-              : undefined
-          }
-          type="number"
+          onChange={editor.setAdditionalHours}
           value={
             editor.editedAdditionalHours ??
             String(editor.weeklyHours?.additionalHours?.hours ?? 0)

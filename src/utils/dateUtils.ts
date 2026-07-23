@@ -1,4 +1,9 @@
+import type { WeekDay } from "./dataModels";
+
 const daysInChunk = 7;
+export const PAY_PERIOD_DAYS = [
+  4, 5, 6, 0, 1, 2, 3,
+] as const satisfies readonly WeekDay[];
 const startOfPayPeriod = 4; // Thursday
 export const FAKE_EMAIL_EXTENSION = "@dillahuntyfarms.com";
 export const ABBREVIATIONS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -63,9 +68,8 @@ function getEndOfPayPeriod(date: Date) {
   return finalDay;
 }
 
-export function getPayPeriodArray() {
-  return Array.from(Array(7)).map((_, index) => (index + startOfPayPeriod) % 7);
-  // [4,5,6,0,1,2,3];
+export function getPayPeriodArray(): WeekDay[] {
+  return [...PAY_PERIOD_DAYS];
 }
 
 export function getWeekSpanString(selectedDate: Date) {

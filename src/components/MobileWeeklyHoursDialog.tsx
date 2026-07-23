@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import type { KeyboardEvent, SubmitEvent } from "react";
 import { AiOutlineClose } from "react-icons/ai";
 
+import { HoursInput } from "./HoursInput";
 import {
   ABBREVIATIONS,
   getEndOfWeekString,
@@ -9,7 +10,6 @@ import {
   getStartOfWeekString,
 } from "../utils/dateUtils";
 import type { WeekDay, WeeklyHours } from "../utils/dataModels";
-import { isValidHoursInput } from "../utils/hourValidation";
 import styles from "./sass/MobileWeeklyHoursDialog.module.scss";
 
 const weekDays = getPayPeriodArray() as WeekDay[];
@@ -190,9 +190,6 @@ export function MobileWeeklyHoursDialog({
                 {weekDays.map((day, index) => {
                   const value =
                     editedHours[day] ?? String(weeklyHours[day].hours);
-                  const isInvalid =
-                    editedHours[day] !== undefined &&
-                    !isValidHoursInput(editedHours[day], 24);
                   return (
                     <label className={styles.hoursRow} key={day}>
                       <span
@@ -203,23 +200,13 @@ export function MobileWeeklyHoursDialog({
                           {payPeriodDates[index]}
                         </span>
                       </span>
-                      <input
-                        aria-invalid={isInvalid}
+                      <HoursInput
                         className={styles.hoursInput}
                         disabled={saving}
-                        max="24"
-                        min="0"
+                        draftValue={editedHours[day]}
+                        maximum={24}
                         onBlur={() => onDayHoursBlur(day)}
-                        onChange={(event) =>
-                          onDayHoursChange(day, event.target.value)
-                        }
-                        step="0.5"
-                        title={
-                          isInvalid
-                            ? "Enter 0 to 24 hours in half-hour increments."
-                            : undefined
-                        }
-                        type="number"
+                        onChange={(newValue) => onDayHoursChange(day, newValue)}
                         value={value}
                       />
                     </label>
@@ -227,26 +214,12 @@ export function MobileWeeklyHoursDialog({
                 })}
                 <label className={styles.hoursRow}>
                   <span className={styles.hoursLabel}>Additional</span>
-                  <input
-                    aria-invalid={
-                      editedAdditionalHours !== undefined &&
-                      !isValidHoursInput(editedAdditionalHours)
-                    }
+                  <HoursInput
                     className={styles.hoursInput}
                     disabled={saving}
-                    min="0"
+                    draftValue={editedAdditionalHours}
                     onBlur={onAdditionalHoursBlur}
-                    onChange={(event) =>
-                      onAdditionalHoursChange(event.target.value)
-                    }
-                    step="0.5"
-                    title={
-                      editedAdditionalHours !== undefined &&
-                      !isValidHoursInput(editedAdditionalHours)
-                        ? "Enter zero or more hours in half-hour increments."
-                        : undefined
-                    }
-                    type="number"
+                    onChange={onAdditionalHoursChange}
                     value={
                       editedAdditionalHours ??
                       String(weeklyHours.additionalHours?.hours ?? 0)

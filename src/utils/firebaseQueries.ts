@@ -28,7 +28,14 @@ import {
 } from "firebase/auth";
 import { buildDocName } from "./dateUtils.ts";
 import { queryClient } from "../main.tsx";
-import type { AdminData, WeeklyHours } from "./dataModels.ts";
+import type { AdminData, WeekDay, WeeklyHours } from "./dataModels.ts";
+import {
+  getPaidHoursTotal,
+  getRegularHoursTotal,
+  withAdditionalHours,
+  withDayHours,
+  withDayNotes,
+} from "./weeklyHours.ts";
 
 const COMPANY_LIST_COLLECTION_NAME = "CompanyList";
 const UNCLAIMED_LIST_COLLECTION_NAME = "UnclaimedList";
@@ -82,19 +89,27 @@ async function fetchWeek(
   return await queryClient.fetchQuery(getUserWeekQuery(userId, date, docName));
 }
 
+type UserWeekSettledCallback = (result: UserWeekSettledResult) => void;
+
+interface UserWeekMutationVariables {
+  userId: string;
+  date: Date;
+  userWeek: WeeklyHours;
+  onSettled?: UserWeekSettledCallback;
+}
+
+interface UserWeekSettledResult {
+  error?: unknown;
+  variables: UserWeekMutationVariables;
+}
+
 export function userWeekMutation() {
   const mutation = {
     mutationFn: async ({
       userId,
       date,
       userWeek,
-      onSettled,
-    }: {
-      userId: string;
-      date: Date;
-      userWeek: WeeklyHours;
-      onSettled?: ({ error, variables }) => void;
-    }) => {
+    }: UserWeekMutationVariables) => {
       const docName = buildDocName(date);
       console.log("saving week", userWeek);
       await setDoc(doc(db, userId, docName), userWeek);
@@ -127,73 +142,84 @@ export function userWeekMutation() {
   return mutation;
 }
 
-export function useSetHours() {
+type WeeklyHoursUpdater = (currentWeek: WeeklyHours) => WeeklyHours;
+
+function useUpdateUserWeek() {
   const setWeek = useMutation(userWeekMutation());
+
+  return async (
+    userId: string,
+    date: Date,
+    updateWeek: WeeklyHoursUpdater,
+    onSettled?: UserWeekSettledCallback,
+  ) => {
+    const docName = buildDocName(date);
+    const currentWeek = await fetchWeek(userId, date, docName);
+    const updatedWeek = updateWeek(currentWeek);
+
+    setWeek.mutate({ userId, date, userWeek: updatedWeek, onSettled });
+  };
+}
+
+export function useSetHours() {
+  const updateUserWeek = useUpdateUserWeek();
+
   const setHours = async (
     userId: string,
     date: Date,
     hours: number,
-    onSettled?: ({ error, variables }) => void,
+    onSettled?: UserWeekSettledCallback,
   ) => {
-    const docName = buildDocName(date);
-    const currentWeek = await fetchWeek(userId, date, docName);
-
-    // ASK: do we need to make a deep copy before altering these values?
-    const newCurrentWeek = {
-      ...currentWeek,
-      [date.getDay()]: {
-        ...currentWeek[date.getDay()],
-        hours: hours,
-      },
-    };
-    setWeek.mutate({ userId, date, userWeek: newCurrentWeek, onSettled });
+    const day = date.getDay() as WeekDay;
+    await updateUserWeek(
+      userId,
+      date,
+      (currentWeek) => withDayHours(currentWeek, day, hours),
+      onSettled,
+    );
   };
+
   return setHours;
 }
 
 export function useSetAdditionalHours() {
-  const setWeek = useMutation(userWeekMutation());
+  const updateUserWeek = useUpdateUserWeek();
+
   const setAdditionalHours = async (
     userId: string,
     date: Date,
     hours: number,
-    onSettled?: ({ error, variables }) => void,
+    onSettled?: UserWeekSettledCallback,
   ) => {
-    const docName = buildDocName(date);
-    const currentWeek = await fetchWeek(userId, date, docName);
-
-    // ASK: do we need to make a copy before altering these values?
-    const newCurrentWeek = {
-      ...currentWeek,
-      additionalHours: { hours: hours }, // no notes one this one
-    };
-
-    setWeek.mutate({ userId, date, userWeek: newCurrentWeek, onSettled });
+    await updateUserWeek(
+      userId,
+      date,
+      (currentWeek) => withAdditionalHours(currentWeek, hours),
+      onSettled,
+    );
   };
+
   return setAdditionalHours;
 }
 
 export function useSetNotes() {
-  const setWeek = useMutation(userWeekMutation());
+  const updateUserWeek = useUpdateUserWeek();
+
   const setNotes = async (
     userId: string,
     date: Date,
     notes: string,
-    onSettled?: ({ error, variables }) => void,
+    onSettled?: UserWeekSettledCallback,
   ) => {
-    const docName = buildDocName(date);
-    const currentWeek = await fetchWeek(userId, date, docName);
-    // ASK: do we need to make a deep copy before altering these values?
-    const newCurrentWeek = {
-      ...currentWeek,
-      [date.getDay()]: {
-        ...currentWeek[date.getDay()],
-        notes: notes,
-      },
-    };
-
-    setWeek.mutate({ userId, date, userWeek: newCurrentWeek, onSettled });
+    const day = date.getDay() as WeekDay;
+    await updateUserWeek(
+      userId,
+      date,
+      (currentWeek) => withDayNotes(currentWeek, day, notes),
+      onSettled,
+    );
   };
+
   return setNotes;
 }
 
@@ -205,13 +231,7 @@ export async function getHoursWorkedThisWeek(
   const userWeek = await queryClient.fetchQuery(
     getUserWeekQuery(userId, date, docName),
   );
-
-  let totalHours = 0;
-  for (const day in userWeek) {
-    if (day === "additionalHours") continue;
-    totalHours += userWeek[day].hours;
-  }
-  return totalHours;
+  return getRegularHoursTotal(userWeek);
 }
 
 export async function getHoursPaidThisWeek(
@@ -222,12 +242,7 @@ export async function getHoursPaidThisWeek(
   const userWeek = await queryClient.fetchQuery(
     getUserWeekQuery(userId, date, docName),
   );
-
-  let totalHours = 0;
-  for (const day in userWeek) {
-    totalHours += userWeek[day].hours; // could probably use some kind of reducer
-  }
-  return totalHours;
+  return getPaidHoursTotal(userWeek);
 }
 
 export async function getHoursList(

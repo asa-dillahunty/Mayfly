@@ -1,20 +1,15 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
+import { getUserWeekQuery, userWeekMutation } from "../utils/firebaseQueries";
+import { normalizeHours } from "../utils/hourValidation";
 import {
-  getUserWeekQuery,
-  userWeekMutation,
-} from "../utils/firebaseQueries";
-import { getPayPeriodArray } from "../utils/dateUtils";
-import {
-  isValidHoursInput,
-  normalizeHours,
-} from "../utils/hourValidation";
+  analyzeWeeklyHoursDraft,
+  applyWeeklyHoursDraft,
+} from "../utils/weeklyHours";
 import type { WeekDay, WeeklyHours } from "../utils/dataModels";
 
-const weekDays = getPayPeriodArray() as WeekDay[];
-
-export interface EmployeeWeekEditor {
+export interface WeeklyHoursEditor {
   editedAdditionalHours?: string;
   editedHours: Partial<Record<WeekDay, string>>;
   hasChanges: boolean;
@@ -31,10 +26,14 @@ export interface EmployeeWeekEditor {
   weeklyHours?: WeeklyHours;
 }
 
-export function useEmployeeWeekEditor(
-  employeeId: string,
+/**
+ * Edits one user's selected week for the lifetime of the mounted hook.
+ * Callers that change the user or week should remount the hook's component.
+ */
+export function useWeeklyHoursEditor(
+  userId: string,
   selectedDate: Date,
-): EmployeeWeekEditor {
+): WeeklyHoursEditor {
   const [editedHours, setEditedHours] = useState<
     Partial<Record<WeekDay, string>>
   >({});
@@ -42,49 +41,18 @@ export function useEmployeeWeekEditor(
     string | undefined
   >();
   const [saveError, setSaveError] = useState<string>();
-  const hoursQuery = useQuery(getUserWeekQuery(employeeId, selectedDate));
+  const hoursQuery = useQuery(getUserWeekQuery(userId, selectedDate));
   const saveWeek = useMutation(userWeekMutation());
   const weeklyHours = hoursQuery.data;
 
-  const regularHours = useMemo(
+  const { hasChanges, hasInvalidChanges, totalHours } = useMemo(
     () =>
-      weekDays.reduce<number>((total, day) => {
-        const editedValue = editedHours[day];
-        const storedValue = weeklyHours?.[day].hours ?? 0;
-        const value =
-          editedValue !== undefined && isValidHoursInput(editedValue, 24)
-            ? Number(editedValue)
-            : storedValue;
-        return total + value;
-      }, 0),
-    [editedHours, weeklyHours],
+      analyzeWeeklyHoursDraft(weeklyHours, {
+        editedAdditionalHours,
+        editedHours,
+      }),
+    [editedAdditionalHours, editedHours, weeklyHours],
   );
-  const additionalHoursValue =
-    editedAdditionalHours !== undefined &&
-    isValidHoursInput(editedAdditionalHours)
-      ? Number(editedAdditionalHours)
-      : (weeklyHours?.additionalHours?.hours ?? 0);
-  const totalHours = regularHours + additionalHoursValue;
-  const hasInvalidChanges =
-    weekDays.some((day) => {
-      const value = editedHours[day];
-      return value !== undefined && !isValidHoursInput(value, 24);
-    }) ||
-    (editedAdditionalHours !== undefined &&
-      !isValidHoursInput(editedAdditionalHours));
-  const hasChanges =
-    weekDays.some((day) => {
-      const value = editedHours[day];
-      return (
-        value !== undefined &&
-        isValidHoursInput(value, 24) &&
-        Number(value) !== weeklyHours?.[day].hours
-      );
-    }) ||
-    (editedAdditionalHours !== undefined &&
-      isValidHoursInput(editedAdditionalHours) &&
-      Number(editedAdditionalHours) !==
-        (weeklyHours?.additionalHours?.hours ?? 0));
 
   const setDayHours = (day: WeekDay, value: string) => {
     setEditedHours((hours) => ({ ...hours, [day]: value }));
@@ -118,23 +86,14 @@ export function useEmployeeWeekEditor(
 
   const save = (onSuccess?: () => void) => {
     if (!weeklyHours || !hasChanges || hasInvalidChanges) return;
-    const updatedWeek: WeeklyHours = { ...weeklyHours };
-    for (const day of weekDays) {
-      const value = editedHours[day];
-      if (value !== undefined) {
-        updatedWeek[day] = { ...weeklyHours[day], hours: Number(value) };
-      }
-    }
-    if (editedAdditionalHours !== undefined) {
-      updatedWeek.additionalHours = {
-        ...weeklyHours.additionalHours,
-        hours: Number(editedAdditionalHours),
-      };
-    }
+    const updatedWeek = applyWeeklyHoursDraft(weeklyHours, {
+      editedAdditionalHours,
+      editedHours,
+    });
 
     setSaveError(undefined);
     saveWeek.mutate({
-      userId: employeeId,
+      userId,
       date: selectedDate,
       userWeek: updatedWeek,
       onSettled: ({ error }: { error?: unknown }) => {
