@@ -16,7 +16,30 @@ export interface CompanyEmployee extends EmployeeData {
   id: string;
   email?: string;
   isAdmin?: boolean;
-  unclaimed?: boolean;
+}
+
+export interface CompanyData {
+  id: string;
+  name?: string;
+  Employees: CompanyEmployee[];
+}
+
+export interface CompanyReportProfile {
+  address: string;
+  ein: string;
+  legalName: string;
+  logoSource: string;
+  stateOfEmployment: string;
+}
+
+export interface PrintableEmployeeReportRow {
+  additionalHours: number;
+  dailyHours: Record<WeekDay, number>;
+  id: string;
+  name: string;
+  paidHours: number;
+  rate: number;
+  regularHours: number;
 }
 
 export type WeekDay = 0 | 1 | 2 | 3 | 4 | 5 | 6;

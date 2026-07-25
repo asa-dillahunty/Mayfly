@@ -2,7 +2,6 @@ import { useCallback, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AiOutlineLeft, AiOutlineRight } from "react-icons/ai";
 
-import { EmployeeInfoDialog } from "./EmployeeInfoDialog";
 import { getAdminDataQuery, getCompanyQuery } from "../utils/firebaseQueries";
 import { getCurrentUserId } from "../utils/firebase";
 import {
@@ -11,12 +10,15 @@ import {
   getPayPeriodArray,
   getStartOfWeekString,
 } from "../utils/dateUtils";
-import type { CompanyEmployee, WeekDay } from "../utils/dataModels";
+import type { WeekDay } from "../utils/dataModels";
 import { EmployeeRow } from "./EmployeeRow";
 import styles from "./sass/NewDisplayTable.module.scss";
 
 interface DisplayTableProps {
   companyId: string;
+  onSelectedDateChange: (date: Date) => void;
+  onUnsavedChangesChange: (hasUnsavedChanges: boolean) => void;
+  selectedDate: Date;
 }
 
 const weekDays = getPayPeriodArray() as WeekDay[];
@@ -25,32 +27,31 @@ function jumpWeek(date: Date, amount: number) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate() + amount);
 }
 
-export function NewDisplayTable({ companyId }: DisplayTableProps) {
-  const [selectedDate, setSelectedDate] = useState(() => new Date());
-  const [addingEmployee, setAddingEmployee] = useState(false);
+export function NewDisplayTable({
+  companyId,
+  onSelectedDateChange,
+  onUnsavedChangesChange,
+  selectedDate,
+}: DisplayTableProps) {
   const [openEmployeeMenuId, setOpenEmployeeMenuId] = useState<string | null>(
     null,
   );
-  const addEmployeeButtonRef = useRef<HTMLButtonElement>(null);
+  const dirtyEmployeeIdsRef = useRef(new Set<string>());
   const currentUserId = getCurrentUserId();
   const adminQuery = useQuery(getAdminDataQuery(currentUserId));
   const companyQuery = useQuery(getCompanyQuery(companyId));
   const adminData = adminQuery.data;
-  const companyData = companyQuery.data as
-    | { id: string; name?: string; Employees?: CompanyEmployee[] }
-    | undefined;
+  const companyData = companyQuery.data;
   const canManage = Boolean(
     adminData &&
     (adminData.omniAdmin ||
       (adminData.isAdmin && adminData.company === companyId)),
   );
-  const employees = (
-    (companyData?.Employees ?? []) as CompanyEmployee[]
-  ).filter((employee) => !employee.unclaimed);
+  const employees = companyData?.Employees ?? [];
 
   const changeWeek = (amount: number) => {
     setOpenEmployeeMenuId(null);
-    setSelectedDate((date) => jumpWeek(date, amount));
+    onSelectedDateChange(jumpWeek(selectedDate, amount));
   };
 
   const handleEmployeeMenuOpenChange = useCallback(
@@ -58,6 +59,15 @@ export function NewDisplayTable({ companyId }: DisplayTableProps) {
       setOpenEmployeeMenuId(open ? employeeId : null);
     },
     [],
+  );
+  const handleEmployeeDirtyChange = useCallback(
+    (employeeId: string, dirty: boolean) => {
+      const dirtyEmployeeIds = dirtyEmployeeIdsRef.current;
+      if (dirty) dirtyEmployeeIds.add(employeeId);
+      else dirtyEmployeeIds.delete(employeeId);
+      onUnsavedChangesChange(dirtyEmployeeIds.size > 0);
+    },
+    [onUnsavedChangesChange],
   );
 
   if (adminQuery.isLoading || companyQuery.isLoading)
@@ -133,6 +143,7 @@ export function NewDisplayTable({ companyId }: DisplayTableProps) {
                 employee={employee}
                 key={`${employee.id}-${selectedDate.toDateString()}`}
                 menuOpen={openEmployeeMenuId === employee.id}
+                onDirtyChange={handleEmployeeDirtyChange}
                 onMenuOpenChange={handleEmployeeMenuOpenChange}
                 selectedDate={selectedDate}
               />
@@ -140,28 +151,9 @@ export function NewDisplayTable({ companyId }: DisplayTableProps) {
           </tbody>
         </table>
       </div>
-      <button
-        className={styles.addEmployeeButton}
-        onClick={() => {
-          setOpenEmployeeMenuId(null);
-          setAddingEmployee(true);
-        }}
-        ref={addEmployeeButtonRef}
-        type="button"
-      >
-        Add employee
-      </button>
       {employees.length === 0 && (
         <p className={styles.emptyState}>No registered employees found.</p>
       )}
-      <EmployeeInfoDialog
-        add
-        admin={adminData?.omniAdmin === true}
-        companyId={companyId}
-        onOpenChange={setAddingEmployee}
-        open={addingEmployee}
-        returnFocusRef={addEmployeeButtonRef}
-      />
     </section>
   );
 }

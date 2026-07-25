@@ -117,6 +117,10 @@
   border-bottom-color: transparent;
 }
 
+.hiddenSaveButton {
+  visibility: hidden;
+}
+
 .saveButton:disabled,
 .menuButton:disabled {
   cursor: not-allowed;

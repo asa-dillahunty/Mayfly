@@ -46,11 +46,6 @@
   }
 }
 
-.addEmployeeButton {
-  align-self: flex-end;
-  @include primary-button;
-}
-
 .tableScroll {
   overflow-x: auto;
 }
@@ -125,11 +120,5 @@ th.saveHeader {
       display: grid;
       grid-template-columns: minmax(0, 1fr) max-content 2.75rem;
     }
-  }
-
-  .addEmployeeButton {
-    width: 100%;
-    min-height: 2.75rem;
-    align-self: stretch;
   }
 }

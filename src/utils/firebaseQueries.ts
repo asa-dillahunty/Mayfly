@@ -28,8 +28,16 @@ import {
 } from "firebase/auth";
 import { buildDocName } from "./dateUtils.ts";
 import { queryClient } from "../main.tsx";
-import type { AdminData, WeekDay, WeeklyHours } from "./dataModels.ts";
+import type {
+  AdminData,
+  CompanyData,
+  CompanyEmployee,
+  PrintableEmployeeReportRow,
+  WeekDay,
+  WeeklyHours,
+} from "./dataModels.ts";
 import {
+  getAdditionalHours,
   getPaidHoursTotal,
   getRegularHoursTotal,
   withAdditionalHours,
@@ -38,12 +46,32 @@ import {
 } from "./weeklyHours.ts";
 
 const COMPANY_LIST_COLLECTION_NAME = "CompanyList";
-const UNCLAIMED_LIST_COLLECTION_NAME = "UnclaimedList";
 const ADMIN_DOC_NAME = "Administrative_Data";
 const COMPANY_DOCS_COLLECTION = "CompanyDocs"; // this is for 'last change' data
 const LAST_CHANGE_DOC_NAME = "Last_Change";
 const COMPANY_EMPLOYEE_COLLECTION = "Employees";
 export const FAKE_EMAIL_EXTENSION = "@dillahuntyfarms.com";
+
+const queryKeys = {
+  adminData: (userId: string | undefined | null) =>
+    [ADMIN_DOC_NAME, userId] as const,
+  companies: () => [COMPANY_LIST_COLLECTION_NAME] as const,
+  company: (companyId: string | undefined) =>
+    [COMPANY_LIST_COLLECTION_NAME, companyId] as const,
+  companyEmployee: (companyId: string, employeeId: string) =>
+    [
+      COMPANY_LIST_COLLECTION_NAME,
+      companyId,
+      COMPANY_EMPLOYEE_COLLECTION,
+      employeeId,
+    ] as const,
+  weeklyHours: (userId: string, docName: string) =>
+    ["WeeklyHours", userId, docName] as const,
+  weeklyReports: () => ["WeeklyReport"] as const,
+  weeklyReportsForWeek: (docName: string) => ["WeeklyReport", docName] as const,
+  weeklyReport: (companyId: string | undefined, docName: string) =>
+    ["WeeklyReport", docName, companyId] as const,
+};
 
 const getEmptyWeek = (): WeeklyHours => ({
   0: { hours: 0 },
@@ -61,10 +89,10 @@ export function getUserWeekQuery(
   docName: string = buildDocName(date),
 ) {
   const query = {
-    queryKey: ["WeeklyHours", userId, docName],
+    queryKey: queryKeys.weeklyHours(userId, docName),
     queryFn: async (): Promise<WeeklyHours> => {
-      if (!userId) return getEmptyWeek();
       console.log("getUserWeekQuery");
+      if (!userId) return getEmptyWeek();
 
       const docRef = doc(db, userId, docName);
       const docSnap = await getDoc(docRef);
@@ -117,17 +145,18 @@ export function userWeekMutation() {
     },
     onSuccess: async (data, variables) => {
       const docName = buildDocName(variables.date);
-      const queryKey = ["WeeklyHours", variables.userId, docName];
+      const queryKey = queryKeys.weeklyHours(variables.userId, docName);
 
       // ASK: update cache - is this always okay?
       queryClient.setQueryData(queryKey, data);
-      // Invalidate and refetch
-      // queryClient.invalidateQueries([userId, docName])
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.weeklyReportsForWeek(docName),
+      });
     },
     onError: async (_data, variables) => {
       console.log("on userWeekMutation error", _data, variables);
       const docName = buildDocName(variables.date);
-      const queryKey = ["WeeklyHours", variables.userId, docName];
+      const queryKey = queryKeys.weeklyHours(variables.userId, docName);
 
       // TODO: log the error
       // Invalidate and refetch
@@ -223,47 +252,6 @@ export function useSetNotes() {
   return setNotes;
 }
 
-export async function getHoursWorkedThisWeek(
-  userId: string,
-  date: Date,
-  docName?: string,
-) {
-  const userWeek = await queryClient.fetchQuery(
-    getUserWeekQuery(userId, date, docName),
-  );
-  return getRegularHoursTotal(userWeek);
-}
-
-export async function getHoursPaidThisWeek(
-  userId: string,
-  date: Date,
-  docName?: string,
-) {
-  const userWeek = await queryClient.fetchQuery(
-    getUserWeekQuery(userId, date, docName),
-  );
-  return getPaidHoursTotal(userWeek);
-}
-
-export async function getHoursList(
-  userId: string,
-  date: Date,
-  docName: string = buildDocName(date),
-) {
-  const hoursList = [];
-  const userWeek = await fetchWeek(userId, date, docName);
-
-  for (const day in userWeek) {
-    hoursList[day] = userWeek[day].hours;
-  }
-
-  if (!userWeek["additionalHours"]) {
-    hoursList["additionalHours"] = 0;
-  }
-
-  return hoursList;
-}
-
 export function useMakeAdmin() {
   const queryClient = useQueryClient();
 
@@ -276,7 +264,7 @@ export function useMakeAdmin() {
 
     console.log(adminData, newAdminData);
 
-    const queryKey = [ADMIN_DOC_NAME, userId];
+    const queryKey = queryKeys.adminData(userId);
 
     const docRef = doc(db, userId, ADMIN_DOC_NAME);
     // FIXME: this is currently failing permissions
@@ -382,15 +370,15 @@ export async function setMyCompany(userId: string, companyId: string) {
   };
 
   await updateDoc(docRef, newAdminData);
-  queryClient.invalidateQueries({ queryKey: [ADMIN_DOC_NAME, userId] });
+  queryClient.invalidateQueries({ queryKey: queryKeys.adminData(userId) });
 }
 
 export function getAdminDataQuery(userId: string | undefined | null) {
   const query = {
-    queryKey: [ADMIN_DOC_NAME, userId],
+    queryKey: queryKeys.adminData(userId),
     queryFn: async () => {
-      if (!userId) return null;
       console.log("getAdminDataQuery");
+      if (!userId) return null;
       const docRef = doc(db, userId, ADMIN_DOC_NAME);
       const docSnap = await getDoc(docRef);
 
@@ -402,18 +390,9 @@ export function getAdminDataQuery(userId: string | undefined | null) {
   return query;
 }
 
-export async function fetchAdminData(userId: string) {
-  return await queryClient.fetchQuery(getAdminDataQuery(userId));
-}
-
 export function getCompanyEmployeeQuery(companyId: string, empId: string) {
   const query = {
-    queryKey: [
-      COMPANY_LIST_COLLECTION_NAME,
-      companyId,
-      COMPANY_EMPLOYEE_COLLECTION,
-      empId,
-    ],
+    queryKey: queryKeys.companyEmployee(companyId, empId),
     queryFn: async () => {
       console.log("getCompanyEmployeeQuery");
       if (!companyId || !empId) return {};
@@ -443,55 +422,72 @@ export async function fetchCompanyEmployee(companyId: string, empId: string) {
   );
 }
 
-// TODO: refactor to improve performance
-// - make a useEffect that uses useQueries
-export async function getCompanyEmployeeList(
-  companyId: string,
+export function getWeeklyReportDataQuery(
+  companyId: string | undefined,
   selectedDate: Date,
-  docName: string,
 ) {
-  const docList = (await queryClient.fetchQuery(getCompanyQuery(companyId)))[
-    COMPANY_EMPLOYEE_COLLECTION
-  ];
+  const docName = buildDocName(selectedDate);
 
-  const empList = await Promise.all(
-    docList.map(async (emp) => {
-      const hoursPaidThisWeek = await getHoursPaidThisWeek(
-        emp.id,
-        selectedDate,
-        docName,
+  return {
+    queryKey: queryKeys.weeklyReport(companyId, docName),
+    queryFn: async (): Promise<PrintableEmployeeReportRow[]> => {
+      console.log("getWeeklyReportDataQuery");
+      if (!companyId) throw new Error("A company is required.");
+
+      const companyData = await queryClient.fetchQuery(
+        getCompanyQuery(companyId),
       );
-      const hoursWorkedThisWeek = await getHoursWorkedThisWeek(
-        emp.id,
-        selectedDate,
-        docName,
+      const employeeRows = await Promise.all(
+        companyData.Employees.map(async (employee) => {
+          const [weeklyHours, employeeAdminData] = await Promise.all([
+            queryClient.fetchQuery(
+              getUserWeekQuery(employee.id, selectedDate, docName),
+            ),
+            queryClient.fetchQuery(getAdminDataQuery(employee.id)),
+          ]);
+
+          if (employeeAdminData?.hidden) return null;
+
+          const dailyHours: Record<WeekDay, number> = {
+            0: weeklyHours[0].hours,
+            1: weeklyHours[1].hours,
+            2: weeklyHours[2].hours,
+            3: weeklyHours[3].hours,
+            4: weeklyHours[4].hours,
+            5: weeklyHours[5].hours,
+            6: weeklyHours[6].hours,
+          };
+
+          return {
+            additionalHours: getAdditionalHours(weeklyHours),
+            dailyHours,
+            id: employee.id,
+            name: employee.name,
+            paidHours: getPaidHoursTotal(weeklyHours),
+            rate: employee.rate,
+            regularHours: getRegularHoursTotal(weeklyHours),
+          };
+        }),
       );
-      const hoursList = await getHoursList(emp.id, selectedDate, docName);
-      const hidden = (await fetchAdminData(emp.id)).hidden;
 
-      return {
-        ...emp,
-        hoursPaidThisWeek,
-        hoursWorkedThisWeek,
-        hoursList,
-        hidden,
-      };
-    }),
-  );
-
-  return empList;
+      return employeeRows.filter(
+        (employee): employee is PrintableEmployeeReportRow => employee !== null,
+      );
+    },
+    enabled: companyId !== undefined,
+  };
 }
 
 export function getCompanyQuery(companyId?: string) {
   const query = {
-    queryKey: [COMPANY_LIST_COLLECTION_NAME, companyId],
-    queryFn: async () => {
+    queryKey: queryKeys.company(companyId),
+    queryFn: async (): Promise<CompanyData> => {
+      console.log("getCompanyQuery");
       // TODO: add actual error handling
       // TODO: investigate use and see if this is dumb
       if (!companyId || companyId === "") {
         throw new Error("Invalid Arguments");
       }
-      console.log("getCompanyQuery");
       const docRef = doc(db, COMPANY_LIST_COLLECTION_NAME, companyId);
       const docSnap = await getDoc(docRef);
       const employeeCollection = collection(
@@ -503,16 +499,19 @@ export function getCompanyQuery(companyId?: string) {
           COMPANY_EMPLOYEE_COLLECTION,
       );
       const docListSnapshot = await getDocs(employeeCollection);
-      const docList = docListSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+      const docList = docListSnapshot.docs.map(
+        (employeeDoc) =>
+          ({
+            ...employeeDoc.data(),
+            id: employeeDoc.id,
+          }) as CompanyEmployee,
+      );
 
       const companyData = {
-        id: companyId,
         ...docSnap.data(),
+        id: companyId,
         Employees: docList,
-      };
+      } as CompanyData;
       return companyData;
     },
     enabled: companyId !== undefined,
@@ -543,9 +542,9 @@ export function useCompanies() {
 
 export function getCompanyDocsQuery() {
   const query = {
-    queryKey: [COMPANY_LIST_COLLECTION_NAME],
+    queryKey: queryKeys.companies(),
     queryFn: async () => {
-      console.log("getCompaniesQuery");
+      console.log("getCompanyDocsQuery");
       const companyList = collection(db, COMPANY_LIST_COLLECTION_NAME);
       const companiesCollectionSnapshot = await getDocs(companyList); // Fetch documents from the "Companies" collection
       return companiesCollectionSnapshot.docs;
@@ -573,7 +572,7 @@ export function useCreateCompany() {
     mutationFn: createNewCompany,
     onSuccess: async (data) => {
       const newCompanyId = data.id;
-      const companyQueryKey = [COMPANY_LIST_COLLECTION_NAME, newCompanyId];
+      const companyQueryKey = queryKeys.company(newCompanyId);
       queryClient.invalidateQueries({ queryKey: companyQueryKey });
     },
     onError: async (error, _variables) => {
@@ -582,7 +581,7 @@ export function useCreateCompany() {
       console.error(error);
     },
     onSettled: (_data, error, variables, _context) => {
-      const companiesQueryKey = [COMPANY_LIST_COLLECTION_NAME];
+      const companiesQueryKey = queryKeys.companies();
       queryClient.invalidateQueries({ queryKey: companiesQueryKey });
 
       if (variables.onSettled) {
@@ -631,41 +630,32 @@ export function useUpdateEmployeeData() {
   const setEmployeeDataMutation = useMutation({
     mutationFn: setCompanyEmployee,
     onSuccess: async (data, variables) => {
-      const queryKey = [
-        COMPANY_LIST_COLLECTION_NAME,
+      const queryKey = queryKeys.companyEmployee(
         variables.companyId,
-        COMPANY_EMPLOYEE_COLLECTION,
         variables.userId,
-      ];
+      );
 
       // ASK: update cache - is this always okay?
       queryClient.setQueryData(queryKey, data);
 
       // user docs are currently inside the company docs, invalidating the company query
       // TODO: consider updating the company query cache instead of invalidating it
-      const companyQueryKey = [
-        COMPANY_LIST_COLLECTION_NAME,
-        variables.companyId,
-      ];
+      const companyQueryKey = queryKeys.company(variables.companyId);
       queryClient.invalidateQueries({ queryKey: companyQueryKey });
+      queryClient.invalidateQueries({ queryKey: queryKeys.weeklyReports() });
     },
     onError: async (_data, variables) => {
-      const queryKey = [
-        COMPANY_LIST_COLLECTION_NAME,
+      const queryKey = queryKeys.companyEmployee(
         variables.companyId,
-        COMPANY_EMPLOYEE_COLLECTION,
         variables.userId,
-      ];
+      );
 
       // TODO: log the error
       // Invalidate and refetch
       queryClient.invalidateQueries({ queryKey: queryKey });
 
       // invalidate company query
-      const companyQueryKey = [
-        COMPANY_LIST_COLLECTION_NAME,
-        variables.companyId,
-      ];
+      const companyQueryKey = queryKeys.company(variables.companyId);
       queryClient.invalidateQueries({ queryKey: companyQueryKey });
     },
     onSettled: (_data, error, variables, _context) => {
@@ -726,19 +716,15 @@ export function useRemoveEmployee() {
       // TODO: log the error
     },
     onSettled: (_data, error, variables, _context) => {
-      const queryKey = [
-        COMPANY_LIST_COLLECTION_NAME,
+      const queryKey = queryKeys.companyEmployee(
         variables.companyId,
-        COMPANY_EMPLOYEE_COLLECTION,
         variables.userId,
-      ];
+      );
       queryClient.invalidateQueries({ queryKey: queryKey });
 
-      const companyQueryKey = [
-        COMPANY_LIST_COLLECTION_NAME,
-        variables.companyId,
-      ];
+      const companyQueryKey = queryKeys.company(variables.companyId);
       queryClient.invalidateQueries({ queryKey: companyQueryKey });
+      queryClient.invalidateQueries({ queryKey: queryKeys.weeklyReports() });
 
       if (variables.onSettled) {
         variables.onSettled({ error, variables });
@@ -755,42 +741,6 @@ export function useRemoveEmployee() {
   };
 
   return removeEmployee;
-}
-
-// TODO: make mutation and/or invalidate some queries
-// TODO: investigate if unclaimed employees still belong in the codebase
-export async function createUnclaimedEmployee(employeeData, companyID) {
-  // grab unclaimed collection
-  const unclaimedCollection = collection(db, UNCLAIMED_LIST_COLLECTION_NAME);
-  const unclaimedSnapshot = await getDocs(unclaimedCollection); // Fetch documents from the "Companies" collection
-  const unclaimedList = unclaimedSnapshot.docs.map((doc) => doc.id);
-  // makes a list of unclaimed ids
-
-  let claimCode = "";
-  do {
-    claimCode = randomString(6);
-  } while (unclaimedList.includes(claimCode));
-
-  // add claimCode to the unclaimed collection
-  await setDoc(doc(db, UNCLAIMED_LIST_COLLECTION_NAME, claimCode), {
-    unclaimed: true,
-    companyID: companyID,
-  });
-
-  // create a new employee in the collection
-  // add it to the company's employees collection
-  employeeData.unclaimed = true;
-  await createCompanyEmployee(employeeData, claimCode, companyID);
-
-  // add other fields for their name and things :)
-  // add it to the new "unclaimed" collection, along with the company ID to trace it back to the company
-}
-
-// TODO: make mutation and/or invalidate some queries
-export async function deleteUnclaimedEmployee(claimCode, companyID) {
-  const docRef = doc(db, UNCLAIMED_LIST_COLLECTION_NAME, claimCode);
-  await deleteDoc(docRef);
-  await deleteCompanyEmployee(claimCode, companyID);
 }
 
 async function createEmployeeAuth({ userData, companyId, onSettled }) {
@@ -830,10 +780,7 @@ export function useCreateEmployee() {
     },
     onError: async (error, variables) => {
       // invalidate company query
-      const companyQueryKey = [
-        COMPANY_LIST_COLLECTION_NAME,
-        variables.companyId,
-      ];
+      const companyQueryKey = queryKeys.company(variables.companyId);
       queryClient.invalidateQueries({ queryKey: companyQueryKey });
       alert(`Something went wrong: ${error.message}`);
 
@@ -871,15 +818,6 @@ export async function resetPassword(email: string) {
   return result;
 }
 
-// TODO: investigate if this can be removed
-export async function getClaimCodeInfo(claimCode) {
-  const docRef = doc(db, UNCLAIMED_LIST_COLLECTION_NAME, claimCode);
-  const docSnap = await getDoc(docRef);
-
-  if (!docSnap.exists()) return undefined;
-  return docSnap.data();
-}
-
 // TODO: make epic for allowing strangers to create accounts?
 export async function createUser(userData) {
   throw new Error("This functionality is not currently supported");
@@ -892,13 +830,4 @@ export async function createUser(userData) {
   const user = userCredential.user;
 
   return user;
-}
-
-export function randomString(length: number) {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  var result = "";
-  for (var i = 0; i < length; i++) {
-    result += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return result;
 }

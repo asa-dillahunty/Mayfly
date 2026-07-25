@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { FaSave } from "react-icons/fa";
 
@@ -21,6 +22,7 @@ export interface EmployeeRowProps {
   selectedDate: Date;
   canManage: boolean;
   menuOpen: boolean;
+  onDirtyChange: (employeeId: string, dirty: boolean) => void;
   onMenuOpenChange: (employeeId: string, open: boolean) => void;
 }
 
@@ -31,6 +33,7 @@ export function EmployeeRow({
   selectedDate,
   canManage,
   menuOpen,
+  onDirtyChange,
   onMenuOpenChange,
 }: EmployeeRowProps) {
   const employeeQuery = useQuery(
@@ -44,6 +47,12 @@ export function EmployeeRow({
   const employeeData = (
     queriedEmployee?.id ? queriedEmployee : employee
   ) as CompanyEmployee;
+  const saveButtonVisible = editor.hasChanges || editor.hasInvalidChanges;
+
+  useEffect(() => {
+    onDirtyChange(employee.id, saveButtonVisible);
+    return () => onDirtyChange(employee.id, false);
+  }, [employee.id, onDirtyChange, saveButtonVisible]);
 
   if (employeeAdminQuery.data?.hidden) return null;
 
@@ -97,22 +106,24 @@ export function EmployeeRow({
       </td>
       <td className={styles.totalCell}>{editor.totalHours}</td>
       <td className={styles.saveCell}>
-        {(editor.hasChanges || editor.hasInvalidChanges) && (
-          <button
-            aria-label={`Save hours for ${employeeData.name}`}
-            className={styles.saveButton}
-            disabled={
-              !canManage ||
-              !editor.hasChanges ||
-              editor.hasInvalidChanges ||
-              editor.saving
-            }
-            onClick={() => editor.save()}
-            type="button"
-          >
-            <FaSave />
-          </button>
-        )}
+        <button
+          aria-hidden={!saveButtonVisible}
+          aria-label={`Save hours for ${employeeData.name}`}
+          className={`${styles.saveButton} ${
+            saveButtonVisible ? "" : styles.hiddenSaveButton
+          }`}
+          disabled={
+            !canManage ||
+            !editor.hasChanges ||
+            editor.hasInvalidChanges ||
+            editor.saving
+          }
+          onClick={() => editor.save()}
+          tabIndex={saveButtonVisible ? undefined : -1}
+          type="button"
+        >
+          <FaSave />
+        </button>
       </td>
     </tr>
   );
