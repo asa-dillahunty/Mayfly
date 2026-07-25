@@ -1,5 +1,5 @@
 import { useState } from "react";
-import ClickBlocker from "../../components/ClickBlocker.tsx";
+import { LoadingDialog } from "../../components/LoadingDialog.tsx";
 import { auth } from "../../utils/firebase.ts";
 
 import "./PasswordReset.css";
@@ -20,7 +20,6 @@ export default function PasswordReset(props) {
   const navigate = useNavigate();
 
   const [errorMessage, setErrorMessage] = useState("");
-  const [showToast, setShowToast] = useState(false);
 
   const validateEmail = (email) => {
     return String(email)
@@ -49,7 +48,6 @@ export default function PasswordReset(props) {
       if (props.reset) {
         await confirmPasswordReset(auth, props.token, password);
         setErrorMessage("");
-        setShowToast(true);
         // we cannot sign the user in here because we do not have their email
 
         // wait a second so the user can see it was a success then move to login
@@ -82,7 +80,15 @@ export default function PasswordReset(props) {
   // TODO: Replace Toast with something better. Consider removing it since the page changes immediately on success
   return (
     <div className="login-container">
-      <ClickBlocker block={blocked} loading={true} />
+      {blocked && (
+        <LoadingDialog
+          message={
+            props.reset
+              ? "Resetting your password..."
+              : "Setting your password..."
+          }
+        />
+      )}
       {/* <Toast
         onClose={() => setShowToast(false)}
         show={showToast}

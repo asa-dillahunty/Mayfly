@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { pageRoutes } from "../../App";
-import ClickBlocker from "../../components/ClickBlocker";
+import { LoadingDialog } from "../../components/LoadingDialog";
 import { createUser } from "../../utils/firebaseQueries";
 import { useState } from "react";
 
@@ -32,7 +32,7 @@ export default function Signup() {
 
   return (
     <div className="login-container">
-      <ClickBlocker block={blocked} loading={true} />
+      {blocked && <LoadingDialog message="Creating your account..." />}
       <div className="login-form">
         <h1 className="login-title">
           {/* <img src={logo} className="login-logo" alt="logo" />

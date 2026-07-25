@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import ClickBlocker from "../../components/ClickBlocker";
+import { LoadingDialog } from "../../components/LoadingDialog";
 import { resetPassword } from "../../utils/firebase";
 import { useState } from "react";
 import { pageRoutes } from "../../App";
@@ -49,7 +49,7 @@ export default function ForgotPassword() {
   }
   return (
     <div className="login-container">
-      <ClickBlocker block={blocked} loading={true} />
+      {blocked && <LoadingDialog message="Sending your reset email..." />}
       <div className="login-form">
         <h1 className="login-title">
           <span className="title">Mayfly</span> <br /> Account Recovery

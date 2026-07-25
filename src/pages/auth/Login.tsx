@@ -2,7 +2,7 @@ import { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 
 import { auth } from "../../utils/firebase.ts";
-import ClickBlocker from "../../components/ClickBlocker.tsx";
+import { LoadingDialog } from "../../components/LoadingDialog.tsx";
 import { useNavigate } from "react-router-dom";
 import { pageRoutes } from "../../App.tsx";
 
@@ -40,9 +40,14 @@ function Login() {
     }
   };
 
+  // const fakeSignIn = (e: React.SubmitEvent) => {
+  //   e.preventDefault();
+  //   setBlocked(true);
+  // };
+
   return (
     <div className={styles.loginContainer}>
-      <ClickBlocker block={blocked} loading={true} />
+      {blocked && <LoadingDialog message="Signing in..." />}
       <div className={styles.loginForm}>
         <h1 className={styles.loginTitle}>
           <span className={styles.title}>Mayfly</span> Login

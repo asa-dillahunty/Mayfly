@@ -3,15 +3,9 @@ import {
   useCreateEmployee,
   useUpdateEmployeeData,
 } from "../utils/firebaseQueries.ts";
-import ClickBlocker from "./ClickBlocker";
 
-import { useId, useRef, useState } from "react";
-import type {
-  ChangeEvent,
-  KeyboardEvent,
-  MouseEvent,
-  SubmitEvent,
-} from "react";
+import { useId, useState } from "react";
+import type { ChangeEvent, MouseEvent, SubmitEvent } from "react";
 import styles from "./sass/EmployeeInfoForm.module.scss";
 
 const userDataDefault = {
@@ -23,9 +17,6 @@ const userDataDefault = {
   isAdmin: false,
 };
 
-const focusableSelector =
-  'button:not(:disabled), input:not(:disabled), [href], [tabindex]:not([tabindex="-1"])';
-
 type EmpInfoFormProps = {
   edit?: boolean;
   add?: boolean;
@@ -33,6 +24,8 @@ type EmpInfoFormProps = {
   companyId: string;
   setFormOpen: (val: boolean) => void;
   admin?: boolean;
+  onPendingChange?: (pending: boolean) => void;
+  titleId?: string;
 };
 
 function EmployeeInfoForm({
@@ -42,10 +35,12 @@ function EmployeeInfoForm({
   companyId,
   setFormOpen,
   admin,
+  onPendingChange,
+  titleId: providedTitleId,
 }: EmpInfoFormProps) {
   const userData = { ...userDataDefault, ...empData };
   const fieldId = useId();
-  const titleId = `${fieldId}-title`;
+  const titleId = providedTitleId ?? `${fieldId}-title`;
   const firstNameId = `${fieldId}-first-name`;
   const lastNameId = `${fieldId}-last-name`;
   const rateId = `${fieldId}-rate`;
@@ -59,7 +54,11 @@ function EmployeeInfoForm({
   const [hourlyRate, setRate] = useState(String(userData.rate));
   const [isAdmin, setIsAdmin] = useState(userData.isAdmin);
   const [blocked, setBlocked] = useState(false);
-  const dialogRef = useRef<HTMLDivElement>(null);
+
+  const setPending = (pending: boolean) => {
+    setBlocked(pending);
+    onPendingChange?.(pending);
+  };
 
   const parsedHourlyRate = Number(hourlyRate);
   const wageError =
@@ -85,7 +84,8 @@ function EmployeeInfoForm({
       alert("Hourly Wage not valid");
       return;
     }
-    setBlocked(true);
+    if (blocked) return;
+    setPending(true);
     // TODO:
     // 	do some checking on the data gathered from the form
 
@@ -101,16 +101,16 @@ function EmployeeInfoForm({
 
     if (edit) {
       setEmployeeData(userData.id!, companyId, updatedEmployee, () => {
-        setBlocked(false);
+        setPending(false);
         setFormOpen(false);
       });
     } else if (add) {
       const settleFunc = ({ error }: { error?: unknown }) => {
         // if an error, we don't close the form. Should we?
         if (error) {
-          setBlocked(false);
+          setPending(false);
         } else {
-          setBlocked(false);
+          setPending(false);
           setFormOpen(false);
         }
       };
@@ -122,47 +122,21 @@ function EmployeeInfoForm({
     setRate(e.target.value);
   };
 
-  const handleDialogKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === "Escape" && !blocked) {
-      event.preventDefault();
-      setFormOpen(false);
-      return;
-    }
-    if (event.key !== "Tab" || !dialogRef.current) return;
-    const focusableElements = Array.from(
-      dialogRef.current.querySelectorAll<HTMLElement>(focusableSelector),
-    );
-    if (focusableElements.length === 0) return;
-    const firstElement = focusableElements[0];
-    const lastElement = focusableElements[focusableElements.length - 1];
-
-    if (event.shiftKey && document.activeElement === firstElement) {
-      event.preventDefault();
-      lastElement.focus();
-    } else if (!event.shiftKey && document.activeElement === lastElement) {
-      event.preventDefault();
-      firstElement.focus();
-    }
-  };
-
   return (
-    <div
-      aria-labelledby={titleId}
-      aria-modal="true"
-      className={styles.employeeInfoForm}
-      onKeyDown={handleDialogKeyDown}
-      ref={dialogRef}
-      role="dialog"
-    >
-      <h1 className={styles.title} id={titleId}>
+    <div className={styles.employeeInfoForm}>
+      <h2 className={styles.title} id={titleId}>
         {edit ? "Edit Employee Info" : "Create New Employee"}
-      </h1>
-      <ClickBlocker block={blocked} loading />
-      <form className={styles.form} onSubmit={submitChanges}>
+      </h2>
+      <form
+        aria-busy={blocked}
+        className={styles.form}
+        onSubmit={submitChanges}
+      >
         <label htmlFor={firstNameId}>First Name:</label>
         <input
           autoFocus
           className={styles.input}
+          disabled={blocked}
           id={firstNameId}
           placeholder="First Name"
           type="text"
@@ -172,6 +146,7 @@ function EmployeeInfoForm({
         <label htmlFor={lastNameId}>Last Name:</label>
         <input
           className={styles.input}
+          disabled={blocked}
           id={lastNameId}
           placeholder="Last Name"
           type="text"
@@ -183,6 +158,7 @@ function EmployeeInfoForm({
           aria-describedby={wageError ? rateErrorId : undefined}
           aria-invalid={wageError}
           className={styles.input}
+          disabled={blocked}
           id={rateId}
           min="0"
           onChange={trySetRate}
@@ -203,6 +179,7 @@ function EmployeeInfoForm({
             <label htmlFor={emailId}>Email:</label>
             <input
               className={styles.input}
+              disabled={blocked}
               id={emailId}
               placeholder="Email"
               type="email"
@@ -217,6 +194,7 @@ function EmployeeInfoForm({
           <div className={styles.checkboxContainer}>
             <input
               checked={isAdmin}
+              disabled={blocked}
               id={adminId}
               name="isAdmin"
               onChange={toggleIsAdmin}
@@ -231,7 +209,7 @@ function EmployeeInfoForm({
             disabled={blocked || wageError}
             type="submit"
           >
-            Submit
+            {blocked ? "Submitting..." : "Submit"}
           </button>
           <button
             className={styles.cancelButton}

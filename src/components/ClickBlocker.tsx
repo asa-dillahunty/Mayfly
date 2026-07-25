@@ -1,6 +1,6 @@
 import { useId, useRef } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
-import { RingLoader, SquareLoader } from "react-spinners";
+import { RingLoader } from "react-spinners";
 
 import styles from "./sass/ClickBlocker.module.scss";
 
@@ -13,7 +13,6 @@ interface ClickBlockerProps {
   confirm?: boolean;
   custom?: boolean;
   loading?: boolean;
-  locked?: boolean;
   message?: ReactNode;
   messageEmphasized?: ReactNode;
   onCancel?: () => void;
@@ -26,7 +25,6 @@ function ClickBlocker({
   confirm,
   custom,
   loading,
-  locked,
   message,
   messageEmphasized,
   onCancel,
@@ -41,13 +39,6 @@ function ClickBlocker({
         role="status"
       >
         <RingLoader color="#ffffff" />
-      </div>
-    );
-  }
-  if (locked) {
-    return (
-      <div aria-label="Locked" className={styles.blocker} role="status">
-        <SquareLoader color="#000000" />
       </div>
     );
   }

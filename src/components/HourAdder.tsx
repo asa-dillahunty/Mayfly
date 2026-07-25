@@ -1,14 +1,14 @@
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { MouseEvent } from "react";
 import { AiOutlineSnippets } from "react-icons/ai";
 import { useQuery } from "@tanstack/react-query";
 
 import Calendar, { WEEK_VIEW, MONTH_VIEW } from "./Calendar";
-import ClickBlocker from "./ClickBlocker";
 import Picker from "./CustomPicker";
 import { getUserWeekQuery, useSetHours } from "../utils/firebaseQueries.ts";
 import { getRegularHoursTotal } from "../utils/weeklyHours";
 
-import NotesForm from "./NotesForm.tsx";
+import { NotesDialog } from "./NotesDialog";
 import styles from "./sass/HourAdder.module.scss";
 
 interface HourAdderProps {
@@ -28,7 +28,6 @@ export function HourAdder({
   const [calendarView, setCalendarView] = useState(WEEK_VIEW);
 
   // TODO: toggleView functionality should be moved to the calendar component
-  const outsidePayPeriod = false;
   const toggleView = () => {
     if (calendarView === WEEK_VIEW) setCalendarView(MONTH_VIEW);
     else setCalendarView(WEEK_VIEW);
@@ -40,11 +39,11 @@ export function HourAdder({
 
   return (
     <div className={styles.hourAdderContent}>
-      <button onClick={toggleView}>
+      {/* <button disabled={blocked} onClick={toggleView} type="button">
         {calendarView === WEEK_VIEW ? "Month View" : "Week View"}{" "}
-      </button>
+      </button> */}
       <div>
-        <label className={styles.datePickerLabel}>
+        <label className={styles.datePickerLabel} inert={blocked}>
           <Calendar
             uid={uid}
             view={calendarView}
@@ -57,7 +56,6 @@ export function HourAdder({
           uid={uid}
           blocked={blocked}
           setBlocked={setBlocked}
-          locked={outsidePayPeriod}
           showNotes={showNotes === true}
           selectedDate={selectedDate}
         />
@@ -70,7 +68,6 @@ interface HourSelectorProps {
   uid: string;
   blocked: boolean;
   setBlocked: (value: boolean) => void;
-  locked: boolean;
   showNotes: boolean;
   selectedDate: Date;
   hide?: boolean;
@@ -80,7 +77,6 @@ function HourSelector({
   uid,
   blocked,
   setBlocked,
-  locked,
   showNotes,
   selectedDate,
   hide = false,
@@ -91,6 +87,7 @@ function HourSelector({
     hours: 0,
     minutes: 0,
   });
+  const notesButtonRef = useRef<HTMLButtonElement>(null);
 
   const weeklyHoursQuery = useQuery(getUserWeekQuery(uid, selectedDate));
   const weeklyHours = weeklyHoursQuery.data;
@@ -126,8 +123,9 @@ function HourSelector({
 
   const setTheseHours = useSetHours();
 
-  const handleAddHours = async (e) => {
-    e.preventDefault();
+  const handleAddHours = (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    if (blocked) return;
     setBlocked(true);
 
     setTheseHours(uid, selectedDate, hoursWorked, () => {
@@ -140,16 +138,15 @@ function HourSelector({
     return <></>;
   } else {
     return (
-      <div>
-        <ClickBlocker block={blocked || locked} locked={locked} />
-        <ClickBlocker block={notes} custom>
-          <NotesForm
-            setBlocked={setNotes}
-            uid={uid}
-            date={selectedDate}
-            defaultNotes={weeklyHours[selectedDate.getDay()].notes}
-          />
-        </ClickBlocker>
+      <div aria-busy={blocked}>
+        <NotesDialog
+          date={selectedDate}
+          defaultNotes={weeklyHours[selectedDate.getDay()].notes}
+          onOpenChange={setNotes}
+          open={notes}
+          returnFocusRef={notesButtonRef}
+          uid={uid}
+        />
         <div className={styles.workedHoursContainer}>
           <p className={styles.workedHoursLabel}>Hours Worked:</p>
           <p className={styles.workedHours}>
@@ -159,7 +156,7 @@ function HourSelector({
             {hoursThisWeek < 0.5 ? "" : "Weekly total: " + hoursThisWeek}
           </p>
         </div>
-        <div className={styles.killScroll}>
+        <div className={styles.killScroll} inert={blocked}>
           <Picker value={pickerValue} onChange={setPickerValue} />
         </div>
         <div className={styles.addHoursButtonContainer}>
@@ -167,14 +164,18 @@ function HourSelector({
             className={styles.addHoursButton}
             onClick={handleAddHours}
             disabled={blocked}
+            type="button"
           >
-            Update Hours
+            {blocked ? "Updating..." : "Update Hours"}
           </button>
           {showNotes && (
             <button
+              aria-label="Edit work notes"
               className={styles.addNotesButton}
               onClick={() => setNotes(true)}
               disabled={blocked}
+              ref={notesButtonRef}
+              type="button"
             >
               <AiOutlineSnippets />
             </button>

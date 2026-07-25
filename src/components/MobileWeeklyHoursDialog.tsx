@@ -1,8 +1,10 @@
-import { useEffect, useId, useRef, useState } from "react";
-import type { KeyboardEvent, SubmitEvent } from "react";
+import { useId, useRef, useState } from "react";
+import type { RefObject, SubmitEvent } from "react";
 import { AiOutlineClose } from "react-icons/ai";
 
+import { ConfirmDialog } from "./ConfirmDialog";
 import { HoursInput } from "./HoursInput";
+import { ModalDialog } from "./ModalDialog";
 import {
   ABBREVIATIONS,
   getEndOfWeekString,
@@ -13,8 +15,6 @@ import type { WeekDay, WeeklyHours } from "../utils/dataModels";
 import styles from "./sass/MobileWeeklyHoursDialog.module.scss";
 
 const weekDays = getPayPeriodArray() as WeekDay[];
-const focusableSelector =
-  'button:not(:disabled), input:not(:disabled), [href], [tabindex]:not([tabindex="-1"])';
 
 function getPayPeriodDates(selectedDate: Date) {
   const firstDay = new Date(selectedDate);
@@ -43,6 +43,7 @@ interface MobileWeeklyHoursDialogProps {
   onDiscard: () => void;
   onSave: () => void;
   open: boolean;
+  returnFocusRef?: RefObject<HTMLElement | null>;
   saveError?: string;
   saving: boolean;
   selectedDate: Date;
@@ -64,6 +65,7 @@ export function MobileWeeklyHoursDialog({
   onDiscard,
   onSave,
   open,
+  returnFocusRef,
   saveError,
   saving,
   selectedDate,
@@ -72,21 +74,9 @@ export function MobileWeeklyHoursDialog({
 }: MobileWeeklyHoursDialogProps) {
   const titleId = useId();
   const weekId = useId();
-  const confirmTitleId = useId();
   const [confirmingClose, setConfirmingClose] = useState(false);
-  const dialogRef = useRef<HTMLElement>(null);
-  const confirmDialogRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [open]);
-
-  if (!open) return null;
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const confirmReturnFocusRef = useRef<HTMLElement | null>(null);
 
   const isDirty = hasChanges || hasInvalidChanges;
   const payPeriodDates = getPayPeriodDates(selectedDate);
@@ -94,42 +84,13 @@ export function MobileWeeklyHoursDialog({
   const requestClose = () => {
     if (saving) return;
     if (isDirty) {
+      const activeElement = document.activeElement;
+      confirmReturnFocusRef.current =
+        activeElement instanceof HTMLElement ? activeElement : null;
       setConfirmingClose(true);
       return;
     }
     onClose();
-  };
-
-  const handleDialogKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === "Escape") {
-      event.stopPropagation();
-      if (confirmingClose) {
-        setConfirmingClose(false);
-        return;
-      }
-      requestClose();
-      return;
-    }
-
-    if (event.key !== "Tab") return;
-    const focusContainer = confirmingClose
-      ? confirmDialogRef.current
-      : dialogRef.current;
-    if (!focusContainer) return;
-    const focusableElements = Array.from(
-      focusContainer.querySelectorAll<HTMLElement>(focusableSelector),
-    );
-    if (focusableElements.length === 0) return;
-    const firstElement = focusableElements[0];
-    const lastElement = focusableElements[focusableElements.length - 1];
-
-    if (event.shiftKey && document.activeElement === firstElement) {
-      event.preventDefault();
-      lastElement.focus();
-    } else if (!event.shiftKey && document.activeElement === lastElement) {
-      event.preventDefault();
-      firstElement.focus();
-    }
   };
 
   const submitHours = (event: SubmitEvent<HTMLFormElement>) => {
@@ -140,161 +101,142 @@ export function MobileWeeklyHoursDialog({
   };
 
   return (
-    <div
-      aria-labelledby={titleId}
-      aria-describedby={weekId}
-      aria-modal="true"
-      className={styles.backdrop}
-      onClick={requestClose}
-      onKeyDown={handleDialogKeyDown}
-      role="dialog"
-    >
-      <section
-        className={styles.dialog}
-        onClick={(event) => event.stopPropagation()}
-        ref={dialogRef}
+    <>
+      <ModalDialog
+        ariaDescribedBy={weekId}
+        ariaLabelledBy={titleId}
+        className={styles.modal}
+        closeOnBackdrop
+        dismissible={!saving}
+        initialFocusRef={closeButtonRef}
+        onRequestClose={requestClose}
+        open={open}
+        returnFocusRef={returnFocusRef}
       >
-        <header className={styles.header} inert={confirmingClose}>
-          <div>
-            <p className={styles.eyebrow}>Weekly hours</p>
-            <h2 className={styles.title} id={titleId}>
-              {employeeName}
-            </h2>
-            <p className={styles.week} id={weekId}>
-              {getStartOfWeekString(selectedDate)} -{" "}
-              {getEndOfWeekString(selectedDate)}
-            </p>
-          </div>
-          <button
-            aria-label="Close weekly hours"
-            autoFocus
-            className={styles.closeButton}
-            disabled={saving}
-            onClick={requestClose}
-            type="button"
-          >
-            <AiOutlineClose />
-          </button>
-        </header>
+        {open && (
+          <section className={styles.dialog}>
+            <header className={styles.header}>
+              <div>
+                <p className={styles.eyebrow}>Weekly hours</p>
+                <h2 className={styles.title} id={titleId}>
+                  {employeeName}
+                </h2>
+                <p className={styles.week} id={weekId}>
+                  {getStartOfWeekString(selectedDate)} -{" "}
+                  {getEndOfWeekString(selectedDate)}
+                </p>
+              </div>
+              <button
+                aria-label="Close weekly hours"
+                className={styles.closeButton}
+                disabled={saving}
+                onClick={requestClose}
+                ref={closeButtonRef}
+                type="button"
+              >
+                <AiOutlineClose />
+              </button>
+            </header>
 
-        <form
-          className={styles.form}
-          inert={confirmingClose}
-          onSubmit={submitHours}
-        >
-          <div className={styles.content}>
-            {!weeklyHours ? (
-              <p className={styles.loading}>Loading weekly hours...</p>
-            ) : (
-              <div className={styles.hoursList}>
-                {weekDays.map((day, index) => {
-                  const value =
-                    editedHours[day] ?? String(weeklyHours[day].hours);
-                  return (
-                    <label className={styles.hoursRow} key={day}>
-                      <span
-                        className={`${styles.hoursLabel} ${styles.dayLabel}`}
-                      >
-                        <span>{ABBREVIATIONS[day]}</span>
-                        <span className={styles.dateLabel}>
-                          {payPeriodDates[index]}
-                        </span>
-                      </span>
+            <form className={styles.form} onSubmit={submitHours}>
+              <div className={styles.content}>
+                {!weeklyHours ? (
+                  <p className={styles.loading}>Loading weekly hours...</p>
+                ) : (
+                  <div className={styles.hoursList}>
+                    {weekDays.map((day, index) => {
+                      const value =
+                        editedHours[day] ?? String(weeklyHours[day].hours);
+                      return (
+                        <label className={styles.hoursRow} key={day}>
+                          <span
+                            className={`${styles.hoursLabel} ${styles.dayLabel}`}
+                          >
+                            <span>{ABBREVIATIONS[day]}</span>
+                            <span className={styles.dateLabel}>
+                              {payPeriodDates[index]}
+                            </span>
+                          </span>
+                          <HoursInput
+                            className={styles.hoursInput}
+                            disabled={saving}
+                            draftValue={editedHours[day]}
+                            maximum={24}
+                            onBlur={() => onDayHoursBlur(day)}
+                            onChange={(newValue) =>
+                              onDayHoursChange(day, newValue)
+                            }
+                            value={value}
+                          />
+                        </label>
+                      );
+                    })}
+                    <label className={styles.hoursRow}>
+                      <span className={styles.hoursLabel}>Additional</span>
                       <HoursInput
                         className={styles.hoursInput}
                         disabled={saving}
-                        draftValue={editedHours[day]}
-                        maximum={24}
-                        onBlur={() => onDayHoursBlur(day)}
-                        onChange={(newValue) => onDayHoursChange(day, newValue)}
-                        value={value}
+                        draftValue={editedAdditionalHours}
+                        onBlur={onAdditionalHoursBlur}
+                        onChange={onAdditionalHoursChange}
+                        value={
+                          editedAdditionalHours ??
+                          String(weeklyHours.additionalHours?.hours ?? 0)
+                        }
                       />
                     </label>
-                  );
-                })}
-                <label className={styles.hoursRow}>
-                  <span className={styles.hoursLabel}>Additional</span>
-                  <HoursInput
-                    className={styles.hoursInput}
-                    disabled={saving}
-                    draftValue={editedAdditionalHours}
-                    onBlur={onAdditionalHoursBlur}
-                    onChange={onAdditionalHoursChange}
-                    value={
-                      editedAdditionalHours ??
-                      String(weeklyHours.additionalHours?.hours ?? 0)
-                    }
-                  />
-                </label>
-                <div className={`${styles.hoursRow} ${styles.totalRow}`}>
-                  <span className={styles.hoursLabel}>Total</span>
-                  <strong className={styles.totalValue}>{totalHours}</strong>
-                </div>
+                    <div className={`${styles.hoursRow} ${styles.totalRow}`}>
+                      <span className={styles.hoursLabel}>Total</span>
+                      <strong className={styles.totalValue}>
+                        {totalHours}
+                      </strong>
+                    </div>
+                  </div>
+                )}
+                {saveError && (
+                  <p className={styles.saveError} role="alert">
+                    {saveError}
+                  </p>
+                )}
               </div>
-            )}
-            {saveError && (
-              <p className={styles.saveError} role="alert">
-                {saveError}
-              </p>
-            )}
-          </div>
 
-          <footer className={styles.footer}>
-            <button
-              className={styles.cancelButton}
-              disabled={saving}
-              onClick={requestClose}
-              type="button"
-            >
-              Cancel
-            </button>
-            <button
-              className={styles.saveButton}
-              disabled={
-                !weeklyHours || !hasChanges || hasInvalidChanges || saving
-              }
-              type="submit"
-            >
-              {saving ? "Saving..." : "Save"}
-            </button>
-          </footer>
-        </form>
-
-        {confirmingClose && (
-          <div className={styles.confirmBackdrop}>
-            <section
-              aria-labelledby={confirmTitleId}
-              aria-modal="true"
-              className={styles.confirmDialog}
-              ref={confirmDialogRef}
-              role="alertdialog"
-            >
-              <h3 id={confirmTitleId}>Discard your changes?</h3>
-              <p>You have unsaved weekly hours for {employeeName}.</p>
-              <div className={styles.confirmActions}>
+              <footer className={styles.footer}>
                 <button
-                  autoFocus
-                  className={styles.continueButton}
-                  onClick={() => setConfirmingClose(false)}
+                  className={styles.cancelButton}
+                  disabled={saving}
+                  onClick={requestClose}
                   type="button"
                 >
-                  Continue editing
+                  Cancel
                 </button>
                 <button
-                  className={styles.discardButton}
-                  onClick={() => {
-                    setConfirmingClose(false);
-                    onDiscard();
-                  }}
-                  type="button"
+                  className={styles.saveButton}
+                  disabled={
+                    !weeklyHours || !hasChanges || hasInvalidChanges || saving
+                  }
+                  type="submit"
                 >
-                  Discard
+                  {saving ? "Saving..." : "Save"}
                 </button>
-              </div>
-            </section>
-          </div>
+              </footer>
+            </form>
+          </section>
         )}
-      </section>
-    </div>
+      </ModalDialog>
+      <ConfirmDialog
+        cancelLabel="Continue editing"
+        confirmLabel="Discard"
+        message={`You have unsaved weekly hours for ${employeeName}.`}
+        onCancel={() => setConfirmingClose(false)}
+        onConfirm={() => {
+          confirmReturnFocusRef.current = null;
+          setConfirmingClose(false);
+          onDiscard();
+        }}
+        open={open && confirmingClose}
+        returnFocusRef={confirmReturnFocusRef}
+        title="Discard your changes?"
+      />
+    </>
   );
 }

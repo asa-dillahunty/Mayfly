@@ -2,8 +2,8 @@ import { useEffect, useId, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import { AiOutlineMore } from "react-icons/ai";
 
-import ClickBlocker from "./ClickBlocker";
-import EmployeeInfoForm from "./EmployeeInfoForm";
+import { ConfirmDialog } from "./ConfirmDialog";
+import { EmployeeInfoDialog } from "./EmployeeInfoDialog";
 import { MobileWeeklyHoursDialog } from "./MobileWeeklyHoursDialog";
 import { useRemoveEmployee } from "../utils/firebaseQueries";
 import type { CompanyEmployee } from "../utils/dataModels";
@@ -96,13 +96,8 @@ export function EmployeeRowActions({
     menuItems[nextIndex].focus();
   };
 
-  const restoreMenuButtonFocus = () => {
-    requestAnimationFrame(() => menuButtonRef.current?.focus());
-  };
-
   const closeHoursDialog = () => {
     setEditingHours(false);
-    restoreMenuButtonFocus();
   };
 
   const deleteEmployee = () => {
@@ -188,35 +183,35 @@ export function EmployeeRowActions({
         }}
         onSave={() => editor.save(closeHoursDialog)}
         open={editingHours}
+        returnFocusRef={menuButtonRef}
         saveError={editor.saveError}
         saving={editor.saving}
         selectedDate={selectedDate}
         totalHours={editor.totalHours}
         weeklyHours={editor.weeklyHours}
       />
-      <ClickBlocker block={editingEmployee} custom>
-        <EmployeeInfoForm
-          companyId={companyId}
-          edit
-          empData={employee}
-          setFormOpen={(open) => {
-            setEditingEmployee(open);
-            if (!open) restoreMenuButtonFocus();
-          }}
-        />
-      </ClickBlocker>
-      <ClickBlocker
-        block={confirmDelete}
-        confirm
+      <EmployeeInfoDialog
+        companyId={companyId}
+        edit
+        employee={employee}
+        onOpenChange={setEditingEmployee}
+        open={editingEmployee}
+        returnFocusRef={menuButtonRef}
+      />
+      <ConfirmDialog
+        confirmLabel="Remove employee"
+        emphasizedMessage="This action cannot be undone."
         message={`Are you sure you want to remove ${employee.name} from ${companyName}?`}
-        messageEmphasized="This action cannot be undone."
         onCancel={() => {
           setConfirmDelete(false);
-          restoreMenuButtonFocus();
         }}
         onConfirm={deleteEmployee}
+        open={confirmDelete}
+        pending={removing}
+        pendingLabel="Removing..."
+        returnFocusRef={menuButtonRef}
+        title="Remove employee?"
       />
-      <ClickBlocker block={busy} loading />
     </td>
   );
 }

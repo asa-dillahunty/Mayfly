@@ -20,7 +20,7 @@
 }
 
 .title {
-  margin-bottom: 1rem;
+  margin: 0 0 1rem;
   color: $fg-main;
   font-size: 1.35rem;
   text-align: center;
@@ -32,6 +32,12 @@
   padding: 0.6rem;
   border: 1px solid $accent;
   border-radius: 0.25rem;
+}
+
+.input:disabled,
+.checkboxContainer input:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 .validationError {

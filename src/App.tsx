@@ -3,10 +3,9 @@ import { useEffect, useState } from "react";
 import "./App.scss";
 import { auth } from "./utils/firebase.ts";
 import { onAuthStateChanged } from "firebase/auth";
-import ClickBlocker from "./components/ClickBlocker.tsx";
+import { LoadingDialog } from "./components/LoadingDialog.tsx";
 import Login from "./pages/auth/Login.tsx";
 import PasswordReset from "./pages/auth/PasswordReset.tsx";
-import Dashboard from "./pages/dashboard/Dashboard.tsx";
 import { Route, Routes, useNavigate } from "react-router-dom";
 import { useSetAtom } from "jotai";
 import { ResetToken, UID } from "./utils/atoms.tsx";
@@ -33,7 +32,7 @@ function App() {
       else if (mode === "signUp") navigate(pageRoutes.signup.path);
     }
 
-    const unsubscribe = onAuthStateChanged(auth, (_user) => {
+    const unsubscribe = onAuthStateChanged(auth, () => {
       // in case user is logging out
       setLoading(false);
 
@@ -46,7 +45,7 @@ function App() {
     return () => unsubscribe();
   }, []);
 
-  if (loading) return <ClickBlocker loading block />;
+  if (loading) return <LoadingDialog message="Loading..." />;
 
   return (
     <main>

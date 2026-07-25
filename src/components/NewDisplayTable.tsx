@@ -2,8 +2,7 @@ import { useCallback, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AiOutlineLeft, AiOutlineRight } from "react-icons/ai";
 
-import ClickBlocker from "./ClickBlocker";
-import EmployeeInfoForm from "./EmployeeInfoForm";
+import { EmployeeInfoDialog } from "./EmployeeInfoDialog";
 import { getAdminDataQuery, getCompanyQuery } from "../utils/firebaseQueries";
 import { getCurrentUserId } from "../utils/firebase";
 import {
@@ -155,19 +154,14 @@ export function NewDisplayTable({ companyId }: DisplayTableProps) {
       {employees.length === 0 && (
         <p className={styles.emptyState}>No registered employees found.</p>
       )}
-      <ClickBlocker block={addingEmployee} custom>
-        <EmployeeInfoForm
-          add
-          admin={adminData?.omniAdmin === true}
-          companyId={companyId}
-          setFormOpen={(open) => {
-            setAddingEmployee(open);
-            if (!open) {
-              requestAnimationFrame(() => addEmployeeButtonRef.current?.focus());
-            }
-          }}
-        />
-      </ClickBlocker>
+      <EmployeeInfoDialog
+        add
+        admin={adminData?.omniAdmin === true}
+        companyId={companyId}
+        onOpenChange={setAddingEmployee}
+        open={addingEmployee}
+        returnFocusRef={addEmployeeButtonRef}
+      />
     </section>
   );
 }

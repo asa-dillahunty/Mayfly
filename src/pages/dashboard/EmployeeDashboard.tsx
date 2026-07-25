@@ -1,4 +1,3 @@
-import ClickBlocker from "../../components/ClickBlocker";
 import HourAdder from "../../components/HourAdder";
 import { useState } from "react";
 import { auth } from "../../utils/firebase";
@@ -10,8 +9,6 @@ export default function EmployeeDashboard() {
 
   return (
     <div>
-      <ClickBlocker block={blocked} />
-
       <HourAdder
         showNotes
         uid={currentUserId}

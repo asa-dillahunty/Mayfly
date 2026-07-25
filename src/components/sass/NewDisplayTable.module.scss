@@ -81,7 +81,7 @@ th.saveHeader {
 @media (max-width: $mobile-breakpoint) {
   .tableContainer {
     width: 100%;
-    min-width: 0;
+    min-width: 300px;
     gap: 0.75rem;
   }
 
