@@ -125,6 +125,11 @@
   @include cell-outline($accent);
 }
 
+.hoursInput[data-edited="true"] {
+  @include cell-outline($accent);
+  background: rgba($accent, 0.18);
+}
+
 .hoursInput[aria-invalid="true"] {
   @include cell-outline($danger);
 }

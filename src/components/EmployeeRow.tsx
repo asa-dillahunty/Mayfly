@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { FaSave } from "react-icons/fa";
+import { FaSave, FaUndo } from "react-icons/fa";
 
 import { EmployeeRowActions } from "./EmployeeRowActions";
 import { HoursInput } from "./HoursInput";
@@ -57,7 +57,11 @@ export function EmployeeRow({
   if (employeeAdminQuery.data?.hidden) return null;
 
   return (
-    <tr className={styles.employeeRow}>
+    <tr
+      className={`${styles.employeeRow} ${
+        saveButtonVisible ? styles.editedRow : ""
+      }`}
+    >
       <EmployeeRowActions
         canManage={canManage}
         companyId={companyId}
@@ -72,16 +76,20 @@ export function EmployeeRow({
         {employeeData.name}
       </th>
       {weekDays.map((day) => {
-        const value =
-          editor.editedHours[day] ??
-          String(editor.weeklyHours?.[day].hours ?? 0);
+        const savedValue = editor.weeklyHours?.[day].hours ?? 0;
+        const draftValue = editor.editedHours[day];
+        const value = draftValue ?? String(savedValue);
+        const edited =
+          draftValue !== undefined &&
+          (draftValue.trim() === "" || Number(draftValue) !== savedValue);
         return (
           <td className={styles.dayCell} key={day}>
             <HoursInput
               ariaLabel={`${ABBREVIATIONS[day]} hours for ${employeeData.name}`}
               className={styles.hoursInput}
               disabled={!canManage || !editor.weeklyHours || editor.saving}
-              draftValue={editor.editedHours[day]}
+              draftValue={draftValue}
+              edited={edited}
               maximum={24}
               onBlur={() => editor.normalizeDayHours(day)}
               onChange={(newValue) => editor.setDayHours(day, newValue)}
@@ -96,6 +104,12 @@ export function EmployeeRow({
           className={styles.hoursInput}
           disabled={!canManage || !editor.weeklyHours || editor.saving}
           draftValue={editor.editedAdditionalHours}
+          edited={
+            editor.editedAdditionalHours !== undefined &&
+            (editor.editedAdditionalHours.trim() === "" ||
+              Number(editor.editedAdditionalHours) !==
+                (editor.weeklyHours?.additionalHours?.hours ?? 0))
+          }
           onBlur={editor.normalizeAdditionalHours}
           onChange={editor.setAdditionalHours}
           value={
@@ -106,24 +120,39 @@ export function EmployeeRow({
       </td>
       <td className={styles.totalCell}>{editor.totalHours}</td>
       <td className={styles.saveCell}>
-        <button
-          aria-hidden={!saveButtonVisible}
-          aria-label={`Save hours for ${employeeData.name}`}
-          className={`${styles.saveButton} ${
-            saveButtonVisible ? "" : styles.hiddenSaveButton
+        <div
+          className={`${styles.saveActions} ${
+            saveButtonVisible ? "" : styles.hiddenSaveActions
           }`}
-          disabled={
-            !canManage ||
-            !editor.hasChanges ||
-            editor.hasInvalidChanges ||
-            editor.saving
-          }
-          onClick={() => editor.save()}
-          tabIndex={saveButtonVisible ? undefined : -1}
-          type="button"
         >
-          <FaSave />
-        </button>
+          <button
+            aria-label={`Discard hour changes for ${employeeData.name}`}
+            className={styles.discardButton}
+            disabled={!canManage || editor.saving}
+            onClick={editor.discard}
+            tabIndex={saveButtonVisible ? undefined : -1}
+            title="Discard changes"
+            type="button"
+          >
+            <FaUndo />
+          </button>
+          <button
+            aria-label={`Save hours for ${employeeData.name}`}
+            className={styles.saveButton}
+            disabled={
+              !canManage ||
+              !editor.hasChanges ||
+              editor.hasInvalidChanges ||
+              editor.saving
+            }
+            onClick={() => editor.save()}
+            tabIndex={saveButtonVisible ? undefined : -1}
+            title="Save changes"
+            type="button"
+          >
+            <FaSave />
+          </button>
+        </div>
       </td>
     </tr>
   );

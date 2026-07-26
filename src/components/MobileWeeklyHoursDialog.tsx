@@ -161,6 +161,12 @@ export function MobileWeeklyHoursDialog({
                             className={styles.hoursInput}
                             disabled={saving}
                             draftValue={editedHours[day]}
+                            edited={
+                              editedHours[day] !== undefined &&
+                              (editedHours[day].trim() === "" ||
+                                Number(editedHours[day]) !==
+                                  weeklyHours[day].hours)
+                            }
                             maximum={24}
                             onBlur={() => onDayHoursBlur(day)}
                             onChange={(newValue) =>
@@ -177,6 +183,12 @@ export function MobileWeeklyHoursDialog({
                         className={styles.hoursInput}
                         disabled={saving}
                         draftValue={editedAdditionalHours}
+                        edited={
+                          editedAdditionalHours !== undefined &&
+                          (editedAdditionalHours.trim() === "" ||
+                            Number(editedAdditionalHours) !==
+                              (weeklyHours.additionalHours?.hours ?? 0))
+                        }
                         onBlur={onAdditionalHoursBlur}
                         onChange={onAdditionalHoursChange}
                         value={

@@ -6,6 +6,10 @@
   text-align: center;
 }
 
+.editedRow > :where(th, td) {
+  background: rgba($accent, 0.12);
+}
+
 .actionCell {
   position: relative;
   padding: 0;
@@ -15,6 +19,17 @@
   @include secondary-button;
   @include flex-default;
   padding: 0.45rem;
+}
+
+.saveActions {
+  @include flex-default;
+  gap: 0.25rem;
+}
+
+.discardButton {
+  @include clear-button;
+  @include flex-default;
+  padding: 0.35rem;
 }
 
 .menuButton {
@@ -48,6 +63,13 @@
   background: $bg-main;
   box-shadow: 0 0.25rem 0.75rem rgb(0 0 0 / 18%);
   font-size: 1.05rem;
+}
+
+@media (min-width: ($mobile-breakpoint + 1px)) {
+  .employeeRow:nth-last-child(-n + 2) .rowMenu {
+    top: auto;
+    bottom: calc(100% - 0.35rem);
+  }
 }
 
 .menuItem {
@@ -96,6 +118,11 @@
     background: $bg-main;
   }
 
+  &[data-edited="true"] {
+    @include cell-outline($accent);
+    background: rgba($accent, 0.18);
+  }
+
   &[aria-invalid="true"] {
     @include cell-outline($danger);
   }
@@ -117,11 +144,12 @@
   border-bottom-color: transparent;
 }
 
-.hiddenSaveButton {
+.hiddenSaveActions {
   visibility: hidden;
 }
 
 .saveButton:disabled,
+.discardButton:disabled,
 .menuButton:disabled {
   cursor: not-allowed;
   opacity: 0.5;

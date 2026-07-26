@@ -5,6 +5,7 @@ interface HoursInputProps {
   className: string;
   disabled: boolean;
   draftValue?: string;
+  edited?: boolean;
   maximum?: number;
   onBlur: () => void;
   onChange: (value: string) => void;
@@ -16,6 +17,7 @@ export function HoursInput({
   className,
   disabled,
   draftValue,
+  edited = false,
   maximum,
   onBlur,
   onChange,
@@ -33,11 +35,13 @@ export function HoursInput({
       aria-invalid={isInvalid}
       aria-label={ariaLabel}
       className={className}
+      data-edited={edited || undefined}
       disabled={disabled}
       max={maximum}
       min="0"
       onBlur={onBlur}
       onChange={(event) => onChange(event.target.value)}
+      onFocus={(event) => event.currentTarget.select()}
       step="0.5"
       title={isInvalid ? validationMessage : undefined}
       type="number"
