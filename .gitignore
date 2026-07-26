@@ -6,12 +6,17 @@
 .pnp.js
 .venv
 
+# python dependencies
+.venv
+
 # testing
 /coverage
 /testData
 
 # production
 /build
+/dist
+
 
 # misc
 .DS_Store

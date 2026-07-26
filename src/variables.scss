@@ -1,0 +1,90 @@
+@use "sass:color";
+
+$fg-main: #0e1b08;
+
+$bg-page: white;
+$bg-main: #f7fcf5;
+$bg-secondary: #f7f7f7;
+$bg-third: #f1f1f1;
+
+$primary: #54bc55;
+$secondary: #9dd7d9;
+$accent: #76a8c9;
+$danger: #9d1c1c;
+
+$title-font: "Lobster Two";
+
+$mobile-breakpoint: 768px;
+
+/********** Dark Mode (dev only) **********/
+
+// $fg-main: #f7fcf5;
+
+// $bg-page: darkslategrey;
+// $bg-main: #0e1b08;
+// $bg-secondary: #f7f7f7;
+// $bg-third: #f1f1f1;
+
+// $primary: #54bc55;
+// $secondary: #9dd7d9;
+// $accent: #76a8c9;
+
+// $title-font: "Lobster Two";
+
+@mixin flex-default($direction: row) {
+  display: flex;
+  flex-direction: $direction;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin button($background-color, $foreground-color: $bg-main) {
+  background-color: $background-color;
+  color: $foreground-color;
+  border: none;
+  border-radius: 0.2em;
+  cursor: pointer;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  padding: 0.75em 1em;
+
+  transition:
+    background-color 0.3s,
+    opacity 0.3s;
+
+  &:hover:not(:disabled) {
+    background-color: color.scale($background-color, $lightness: -18%);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $accent;
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+}
+
+@mixin primary-button {
+  @include button($primary);
+}
+
+@mixin secondary-button {
+  @include button($accent);
+}
+
+@mixin clear-button {
+  @include button($bg-main, $fg-main);
+  border: 2px solid $fg-main;
+}
+
+@mixin danger-button {
+  @include button($danger);
+}
+
+@mixin cell-outline($color) {
+  border: 1px solid $color;
+  outline: 2px solid $color;
+  outline-offset: 1px;
+}

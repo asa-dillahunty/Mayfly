@@ -1,0 +1,19 @@
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes riseUp {
+  from {
+    transform: translateY(100svh);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}

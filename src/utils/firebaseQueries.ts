@@ -14,51 +14,61 @@ import {
   db,
   deleteEmpCompany,
   transferEmployeeData,
-} from "./firebase";
+} from "./firebase.ts";
 import {
   useMutation,
-  useQueries,
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { queryClient } from "..";
 import {
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
   sendSignInLinkToEmail,
 } from "firebase/auth";
 import { buildDocName } from "./dateUtils.ts";
-import { pageListEnum } from "../App.js";
+import { queryClient } from "../main.tsx";
+import type {
+  AdminData,
+  CompanyData,
+  CompanyEmployee,
+  CompanySummary,
+  PrintableEmployeeReportRow,
+  WeekDay,
+  WeeklyHours,
+} from "./dataModels.ts";
+import {
+  getAdditionalHours,
+  getPaidHoursTotal,
+  getRegularHoursTotal,
+  withAdditionalHours,
+  withDayHours,
+  withDayNotes,
+} from "./weeklyHours.ts";
 
 const COMPANY_LIST_COLLECTION_NAME = "CompanyList";
-const UNCLAIMED_LIST_COLLECTION_NAME = "UnclaimedList";
 const ADMIN_DOC_NAME = "Administrative_Data";
-const COMPANY_DOCS_COLLECTION = "CompanyDocs"; // this is for 'last change' data
-const LAST_CHANGE_DOC_NAME = "Last_Change";
 const COMPANY_EMPLOYEE_COLLECTION = "Employees";
 export const FAKE_EMAIL_EXTENSION = "@dillahuntyfarms.com";
 
-// TODO: move this handling into the App.js file
-export const navigateUser = async (uid: string, setPage) => {
-  const adminData = await fetchAdminData(uid);
-
-  // if 'Asa' -> navigate to OmniAdmin Dashboard
-  // props.setCurrPage(pageListEnum.OmniAdmin);
-  // if admin -> navigate to admin dashboard
-  if (adminData.omniAdmin === true) setPage(pageListEnum.OmniAdmin);
-  else if (adminData.isAdmin === true) setPage(pageListEnum.Admin);
-  else setPage(pageListEnum.Dashboard);
-};
-
-type WeeklyHours = {
-  0: { hours: number; notes?: string };
-  1: { hours: number; notes?: string };
-  2: { hours: number; notes?: string };
-  3: { hours: number; notes?: string };
-  4: { hours: number; notes?: string };
-  5: { hours: number; notes?: string };
-  6: { hours: number; notes?: string };
-  additionalHours?: { hours: number };
+const queryKeys = {
+  adminData: (userId: string | undefined | null) =>
+    [ADMIN_DOC_NAME, userId] as const,
+  companies: () => [COMPANY_LIST_COLLECTION_NAME] as const,
+  company: (companyId: string | undefined) =>
+    [COMPANY_LIST_COLLECTION_NAME, companyId] as const,
+  companyEmployee: (companyId: string, employeeId: string) =>
+    [
+      COMPANY_LIST_COLLECTION_NAME,
+      companyId,
+      COMPANY_EMPLOYEE_COLLECTION,
+      employeeId,
+    ] as const,
+  weeklyHours: (userId: string, docName: string) =>
+    ["WeeklyHours", userId, docName] as const,
+  weeklyReports: () => ["WeeklyReport"] as const,
+  weeklyReportsForWeek: (docName: string) => ["WeeklyReport", docName] as const,
+  weeklyReport: (companyId: string | undefined, docName: string) =>
+    ["WeeklyReport", docName, companyId] as const,
 };
 
 const getEmptyWeek = (): WeeklyHours => ({
@@ -74,13 +84,13 @@ const getEmptyWeek = (): WeeklyHours => ({
 export function getUserWeekQuery(
   userId: string,
   date: Date,
-  docName: string = buildDocName(date)
+  docName: string = buildDocName(date),
 ) {
   const query = {
-    queryKey: ["WeeklyHours", userId, docName],
+    queryKey: queryKeys.weeklyHours(userId, docName),
     queryFn: async (): Promise<WeeklyHours> => {
-      if (!userId) return getEmptyWeek();
       console.log("getUserWeekQuery");
+      if (!userId) return getEmptyWeek();
 
       const docRef = doc(db, userId, docName);
       const docSnap = await getDoc(docRef);
@@ -100,9 +110,23 @@ export function getUserWeekQuery(
 async function fetchWeek(
   userId: string,
   date: Date,
-  docName: string = buildDocName(date)
+  docName: string = buildDocName(date),
 ) {
   return await queryClient.fetchQuery(getUserWeekQuery(userId, date, docName));
+}
+
+type UserWeekSettledCallback = (result: UserWeekSettledResult) => void;
+
+interface UserWeekMutationVariables {
+  userId: string;
+  date: Date;
+  userWeek: WeeklyHours;
+  onSettled?: UserWeekSettledCallback;
+}
+
+interface UserWeekSettledResult {
+  error: unknown | null;
+  variables: UserWeekMutationVariables;
 }
 
 export function userWeekMutation() {
@@ -111,37 +135,42 @@ export function userWeekMutation() {
       userId,
       date,
       userWeek,
-      onSettled,
-    }: {
-      userId: string;
-      date: Date;
-      userWeek: WeeklyHours;
-      onSettled?: ({ error, variables }) => void;
-    }) => {
+    }: UserWeekMutationVariables) => {
       const docName = buildDocName(date);
       console.log("saving week", userWeek);
       await setDoc(doc(db, userId, docName), userWeek);
       return userWeek;
     },
-    onSuccess: async (data, variables) => {
+    onSuccess: async (
+      data: WeeklyHours,
+      variables: UserWeekMutationVariables,
+    ) => {
       const docName = buildDocName(variables.date);
-      const queryKey = ["WeeklyHours", variables.userId, docName];
+      const queryKey = queryKeys.weeklyHours(variables.userId, docName);
 
       // ASK: update cache - is this always okay?
       queryClient.setQueryData(queryKey, data);
-      // Invalidate and refetch
-      // queryClient.invalidateQueries([userId, docName])
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.weeklyReportsForWeek(docName),
+      });
     },
-    onError: async (_data, variables) => {
-      console.log("on userWeekMutation error", _data, variables);
+    onError: async (error: unknown, variables: UserWeekMutationVariables) => {
+      console.log("on userWeekMutation error", error, variables);
       const docName = buildDocName(variables.date);
-      const queryKey = ["WeeklyHours", variables.userId, docName];
+      const queryKey = queryKeys.weeklyHours(variables.userId, docName);
 
       // TODO: log the error
       // Invalidate and refetch
       queryClient.invalidateQueries({ queryKey: queryKey });
     },
-    onSettled: (_data, error, variables, _context) => {
+    onSettled: (
+      ...args: [
+        WeeklyHours | undefined,
+        unknown | null,
+        UserWeekMutationVariables,
+      ]
+    ) => {
+      const [, error, variables] = args;
       if (variables.onSettled) {
         variables.onSettled({ error, variables });
       }
@@ -150,126 +179,85 @@ export function userWeekMutation() {
   return mutation;
 }
 
-export function useSetHours() {
+type WeeklyHoursUpdater = (currentWeek: WeeklyHours) => WeeklyHours;
+
+function useUpdateUserWeek() {
   const setWeek = useMutation(userWeekMutation());
+
+  return async (
+    userId: string,
+    date: Date,
+    updateWeek: WeeklyHoursUpdater,
+    onSettled?: UserWeekSettledCallback,
+  ) => {
+    const docName = buildDocName(date);
+    const currentWeek = await fetchWeek(userId, date, docName);
+    const updatedWeek = updateWeek(currentWeek);
+
+    setWeek.mutate({ userId, date, userWeek: updatedWeek, onSettled });
+  };
+}
+
+export function useSetHours() {
+  const updateUserWeek = useUpdateUserWeek();
+
   const setHours = async (
     userId: string,
     date: Date,
     hours: number,
-    onSettled?: ({ error, variables }) => void
+    onSettled?: UserWeekSettledCallback,
   ) => {
-    const docName = buildDocName(date);
-    const currentWeek = await fetchWeek(userId, date, docName);
-
-    // ASK: do we need to make a deep copy before altering these values?
-    const newCurrentWeek = {
-      ...currentWeek,
-      [date.getDay()]: {
-        ...currentWeek[date.getDay()],
-        hours: hours,
-      },
-    };
-    setWeek.mutate({ userId, date, userWeek: newCurrentWeek, onSettled });
+    const day = date.getDay() as WeekDay;
+    await updateUserWeek(
+      userId,
+      date,
+      (currentWeek) => withDayHours(currentWeek, day, hours),
+      onSettled,
+    );
   };
+
   return setHours;
 }
 
 export function useSetAdditionalHours() {
-  const setWeek = useMutation(userWeekMutation());
+  const updateUserWeek = useUpdateUserWeek();
+
   const setAdditionalHours = async (
     userId: string,
     date: Date,
     hours: number,
-    onSettled?: ({ error, variables }) => void
+    onSettled?: UserWeekSettledCallback,
   ) => {
-    const docName = buildDocName(date);
-    const currentWeek = await fetchWeek(userId, date, docName);
-
-    // ASK: do we need to make a copy before altering these values?
-    const newCurrentWeek = {
-      ...currentWeek,
-      additionalHours: { hours: hours }, // no notes one this one
-    };
-
-    setWeek.mutate({ userId, date, userWeek: newCurrentWeek, onSettled });
+    await updateUserWeek(
+      userId,
+      date,
+      (currentWeek) => withAdditionalHours(currentWeek, hours),
+      onSettled,
+    );
   };
+
   return setAdditionalHours;
 }
 
 export function useSetNotes() {
-  const setWeek = useMutation(userWeekMutation());
+  const updateUserWeek = useUpdateUserWeek();
+
   const setNotes = async (
     userId: string,
     date: Date,
     notes: string,
-    onSettled?: ({ error, variables }) => void
+    onSettled?: UserWeekSettledCallback,
   ) => {
-    const docName = buildDocName(date);
-    const currentWeek = await fetchWeek(userId, date, docName);
-    // ASK: do we need to make a deep copy before altering these values?
-    const newCurrentWeek = {
-      ...currentWeek,
-      [date.getDay()]: {
-        ...currentWeek[date.getDay()],
-        notes: notes,
-      },
-    };
-
-    setWeek.mutate({ userId, date, userWeek: newCurrentWeek, onSettled });
+    const day = date.getDay() as WeekDay;
+    await updateUserWeek(
+      userId,
+      date,
+      (currentWeek) => withDayNotes(currentWeek, day, notes),
+      onSettled,
+    );
   };
+
   return setNotes;
-}
-
-export async function getHoursWorkedThisWeek(
-  userId: string,
-  date: Date,
-  docName?: string
-) {
-  const userWeek = await queryClient.fetchQuery(
-    getUserWeekQuery(userId, date, docName)
-  );
-
-  let totalHours = 0;
-  for (const day in userWeek) {
-    if (day === "additionalHours") continue;
-    totalHours += userWeek[day].hours;
-  }
-  return totalHours;
-}
-
-export async function getHoursPaidThisWeek(
-  userId: string,
-  date: Date,
-  docName?: string
-) {
-  const userWeek = await queryClient.fetchQuery(
-    getUserWeekQuery(userId, date, docName)
-  );
-
-  let totalHours = 0;
-  for (const day in userWeek) {
-    totalHours += userWeek[day].hours; // could probably use some kind of reducer
-  }
-  return totalHours;
-}
-
-export async function getHoursList(
-  userId: string,
-  date: Date,
-  docName: string = buildDocName(date)
-) {
-  const hoursList = [];
-  const userWeek = await fetchWeek(userId, date, docName);
-
-  for (const day in userWeek) {
-    hoursList[day] = userWeek[day].hours;
-  }
-
-  if (!userWeek["additionalHours"]) {
-    hoursList["additionalHours"] = 0;
-  }
-
-  return hoursList;
 }
 
 export function useMakeAdmin() {
@@ -277,6 +265,9 @@ export function useMakeAdmin() {
 
   const makeAdmin = async (userId: string) => {
     const adminData = await queryClient.fetchQuery(getAdminDataQuery(userId));
+    if (!adminData) {
+      throw new Error("Unable to find administrative data for this employee.");
+    }
     const newAdminData = {
       ...adminData,
       isAdmin: true,
@@ -284,11 +275,11 @@ export function useMakeAdmin() {
 
     console.log(adminData, newAdminData);
 
-    const queryKey = [ADMIN_DOC_NAME, userId];
+    const queryKey = queryKeys.adminData(userId);
 
     const docRef = doc(db, userId, ADMIN_DOC_NAME);
     // FIXME: this is currently failing permissions
-    const result = await updateDoc(docRef, adminData);
+    const result = await updateDoc(docRef, newAdminData);
     console.log(result);
     // ASK: should we invalidate here instead?
     // ASK: should this hide the user?
@@ -297,86 +288,6 @@ export function useMakeAdmin() {
 
   return makeAdmin;
 }
-
-// TODO: investigate if we want to reimplement this 'last change' functionality
-// export async function pullLastChange(companyID) {
-//   // console.log("Pulling Last Change");
-//   const docRef = doc(
-//     db,
-//     COMPANY_LIST_COLLECTION_NAME +
-//       "/" +
-//       companyID +
-//       "/" +
-//       COMPANY_DOCS_COLLECTION,
-//     LAST_CHANGE_DOC_NAME
-//   );
-//   const docSnap = await getDoc(docRef);
-//   if (
-//     !firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][
-//       COMPANY_DOCS_COLLECTION
-//     ]
-//   )
-//     firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][
-//       COMPANY_DOCS_COLLECTION
-//     ] = {};
-//   firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][
-//     COMPANY_DOCS_COLLECTION
-//   ][LAST_CHANGE_DOC_NAME] = { ...docSnap.data() };
-//   return docSnap.data();
-// }
-
-// export function getLastChangeCached(companyID) {
-//   try {
-//     return firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][
-//       COMPANY_DOCS_COLLECTION
-//     ][LAST_CHANGE_DOC_NAME];
-//   } catch {
-//     return {
-//       time: {
-//         seconds: 0,
-//         nanoseconds: 0,
-//       },
-//     };
-//   }
-// }
-
-// export async function setLastChange(empID, docName, companyID) {
-//   if (!companyID) companyID = await getMyCompanyID(empID);
-//   const docData = {
-//     time: serverTimestamp(),
-//     empID: empID,
-//     docName: docName,
-//   };
-//   await setDoc(
-//     doc(
-//       db,
-//       COMPANY_LIST_COLLECTION_NAME +
-//         "/" +
-//         companyID +
-//         "/" +
-//         COMPANY_DOCS_COLLECTION,
-//       LAST_CHANGE_DOC_NAME
-//     ),
-//     {
-//       ...docData,
-//     }
-//   );
-//   if (!firebaseCache[COMPANY_LIST_COLLECTION_NAME])
-//     firebaseCache[COMPANY_LIST_COLLECTION_NAME] = {};
-//   if (!firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID])
-//     firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID] = {};
-//   if (
-//     !firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][
-//       COMPANY_DOCS_COLLECTION
-//     ]
-//   )
-//     firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][
-//       COMPANY_DOCS_COLLECTION
-//     ] = {};
-//   firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][
-//     COMPANY_DOCS_COLLECTION
-//   ][LAST_CHANGE_DOC_NAME] = docData;
-// }
 
 // TODO: needs validation
 // used in claim user process
@@ -390,38 +301,29 @@ export async function setMyCompany(userId: string, companyId: string) {
   };
 
   await updateDoc(docRef, newAdminData);
-  queryClient.invalidateQueries({ queryKey: [ADMIN_DOC_NAME, userId] });
+  queryClient.invalidateQueries({ queryKey: queryKeys.adminData(userId) });
 }
 
-export function getAdminDataQuery(userId: string) {
+export function getAdminDataQuery(userId: string | undefined | null) {
   const query = {
-    queryKey: [ADMIN_DOC_NAME, userId],
+    queryKey: queryKeys.adminData(userId),
     queryFn: async () => {
-      if (!userId) return {};
       console.log("getAdminDataQuery");
+      if (!userId) return null;
       const docRef = doc(db, userId, ADMIN_DOC_NAME);
       const docSnap = await getDoc(docRef);
 
       if (docSnap.exists()) {
-        return docSnap.data();
-      } else return {};
+        return docSnap.data() as AdminData;
+      } else return null;
     },
   };
   return query;
 }
 
-export async function fetchAdminData(userId: string) {
-  return await queryClient.fetchQuery(getAdminDataQuery(userId));
-}
-
 export function getCompanyEmployeeQuery(companyId: string, empId: string) {
   const query = {
-    queryKey: [
-      COMPANY_LIST_COLLECTION_NAME,
-      companyId,
-      COMPANY_EMPLOYEE_COLLECTION,
-      empId,
-    ],
+    queryKey: queryKeys.companyEmployee(companyId, empId),
     queryFn: async () => {
       console.log("getCompanyEmployeeQuery");
       if (!companyId || !empId) return {};
@@ -432,7 +334,7 @@ export function getCompanyEmployeeQuery(companyId: string, empId: string) {
           companyId +
           "/" +
           COMPANY_EMPLOYEE_COLLECTION,
-        empId
+        empId,
       );
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
@@ -447,59 +349,76 @@ export function getCompanyEmployeeQuery(companyId: string, empId: string) {
 
 export async function fetchCompanyEmployee(companyId: string, empId: string) {
   return await queryClient.fetchQuery(
-    getCompanyEmployeeQuery(companyId, empId)
+    getCompanyEmployeeQuery(companyId, empId),
   );
 }
 
-// TODO: refactor to improve performance
-// - make a useEffect that uses useQueries
-export async function getCompanyEmployeeList(
-  companyId: string,
+export function getWeeklyReportDataQuery(
+  companyId: string | undefined,
   selectedDate: Date,
-  docName: string
 ) {
-  const docList = (await queryClient.fetchQuery(getCompanyQuery(companyId)))[
-    COMPANY_EMPLOYEE_COLLECTION
-  ];
+  const docName = buildDocName(selectedDate);
 
-  const empList = await Promise.all(
-    docList.map(async (emp) => {
-      const hoursPaidThisWeek = await getHoursPaidThisWeek(
-        emp.id,
-        selectedDate,
-        docName
+  return {
+    queryKey: queryKeys.weeklyReport(companyId, docName),
+    queryFn: async (): Promise<PrintableEmployeeReportRow[]> => {
+      console.log("getWeeklyReportDataQuery");
+      if (!companyId) throw new Error("A company is required.");
+
+      const companyData = await queryClient.fetchQuery(
+        getCompanyQuery(companyId),
       );
-      const hoursWorkedThisWeek = await getHoursWorkedThisWeek(
-        emp.id,
-        selectedDate,
-        docName
+      const employeeRows = await Promise.all(
+        companyData.Employees.map(async (employee) => {
+          const [weeklyHours, employeeAdminData] = await Promise.all([
+            queryClient.fetchQuery(
+              getUserWeekQuery(employee.id, selectedDate, docName),
+            ),
+            queryClient.fetchQuery(getAdminDataQuery(employee.id)),
+          ]);
+
+          if (employeeAdminData?.hidden) return null;
+
+          const dailyHours: Record<WeekDay, number> = {
+            0: weeklyHours[0].hours,
+            1: weeklyHours[1].hours,
+            2: weeklyHours[2].hours,
+            3: weeklyHours[3].hours,
+            4: weeklyHours[4].hours,
+            5: weeklyHours[5].hours,
+            6: weeklyHours[6].hours,
+          };
+
+          return {
+            additionalHours: getAdditionalHours(weeklyHours),
+            dailyHours,
+            id: employee.id,
+            name: employee.name,
+            paidHours: getPaidHoursTotal(weeklyHours),
+            rate: employee.rate,
+            regularHours: getRegularHoursTotal(weeklyHours),
+          };
+        }),
       );
-      const hoursList = await getHoursList(emp.id, selectedDate, docName);
-      const hidden = (await fetchAdminData(emp.id)).hidden;
 
-      return {
-        ...emp,
-        hoursPaidThisWeek,
-        hoursWorkedThisWeek,
-        hoursList,
-        hidden,
-      };
-    })
-  );
-
-  return empList;
+      return employeeRows.filter(
+        (employee): employee is PrintableEmployeeReportRow => employee !== null,
+      );
+    },
+    enabled: companyId !== undefined,
+  };
 }
 
-export function getCompanyQuery(companyId: string) {
+export function getCompanyQuery(companyId?: string) {
   const query = {
-    queryKey: [COMPANY_LIST_COLLECTION_NAME, companyId],
-    queryFn: async () => {
+    queryKey: queryKeys.company(companyId),
+    queryFn: async (): Promise<CompanyData> => {
+      console.log("getCompanyQuery");
       // TODO: add actual error handling
       // TODO: investigate use and see if this is dumb
       if (!companyId || companyId === "") {
         throw new Error("Invalid Arguments");
       }
-      console.log("getCompanyQuery");
       const docRef = doc(db, COMPANY_LIST_COLLECTION_NAME, companyId);
       const docSnap = await getDoc(docRef);
       const employeeCollection = collection(
@@ -508,21 +427,25 @@ export function getCompanyQuery(companyId: string) {
           "/" +
           companyId +
           "/" +
-          COMPANY_EMPLOYEE_COLLECTION
+          COMPANY_EMPLOYEE_COLLECTION,
       );
       const docListSnapshot = await getDocs(employeeCollection);
-      const docList = docListSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+      const docList = docListSnapshot.docs.map(
+        (employeeDoc) =>
+          ({
+            ...employeeDoc.data(),
+            id: employeeDoc.id,
+          }) as CompanyEmployee,
+      );
 
       const companyData = {
-        id: companyId,
         ...docSnap.data(),
+        id: companyId,
         Employees: docList,
-      };
+      } as CompanyData;
       return companyData;
     },
+    enabled: companyId !== undefined,
   };
   return query;
 }
@@ -532,42 +455,37 @@ export async function getCompany(companyId: string) {
 }
 
 export function useCompanies() {
-  // I have to get docs
-  const { data: companyDocList } = useQuery(getCompanyDocsQuery());
-  const docList = companyDocList ?? [];
-  const dataList = useQueries({
-    queries: docList.map((doc) => getCompanyQuery(doc.id)),
-    combine: (results) => {
-      return {
-        data: results.map((result) => result.data),
-        pending: results.some((result) => result.isPending),
-      };
-    },
-  });
+  const companyDocsQuery = useQuery(getCompanyDocsQuery());
 
-  return dataList;
+  return {
+    data: companyDocsQuery.data ?? [],
+    isError: companyDocsQuery.isError,
+    isPending: companyDocsQuery.isPending,
+  };
 }
 
 export function getCompanyDocsQuery() {
   const query = {
-    queryKey: [COMPANY_LIST_COLLECTION_NAME],
-    queryFn: async () => {
-      console.log("getCompaniesQuery");
+    queryKey: queryKeys.companies(),
+    queryFn: async (): Promise<CompanySummary[]> => {
+      console.log("getCompanyDocsQuery");
       const companyList = collection(db, COMPANY_LIST_COLLECTION_NAME);
-      const companiesCollectionSnapshot = await getDocs(companyList); // Fetch documents from the "Companies" collection
-      return companiesCollectionSnapshot.docs;
+      const companiesCollectionSnapshot = await getDocs(companyList);
+      return companiesCollectionSnapshot.docs.map((companyDocument) => {
+        const companyData = companyDocument.data();
+
+        return {
+          id: companyDocument.id,
+          name:
+            typeof companyData.name === "string" ? companyData.name : undefined,
+        };
+      });
     },
   };
   return query;
 }
 
-async function createNewCompany({
-  companyName,
-  onSettled,
-}: {
-  companyName: string;
-  onSettled?: ({ error, variables }) => void;
-}) {
+async function createNewCompany({ companyName }: { companyName: string }) {
   const companyList = collection(db, COMPANY_LIST_COLLECTION_NAME);
   const docRef = await addDoc(companyList, {
     name: companyName,
@@ -580,43 +498,76 @@ export function useCreateCompany() {
     mutationFn: createNewCompany,
     onSuccess: async (data) => {
       const newCompanyId = data.id;
-      const companyQueryKey = [COMPANY_LIST_COLLECTION_NAME, newCompanyId];
-      queryClient.invalidateQueries({ queryKey: companyQueryKey });
+      const companyQueryKey = queryKeys.company(newCompanyId);
+      await queryClient.invalidateQueries({ queryKey: companyQueryKey });
     },
-    onError: async (error, _variables) => {
-      // TODO: log the error
-      // Invalidate and refetch -> done in onSettled
+    onError: (error) => {
       console.error(error);
     },
-    onSettled: (_data, error, variables, _context) => {
-      const companiesQueryKey = [COMPANY_LIST_COLLECTION_NAME];
-      queryClient.invalidateQueries({ queryKey: companiesQueryKey });
-
-      if (variables.onSettled) {
-        variables.onSettled({ error, variables });
-      }
+    onSettled: async () => {
+      const companiesQueryKey = queryKeys.companies();
+      await queryClient.invalidateQueries({ queryKey: companiesQueryKey });
     },
   });
 
-  const createCompany = (companyName: string) => {
-    createCompanyMutation.mutate({ companyName: companyName });
+  const createCompany = async (companyName: string) => {
+    return await createCompanyMutation.mutateAsync({ companyName });
   };
   return createCompany;
 }
 
-export async function setCompanyEmployee({
-  userId,
-  companyId,
-  userData,
-  onSettled,
-}: {
+type CompanyEmployeeWrite = Omit<CompanyEmployee, "id">;
+
+interface EmployeeMutationSettledResult {
+  error: unknown | null;
+  variables:
+    | UpdateEmployeeVariables
+    | RemoveEmployeeVariables
+    | CreateEmployeeVariables;
+}
+
+type EmployeeMutationSettledCallback = (
+  result: EmployeeMutationSettledResult,
+) => void | Promise<void>;
+
+interface UpdateEmployeeVariables {
   userId: string;
   companyId: string;
-  userData;
-  onSettled?: ({ error, variables }) => void;
-}) {
+  userData: CompanyEmployeeWrite;
+  onSettled?: EmployeeMutationSettledCallback;
+}
+
+interface RemoveEmployeeVariables {
+  userId: string;
+  companyId: string;
+  onSettled?: EmployeeMutationSettledCallback;
+}
+
+interface CreateEmployeeVariables {
+  companyId: string;
+  userData: CompanyEmployeeWrite;
+  onSettled?: EmployeeMutationSettledCallback;
+}
+
+function getCompanyEmployeeWrite(
+  userData: CompanyEmployeeWrite,
+): CompanyEmployeeWrite {
+  return {
+    firstName: userData.firstName,
+    lastName: userData.lastName,
+    name: userData.name,
+    rate: userData.rate,
+    ...(userData.email === undefined ? {} : { email: userData.email }),
+    ...(userData.isAdmin === undefined ? {} : { isAdmin: userData.isAdmin }),
+  };
+}
+
+export async function setCompanyEmployee(
+  variables: UpdateEmployeeVariables,
+) {
+  const { userId, companyId, userData } = variables;
   console.log("setCompanyEmployee");
-  const { id: _, ...userDataNoId } = userData;
+  const userDataNoId = getCompanyEmployeeWrite(userData);
   await setDoc(
     doc(
       db,
@@ -625,11 +576,11 @@ export async function setCompanyEmployee({
         companyId +
         "/" +
         COMPANY_EMPLOYEE_COLLECTION,
-      userId
+      userId,
     ),
     {
       ...userDataNoId, // without id
-    }
+    },
   );
   return userDataNoId;
 }
@@ -637,47 +588,42 @@ export async function setCompanyEmployee({
 export function useUpdateEmployeeData() {
   const setEmployeeDataMutation = useMutation({
     mutationFn: setCompanyEmployee,
-    onSuccess: async (data, variables) => {
-      const queryKey = [
-        COMPANY_LIST_COLLECTION_NAME,
+    onSuccess: async (
+      ...args: [CompanyEmployeeWrite, UpdateEmployeeVariables]
+    ) => {
+      const [, variables] = args;
+      const queryKey = queryKeys.companyEmployee(
         variables.companyId,
-        COMPANY_EMPLOYEE_COLLECTION,
         variables.userId,
-      ];
+      );
 
-      // ASK: update cache - is this always okay?
-      queryClient.setQueryData(queryKey, data);
-
-      // user docs are currently inside the company docs, invalidating the company query
-      // TODO: consider updating the company query cache instead of invalidating it
-      const companyQueryKey = [
-        COMPANY_LIST_COLLECTION_NAME,
-        variables.companyId,
-      ];
-      queryClient.invalidateQueries({ queryKey: companyQueryKey });
+      await queryClient.invalidateQueries({ queryKey });
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.weeklyReports(),
+      });
     },
-    onError: async (_data, variables) => {
-      const queryKey = [
-        COMPANY_LIST_COLLECTION_NAME,
+    onError: async (error, variables) => {
+      console.error(error);
+      const queryKey = queryKeys.companyEmployee(
         variables.companyId,
-        COMPANY_EMPLOYEE_COLLECTION,
         variables.userId,
-      ];
+      );
 
       // TODO: log the error
       // Invalidate and refetch
       queryClient.invalidateQueries({ queryKey: queryKey });
 
-      // invalidate company query
-      const companyQueryKey = [
-        COMPANY_LIST_COLLECTION_NAME,
-        variables.companyId,
-      ];
-      queryClient.invalidateQueries({ queryKey: companyQueryKey });
     },
-    onSettled: (_data, error, variables, _context) => {
+    onSettled: (
+      ...args: [
+        CompanyEmployeeWrite | undefined,
+        Error | null,
+        UpdateEmployeeVariables,
+      ]
+    ) => {
+      const [, error, variables] = args;
       if (variables.onSettled) {
-        variables.onSettled({ error, variables });
+        return variables.onSettled({ error, variables });
       }
     },
   });
@@ -685,8 +631,8 @@ export function useUpdateEmployeeData() {
   const setEmployeeData = async (
     userId: string,
     companyId: string,
-    userData,
-    onSettled?
+    userData: CompanyEmployeeWrite,
+    onSettled?: EmployeeMutationSettledCallback,
   ) => {
     setEmployeeDataMutation.mutate({ userId, companyId, userData, onSettled });
   };
@@ -694,15 +640,8 @@ export function useUpdateEmployeeData() {
   return setEmployeeData;
 }
 
-async function deleteCompanyEmployee({
-  userId,
-  companyId,
-  onSettled,
-}: {
-  userId: string;
-  companyId: string;
-  onSettled: ({ error, variables }) => void;
-}) {
+async function deleteCompanyEmployee(variables: RemoveEmployeeVariables) {
+  const { userId, companyId } = variables;
   const docRef = doc(
     db,
     COMPANY_LIST_COLLECTION_NAME +
@@ -710,7 +649,7 @@ async function deleteCompanyEmployee({
       companyId +
       "/" +
       COMPANY_EMPLOYEE_COLLECTION,
-    userId
+    userId,
   );
   await deleteDoc(docRef);
 
@@ -725,30 +664,22 @@ async function deleteCompanyEmployee({
 export function useRemoveEmployee() {
   const removeEmployeeMutation = useMutation({
     mutationFn: deleteCompanyEmployee,
-    onSuccess: async (_data, _variables) => {
-      // user docs are currently inside the company docs, invalidating the company query
-      // TODO: consider updating the company query cache instead of invalidating it in onSettled
-    },
-    onError: async (_data, _variables) => {
-      // TODO: log the error
-    },
-    onSettled: (_data, error, variables, _context) => {
-      const queryKey = [
-        COMPANY_LIST_COLLECTION_NAME,
+    onSettled: (
+      ...args: [boolean | undefined, Error | null, RemoveEmployeeVariables]
+    ) => {
+      const [, error, variables] = args;
+      const queryKey = queryKeys.companyEmployee(
         variables.companyId,
-        COMPANY_EMPLOYEE_COLLECTION,
         variables.userId,
-      ];
+      );
       queryClient.invalidateQueries({ queryKey: queryKey });
 
-      const companyQueryKey = [
-        COMPANY_LIST_COLLECTION_NAME,
-        variables.companyId,
-      ];
+      const companyQueryKey = queryKeys.company(variables.companyId);
       queryClient.invalidateQueries({ queryKey: companyQueryKey });
+      queryClient.invalidateQueries({ queryKey: queryKeys.weeklyReports() });
 
       if (variables.onSettled) {
-        variables.onSettled({ error, variables });
+        return variables.onSettled({ error, variables });
       }
     },
   });
@@ -756,7 +687,7 @@ export function useRemoveEmployee() {
   const removeEmployee = async (
     userId: string,
     companyId: string,
-    onSettled
+    onSettled?: EmployeeMutationSettledCallback,
   ) => {
     removeEmployeeMutation.mutate({ userId, companyId, onSettled });
   };
@@ -764,43 +695,11 @@ export function useRemoveEmployee() {
   return removeEmployee;
 }
 
-// TODO: make mutation and/or invalidate some queries
-// TODO: investigate if unclaimed employees still belong in the codebase
-export async function createUnclaimedEmployee(employeeData, companyID) {
-  // grab unclaimed collection
-  const unclaimedCollection = collection(db, UNCLAIMED_LIST_COLLECTION_NAME);
-  const unclaimedSnapshot = await getDocs(unclaimedCollection); // Fetch documents from the "Companies" collection
-  const unclaimedList = unclaimedSnapshot.docs.map((doc) => doc.id);
-  // makes a list of unclaimed ids
-
-  let claimCode = "";
-  do {
-    claimCode = randomString(6);
-  } while (unclaimedList.includes(claimCode));
-
-  // add claimCode to the unclaimed collection
-  await setDoc(doc(db, UNCLAIMED_LIST_COLLECTION_NAME, claimCode), {
-    unclaimed: true,
-    companyID: companyID,
-  });
-
-  // create a new employee in the collection
-  // add it to the company's employees collection
-  employeeData.unclaimed = true;
-  await createCompanyEmployee(employeeData, claimCode, companyID);
-
-  // add other fields for their name and things :)
-  // add it to the new "unclaimed" collection, along with the company ID to trace it back to the company
-}
-
-// TODO: make mutation and/or invalidate some queries
-export async function deleteUnclaimedEmployee(claimCode, companyID) {
-  const docRef = doc(db, UNCLAIMED_LIST_COLLECTION_NAME, claimCode);
-  await deleteDoc(docRef);
-  await deleteCompanyEmployee(claimCode, companyID);
-}
-
-async function createEmployeeAuth({ userData, companyId, onSettled }) {
+async function createEmployeeAuth(variables: CreateEmployeeVariables) {
+  const { userData, companyId } = variables;
+  if (!userData.email) {
+    throw new Error("Employee email is required");
+  }
   const data = {
     companyID: companyId,
     email: userData.email,
@@ -813,7 +712,10 @@ async function createEmployeeAuth({ userData, companyId, onSettled }) {
   }
 
   console.log(result.data);
-  return result.data;
+  return {
+    ...result.data,
+    email: userData.email,
+  };
 }
 
 export function useCreateEmployee() {
@@ -822,8 +724,23 @@ export function useCreateEmployee() {
     mutationFn: createEmployeeAuth,
     onSuccess: async (data, variables) => {
       const { companyId, userData, onSettled } = variables;
+      const settleEmployeeCreation: EmployeeMutationSettledCallback = async (
+        result,
+      ) => {
+        if (!result.error) {
+          await queryClient.invalidateQueries({
+            queryKey: queryKeys.company(companyId),
+          });
+        }
+        await onSettled?.(result);
+      };
       // ASK: should we need to await this or something?
-      updateEmployeeData(data.empID, companyId, userData, onSettled);
+      updateEmployeeData(
+        data.empID,
+        companyId,
+        userData,
+        settleEmployeeCreation,
+      );
       // await createCompanyEmployee(empData, result.data.empID, companyId);
 
       const actionCodeSettings = {
@@ -832,27 +749,28 @@ export function useCreateEmployee() {
       };
 
       // ASK: should we await or catch this?
-      sendSignInLinkToEmail(auth, variables.userData.email, actionCodeSettings);
+      sendSignInLinkToEmail(auth, data.email, actionCodeSettings);
       // we are assuming updateEmployeeData will properly invalidate our queries?
     },
     onError: async (error, variables) => {
       // invalidate company query
-      const companyQueryKey = [
-        COMPANY_LIST_COLLECTION_NAME,
-        variables.companyId,
-      ];
+      const companyQueryKey = queryKeys.company(variables.companyId);
       queryClient.invalidateQueries({ queryKey: companyQueryKey });
       alert(`Something went wrong: ${error.message}`);
 
       // we have to settle up here, because updateEmployeeData won't be triggered
       if (variables.onSettled) {
-        variables.onSettled({ error, variables });
+        await variables.onSettled({ error, variables });
       }
     },
     // onSettled: this is handled by updateEmployeeData
   });
 
-  const setEmployeeData = async (companyId: string, userData, onSettled) => {
+  const setEmployeeData = async (
+    companyId: string,
+    userData: CompanyEmployeeWrite,
+    onSettled?: EmployeeMutationSettledCallback,
+  ) => {
     createEmployeeMutation.mutate({ companyId, userData, onSettled });
   };
 
@@ -878,34 +796,19 @@ export async function resetPassword(email: string) {
   return result;
 }
 
-// TODO: investigate if this can be removed
-export async function getClaimCodeInfo(claimCode) {
-  const docRef = doc(db, UNCLAIMED_LIST_COLLECTION_NAME, claimCode);
-  const docSnap = await getDoc(docRef);
-
-  if (!docSnap.exists()) return undefined;
-  return docSnap.data();
-}
-
 // TODO: make epic for allowing strangers to create accounts?
-export async function createUser(userData) {
+export async function createUser(userData: {
+  username: string;
+  password: string;
+}) {
   throw new Error("This functionality is not currently supported");
   const email = userData.username + FAKE_EMAIL_EXTENSION;
   const userCredential = await createUserWithEmailAndPassword(
     auth,
     email,
-    userData.password
+    userData.password,
   );
   const user = userCredential.user;
 
   return user;
-}
-
-export function randomString(length: number) {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  var result = "";
-  for (var i = 0; i < length; i++) {
-    result += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return result;
 }

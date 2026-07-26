@@ -1,0 +1,161 @@
+@use "../../variables" as *;
+
+.dialog {
+  width: min(36rem, calc(100vw - 2rem));
+  border-radius: 0.5rem;
+  background: $bg-main;
+  color: $fg-main;
+  box-shadow: 0 0.25rem 1rem rgb(0 0 0 / 20%);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  max-height: calc(100vh - 2rem);
+  padding: 1.25rem;
+  overflow-y: auto;
+  text-align: left;
+}
+
+.header {
+  text-align: center;
+
+  h2,
+  p {
+    margin: 0;
+  }
+
+  p {
+    margin-top: 0.5rem;
+  }
+}
+
+.warning,
+.error,
+.status {
+  margin: 1rem 0 0;
+  border-radius: 0.25rem;
+  padding: 0.75rem;
+  text-align: center;
+}
+
+.warning {
+  border: 1px solid $accent;
+  background: $bg-secondary;
+  font-weight: bold;
+}
+
+.error {
+  color: $danger;
+}
+
+.bulkActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.bulkButton {
+  @include clear-button;
+  min-height: 2.75rem;
+  padding-block: 0.5rem;
+}
+
+.employeeFieldset {
+  display: flex;
+  flex: 1 1 22rem;
+  flex-direction: column;
+  min-height: calc(5.5rem + 1.625rem);
+  margin: 1rem 0 0;
+  border: 0;
+  padding: 0;
+  overflow: hidden;
+
+  legend {
+    font-weight: bold;
+  }
+}
+
+.employeeList {
+  flex: 1 1 auto;
+  min-height: 5.5rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  overflow-y: auto;
+  border: 1px solid $bg-third;
+  border-radius: 0.25rem;
+  list-style: none;
+
+  li {
+    border-bottom: 1px solid $bg-third;
+  }
+}
+
+.employeeOption {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr) max-content;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-within {
+    background: $bg-third;
+  }
+
+  input {
+    width: 1.15rem;
+    height: 1.15rem;
+    accent-color: $primary;
+  }
+}
+
+.hours {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.cancelButton,
+.createButton {
+  min-height: 2.75rem;
+  font-weight: bold;
+}
+
+.cancelButton {
+  @include clear-button;
+}
+
+.createButton {
+  @include primary-button;
+}
+
+@media (max-width: $mobile-breakpoint) {
+  .actions {
+    flex-direction: column;
+  }
+
+  .cancelButton,
+  .createButton {
+    width: 100%;
+  }
+
+  .bulkButton {
+    flex: 1;
+  }
+
+  .employeeOption {
+    gap: 0.5rem;
+    padding-inline: 0.5rem;
+  }
+}

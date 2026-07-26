@@ -1,0 +1,78 @@
+@use "../../variables" as *;
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  width: min(24rem, calc(100vw - 2rem));
+  max-height: calc(100svh - 2rem);
+  box-sizing: border-box;
+  overflow-y: auto;
+  border-radius: 0.5rem;
+  background: $bg-main;
+  box-shadow: 0 0.25rem 1rem rgb(0 0 0 / 20%);
+  padding: 1.5rem;
+  text-align: left;
+}
+
+.title {
+  margin: 0 0 0.5rem;
+  color: $fg-main;
+  font-size: 1.35rem;
+  text-align: center;
+}
+
+.input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid $accent;
+  border-radius: 0.25rem;
+  padding: 0.6rem;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+}
+
+.error {
+  margin: 0;
+  color: $danger;
+  font-size: 0.875rem;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+}
+
+.cancelButton {
+  @include clear-button;
+}
+
+.createButton {
+  @include primary-button;
+}
+
+@media (max-width: $mobile-breakpoint) {
+  .form {
+    padding: 1rem;
+  }
+
+  .input,
+  .cancelButton,
+  .createButton {
+    min-height: 2.75rem;
+  }
+
+  .actions {
+    flex-wrap: wrap;
+  }
+
+  .cancelButton,
+  .createButton {
+    flex: 1;
+  }
+}

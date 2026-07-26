@@ -1,4 +1,8 @@
-const daysInChunk = 7;
+import type { WeekDay } from "./dataModels";
+
+export const PAY_PERIOD_DAYS = [
+  4, 5, 6, 0, 1, 2, 3,
+] as const satisfies readonly WeekDay[];
 const startOfPayPeriod = 4; // Thursday
 export const FAKE_EMAIL_EXTENSION = "@dillahuntyfarms.com";
 export const ABBREVIATIONS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -21,20 +25,20 @@ function getWeek(selectedDatetime: Date) {
   const selectedDateUTC = Date.UTC(
     selectedDatetime.getFullYear(),
     selectedDatetime.getMonth(),
-    selectedDatetime.getDate()
+    selectedDatetime.getDate(),
   );
 
   const dayOfWeekOfDayOne = new Date(
     selectedDatetime.getFullYear(),
     0,
-    1
+    1,
   ).getDay();
   // this actually gets the first wednesday
   // we do +6 instead of -1 to avoid negative output from the mod
   const firstThursday = Date.UTC(
     selectedDatetime.getFullYear(),
     0,
-    1 + ((startOfPayPeriod - dayOfWeekOfDayOne + 6) % 7)
+    1 + ((startOfPayPeriod - dayOfWeekOfDayOne + 6) % 7),
   );
   // add a check here for the cusp of the year. Go back to last year. (or maybe return -1)
   if (firstThursday >= selectedDateUTC) {
@@ -47,7 +51,7 @@ function getWeek(selectedDatetime: Date) {
 }
 
 function getStartOfPayPeriod(date: Date) {
-  let firstDay = new Date(date.getTime());
+  const firstDay = new Date(date.getTime());
   while (firstDay.getDay() !== startOfPayPeriod) {
     firstDay.setDate(firstDay.getDate() - 1);
   }
@@ -55,7 +59,7 @@ function getStartOfPayPeriod(date: Date) {
 }
 
 function getEndOfPayPeriod(date: Date) {
-  let finalDay = new Date(date.getTime());
+  const finalDay = new Date(date.getTime());
   finalDay.setDate(finalDay.getDate() + 1);
   while (finalDay.getDay() !== startOfPayPeriod) {
     finalDay.setDate(finalDay.getDate() + 1);
@@ -63,15 +67,14 @@ function getEndOfPayPeriod(date: Date) {
   return finalDay;
 }
 
-export function getPayPeriodArray() {
-  return Array.from(Array(7)).map((_, index) => (index + startOfPayPeriod) % 7);
-  // [4,5,6,0,1,2,3];
+export function getPayPeriodArray(): WeekDay[] {
+  return [...PAY_PERIOD_DAYS];
 }
 
 export function getWeekSpanString(selectedDate: Date) {
   // we move ahead one day just in case it is the day of the pay period
-  let finalDay = getEndOfPayPeriod(selectedDate);
-  let firstDay = getStartOfPayPeriod(selectedDate);
+  const finalDay = getEndOfPayPeriod(selectedDate);
+  const firstDay = getStartOfPayPeriod(selectedDate);
   // why + 1 ? date.getMonth() starts at 0 for January
   return (
     firstDay.getMonth() +
@@ -86,7 +89,7 @@ export function getWeekSpanString(selectedDate: Date) {
 }
 
 export function getStartOfWeekString(selectedDate: Date) {
-  let firstDay = new Date(selectedDate.getTime());
+  const firstDay = new Date(selectedDate.getTime());
   while (firstDay.getDay() !== startOfPayPeriod) {
     firstDay.setDate(firstDay.getDate() - 1);
   }
@@ -101,7 +104,7 @@ export function getStartOfWeekString(selectedDate: Date) {
 }
 
 export function getEndOfWeekString(selectedDate: Date) {
-  let finalDay = new Date(selectedDate.getTime());
+  const finalDay = new Date(selectedDate.getTime());
   while (finalDay.getDay() !== startOfPayPeriod - 1) {
     finalDay.setDate(finalDay.getDate() + 1);
   }

@@ -1,0 +1,158 @@
+@use "../../../variables.scss" as *;
+
+.dashboardContainer {
+  @include flex-default(column);
+  align-items: stretch;
+  gap: 1.5rem;
+  width: calc(100% - 2rem);
+  margin-bottom: 1.25rem;
+  border-radius: 0.3rem;
+  background-color: $bg-main;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  box-sizing: border-box;
+}
+
+.introduction {
+  text-align: left;
+
+  h2 {
+    margin: 0;
+    color: $fg-main;
+  }
+
+  p:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.eyebrow {
+  margin: 0 0 0.25rem;
+  color: $primary;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dashboardActions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.createCompanyButton {
+  @include primary-button;
+}
+
+.queryState {
+  border: 1px dashed $accent;
+  border-radius: 0.3rem;
+  background-color: $bg-third;
+  padding: 2rem 1.5rem;
+  text-align: center;
+
+  width: 100%;
+  box-sizing: border-box;
+
+  h3 {
+    margin-top: 0;
+  }
+
+  p {
+    margin-bottom: 0;
+  }
+}
+
+.workspaceLayout {
+  display: grid;
+  grid-template-columns: minmax(12rem, 16rem) minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.companyNavigation {
+  border: 1px solid $secondary;
+  border-radius: 0.3rem;
+  background-color: $bg-third;
+  padding: 1rem;
+
+  h3 {
+    margin: 0 0 0.75rem;
+    text-align: left;
+  }
+}
+
+.companyList {
+  @include flex-default(column);
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+.companyButton {
+  @include clear-button;
+  width: 100%;
+  overflow-wrap: anywhere;
+  text-align: left;
+
+  &[aria-current="page"] {
+    border-color: $primary;
+    background-color: $bg-third;
+    box-shadow: inset 0.3rem 0 $primary;
+    font-weight: 700;
+  }
+}
+
+.unsavedMessage {
+  margin: 0 0 0.75rem;
+  color: $danger;
+  font-size: 0.9rem;
+  text-align: left;
+}
+
+.companyWorkspace {
+  min-width: 0;
+  box-sizing: border-box;
+  border: 1px dashed $accent;
+  border-radius: 0.3rem;
+  padding: 1rem;
+}
+
+.workspaceActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+.addEmployeeButton {
+  @include primary-button;
+}
+
+.workspaceEyebrow {
+  margin: 0 0 0.75rem;
+  color: $accent;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+@media (max-width: $mobile-breakpoint) {
+  .dashboardContainer {
+    width: calc(100% - 1rem);
+    padding: 1rem;
+  }
+
+  .workspaceLayout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+  }
+
+  .createCompanyButton {
+    width: 100%;
+    min-height: 2.75rem;
+  }
+
+  .addEmployeeButton {
+    width: 100%;
+    min-height: 2.75rem;
+  }
+}

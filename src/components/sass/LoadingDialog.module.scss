@@ -1,0 +1,44 @@
+@use "../../variables" as *;
+@use "../../animations";
+
+.dialog {
+  width: min(20rem, calc(100vw - 2rem));
+  border-radius: 0.75rem;
+  background: $bg-page;
+  box-shadow: 0 1rem 3rem rgb(0 0 0 / 25%);
+  animation: appear 0.7s ease-out 0.75s both;
+}
+
+.dialog::backdrop {
+  background: rgb(0 0 0 / 45%);
+  animation: appear 0.7s ease-out 0.75s both;
+}
+
+.content {
+  box-sizing: border-box;
+  display: flex;
+  min-height: 12rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem;
+  color: $fg-main;
+  text-align: center;
+}
+
+.message {
+  margin: 0;
+  font-weight: bold;
+}
+
+.spinner {
+  color: $primary;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dialog,
+  .dialog::backdrop {
+    animation-duration: 1ms;
+  }
+}

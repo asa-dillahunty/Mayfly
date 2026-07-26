@@ -1,0 +1,124 @@
+@use "../../variables" as *;
+
+.tableContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.loading,
+.error,
+.emptyState {
+  padding: 1rem;
+  text-align: center;
+}
+.error {
+  color: $danger;
+}
+
+.tableToolbar {
+  @include flex-default;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.dateRow {
+  @include flex-default;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 1.5rem;
+
+  span {
+    // two MM/DD/YY values plus the separator keep week navigation stationary.
+    width: 19ch;
+    text-align: center;
+  }
+
+  button {
+    @include secondary-button;
+    @include flex-default;
+    font-size: 1rem;
+    padding: 0.25rem;
+
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+  }
+}
+
+.tableScroll {
+  overflow-x: auto;
+}
+
+.employeeTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: $bg-main;
+
+  th {
+    padding: 0.6rem 0.4rem;
+  }
+
+  thead {
+    background: $bg-third;
+  }
+}
+
+th.employeeHeader {
+  text-align: left;
+}
+
+th.saveHeader {
+  background: $bg-main;
+  border-bottom-color: $bg-main;
+}
+
+@media (max-width: $mobile-breakpoint) {
+  .tableContainer {
+    width: 100%;
+    min-width: 300px;
+    gap: 0.75rem;
+  }
+
+  .tableToolbar {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 0.75rem;
+
+    h2 {
+      margin: 0;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  .dateRow {
+    width: 100%;
+    gap: 0.5rem;
+    font-size: clamp(0.9rem, 4vw, 1.1rem);
+
+    span {
+      width: auto;
+      min-width: 0;
+      flex: 1;
+      white-space: nowrap;
+    }
+  }
+
+  .tableScroll {
+    overflow: visible;
+  }
+
+  .employeeTable {
+    display: block;
+    background: transparent;
+
+    thead {
+      display: none;
+    }
+
+    tbody {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) max-content 2.75rem;
+    }
+  }
+}
