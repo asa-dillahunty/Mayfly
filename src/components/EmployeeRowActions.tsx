@@ -5,7 +5,7 @@ import { AiOutlineMore } from "react-icons/ai";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { EmployeeInfoDialog } from "./EmployeeInfoDialog";
 import { MobileWeeklyHoursDialog } from "./MobileWeeklyHoursDialog";
-import { useRemoveEmployee } from "../utils/firebaseQueries";
+import { useRemoveEmployee } from "../utils/firebase/firebaseQueries";
 import type { CompanyEmployee } from "../utils/dataModels";
 import type { WeeklyHoursEditor } from "../hooks/useWeeklyHoursEditor";
 import styles from "./sass/EmployeeRow.module.scss";

@@ -8,13 +8,13 @@ import {
   setDoc,
   updateDoc,
 } from "firebase/firestore";
+import { auth } from "./firebaseAuth.ts";
+import { db } from "./firebaseFirestore.ts";
 import {
-  auth,
   createEmp,
-  db,
   deleteEmpCompany,
   transferEmployeeData,
-} from "./firebase.ts";
+} from "./firebaseFunctions.ts";
 import {
   useMutation,
   useQuery,
@@ -25,8 +25,8 @@ import {
   sendPasswordResetEmail,
   sendSignInLinkToEmail,
 } from "firebase/auth";
-import { buildDocName } from "./dateUtils.ts";
-import { queryClient } from "../main.tsx";
+import { buildDocName } from "../dateUtils.ts";
+import { queryClient } from "../../main.tsx";
 import type {
   AdminData,
   CompanyData,
@@ -35,7 +35,7 @@ import type {
   PrintableEmployeeReportRow,
   WeekDay,
   WeeklyHours,
-} from "./dataModels.ts";
+} from "../dataModels.ts";
 import {
   getAdditionalHours,
   getPaidHoursTotal,
@@ -43,7 +43,7 @@ import {
   withAdditionalHours,
   withDayHours,
   withDayNotes,
-} from "./weeklyHours.ts";
+} from "../weeklyHours.ts";
 
 const COMPANY_LIST_COLLECTION_NAME = "CompanyList";
 const ADMIN_DOC_NAME = "Administrative_Data";

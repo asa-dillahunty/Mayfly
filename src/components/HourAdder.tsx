@@ -5,7 +5,10 @@ import { useQuery } from "@tanstack/react-query";
 
 import Calendar from "./Calendar";
 import Picker from "./CustomPicker";
-import { getUserWeekQuery, useSetHours } from "../utils/firebaseQueries.ts";
+import {
+  getUserWeekQuery,
+  useSetHours,
+} from "../utils/firebase/firebaseQueries.ts";
 import { getRegularHoursTotal } from "../utils/weeklyHours";
 import type { WeeklyHours } from "../utils/dataModels";
 

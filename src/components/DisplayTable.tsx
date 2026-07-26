@@ -2,8 +2,11 @@ import { useCallback, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AiOutlineLeft, AiOutlineRight } from "react-icons/ai";
 
-import { getAdminDataQuery, getCompanyQuery } from "../utils/firebaseQueries";
-import { getCurrentUserId } from "../utils/firebase";
+import {
+  getAdminDataQuery,
+  getCompanyQuery,
+} from "../utils/firebase/firebaseQueries";
+import { getCurrentUserId } from "../utils/firebase/firebaseAuth";
 import {
   ABBREVIATIONS,
   getEndOfWeekString,

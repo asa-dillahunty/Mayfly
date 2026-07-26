@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { usePerformLogout } from "../../utils/firebase.ts";
+import { usePerformLogout } from "../../utils/firebase/firebaseAuth.ts";
 import styles from "./sass/DashboardHeader.module.scss";
 
 export default function DashboardHeader() {

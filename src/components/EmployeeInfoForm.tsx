@@ -2,7 +2,7 @@ import type { CompanyEmployee, EmployeeData } from "../utils/dataModels.ts";
 import {
   useCreateEmployee,
   useUpdateEmployeeData,
-} from "../utils/firebaseQueries.ts";
+} from "../utils/firebase/firebaseQueries.ts";
 
 import { useId, useState } from "react";
 import type { ChangeEvent, MouseEvent, SubmitEvent } from "react";

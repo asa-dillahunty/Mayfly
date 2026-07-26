@@ -4,7 +4,7 @@ import { CreateCompanyDialog } from "../../components/CreateCompanyDialog";
 import { EmployeeInfoDialog } from "../../components/EmployeeInfoDialog";
 import { DisplayTable } from "../../components/DisplayTable";
 import type { CompanySummary } from "../../utils/dataModels";
-import { useCompanies } from "../../utils/firebaseQueries";
+import { useCompanies } from "../../utils/firebase/firebaseQueries";
 import styles from "./sass/OmniAdmin.module.scss";
 
 const companyNameCollator = new Intl.Collator(undefined, {

@@ -8,7 +8,7 @@ import { useWeeklyHoursEditor } from "../hooks/useWeeklyHoursEditor";
 import {
   getAdminDataQuery,
   getCompanyEmployeeQuery,
-} from "../utils/firebaseQueries";
+} from "../utils/firebase/firebaseQueries";
 import { ABBREVIATIONS, getPayPeriodArray } from "../utils/dateUtils";
 import type { CompanyEmployee, WeekDay } from "../utils/dataModels";
 import styles from "./sass/EmployeeRow.module.scss";

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { ChangeEvent, SubmitEvent } from "react";
 
-import { useSetNotes } from "../utils/firebaseQueries";
+import { useSetNotes } from "../utils/firebase/firebaseQueries";
 import styles from "./sass/NotesForm.module.scss";
 
 interface NotesFormProps {

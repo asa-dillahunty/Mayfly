@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 
-import { auth } from "../../utils/firebase.ts";
+import { auth } from "../../utils/firebase/firebaseAuth.ts";
 import { LoadingDialog } from "../../components/LoadingDialog.tsx";
 import { useNavigate } from "react-router-dom";
 import { pageRoutes } from "../../pageRoutes.ts";

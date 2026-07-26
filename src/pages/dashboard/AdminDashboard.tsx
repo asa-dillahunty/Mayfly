@@ -6,8 +6,8 @@ import { EmployeeInfoDialog } from "../../components/EmployeeInfoDialog";
 import { DisplayTable } from "../../components/DisplayTable";
 import { WeeklyReportDialog } from "../../components/WeeklyReportDialog";
 import { useWeeklyReport } from "../../hooks/useWeeklyReport";
-import { getCurrentUserId } from "../../utils/firebase";
-import { getAdminDataQuery } from "../../utils/firebaseQueries";
+import { getCurrentUserId } from "../../utils/firebase/firebaseAuth";
+import { getAdminDataQuery } from "../../utils/firebase/firebaseQueries";
 import styles from "./sass/AdminDashboard.module.scss";
 
 export default function AdminDashboard() {

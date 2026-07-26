@@ -1,19 +1,22 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 
 import "./App.scss";
-import { auth } from "./utils/firebase.ts";
+import { auth } from "./utils/firebase/firebaseAuth.ts";
 import { onAuthStateChanged } from "firebase/auth";
 import { LoadingDialog } from "./components/LoadingDialog.tsx";
-import Login from "./pages/auth/Login.tsx";
-import PasswordReset from "./pages/auth/PasswordReset.tsx";
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { useSetAtom } from "jotai";
 import { UID } from "./utils/atoms.tsx";
-import ForgotPassword from "./pages/auth/ForgotPassword.tsx";
-import Signup from "./pages/auth/Signup.tsx";
-import Lost from "./pages/Lost.tsx";
-import DashboardRoot from "./pages/dashboard/DashboardRoot.tsx";
 import { pageRoutes } from "./pageRoutes.ts";
+
+const Login = lazy(() => import("./pages/auth/Login.tsx"));
+const PasswordReset = lazy(() => import("./pages/auth/PasswordReset.tsx"));
+const ForgotPassword = lazy(() => import("./pages/auth/ForgotPassword.tsx"));
+const Signup = lazy(() => import("./pages/auth/Signup.tsx"));
+const Lost = lazy(() => import("./pages/Lost.tsx"));
+const DashboardRoot = lazy(
+  () => import("./pages/dashboard/DashboardRoot.tsx"),
+);
 
 interface ActionCodeRoute {
   mode: "resetPassword" | "signUp";
@@ -78,25 +81,27 @@ function App() {
 
   return (
     <main>
-      <Routes>
-        <Route path={pageRoutes.login.path} element={<Login />} />
-        <Route
-          path={pageRoutes.dashboard.path}
-          element={<DashboardRoot />}
-        />
-        <Route path={pageRoutes.forgot.path} element={<ForgotPassword />} />
-        <Route
-          path={pageRoutes.passwordReset.path}
-          element={
-            <PasswordReset
-              reset={actionCodeRoute?.mode === "resetPassword"}
-              token={actionCodeRoute?.token ?? ""}
-            />
-          }
-        />
-        <Route path={pageRoutes.signup.path} element={<Signup />} />
-        <Route path={pageRoutes.lost.path} element={<Lost />} />
-      </Routes>
+      <Suspense fallback={<LoadingDialog message="Loading..." />}>
+        <Routes>
+          <Route path={pageRoutes.login.path} element={<Login />} />
+          <Route
+            path={pageRoutes.dashboard.path}
+            element={<DashboardRoot />}
+          />
+          <Route path={pageRoutes.forgot.path} element={<ForgotPassword />} />
+          <Route
+            path={pageRoutes.passwordReset.path}
+            element={
+              <PasswordReset
+                reset={actionCodeRoute?.mode === "resetPassword"}
+                token={actionCodeRoute?.token ?? ""}
+              />
+            }
+          />
+          <Route path={pageRoutes.signup.path} element={<Signup />} />
+          <Route path={pageRoutes.lost.path} element={<Lost />} />
+        </Routes>
+      </Suspense>
     </main>
   );
 }

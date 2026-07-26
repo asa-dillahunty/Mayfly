@@ -2,7 +2,7 @@ import { useId, useState } from "react";
 import type { FormEvent, RefObject } from "react";
 
 import { ModalDialog } from "./ModalDialog";
-import { useCreateCompany } from "../utils/firebaseQueries";
+import { useCreateCompany } from "../utils/firebase/firebaseQueries";
 import styles from "./sass/CreateCompanyDialog.module.scss";
 
 interface CreateCompanyDialogProps {

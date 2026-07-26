@@ -1,6 +1,6 @@
 import { useState, type SubmitEvent } from "react";
 import { LoadingDialog } from "../../components/LoadingDialog.tsx";
-import { auth } from "../../utils/firebase.ts";
+import { auth } from "../../utils/firebase/firebaseAuth.ts";
 
 import "./PasswordReset.css";
 import {

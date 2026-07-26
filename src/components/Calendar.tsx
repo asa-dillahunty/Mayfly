@@ -2,7 +2,7 @@ import { useLayoutEffect } from "react";
 
 import { ABBREVIATIONS } from "../utils/dateUtils.ts";
 import { useQuery } from "@tanstack/react-query";
-import { getUserWeekQuery } from "../utils/firebaseQueries.ts";
+import { getUserWeekQuery } from "../utils/firebase/firebaseQueries.ts";
 
 import styles from "./sass/Calendar.module.scss";
 

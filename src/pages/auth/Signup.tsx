@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { pageRoutes } from "../../pageRoutes";
 import { LoadingDialog } from "../../components/LoadingDialog";
-import { createUser } from "../../utils/firebaseQueries";
+import { createUser } from "../../utils/firebase/firebaseQueries";
 import { useState } from "react";
 
 export default function Signup() {

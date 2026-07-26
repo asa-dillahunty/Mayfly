@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   getCompanyQuery,
   getWeeklyReportDataQuery,
-} from "../utils/firebaseQueries";
+} from "../utils/firebase/firebaseQueries";
 import type { PrintableEmployeeReportRow } from "../utils/dataModels";
 import { getCompanyReportProfile } from "../utils/reportingConfig";
 

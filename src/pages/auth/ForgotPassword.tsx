@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { LoadingDialog } from "../../components/LoadingDialog";
-import { resetPassword } from "../../utils/firebase";
+import { resetPassword } from "../../utils/firebase/firebaseAuth";
 import { useState } from "react";
 import { pageRoutes } from "../../pageRoutes";
 

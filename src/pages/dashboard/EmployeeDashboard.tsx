@@ -1,6 +1,6 @@
 import HourAdder from "../../components/HourAdder";
 import { useState } from "react";
-import { auth } from "../../utils/firebase";
+import { auth } from "../../utils/firebase/firebaseAuth";
 
 export default function EmployeeDashboard() {
   const [blocked, setBlocked] = useState(false);

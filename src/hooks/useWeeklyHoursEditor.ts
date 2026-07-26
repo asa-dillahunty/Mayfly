@@ -1,7 +1,10 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
-import { getUserWeekQuery, userWeekMutation } from "../utils/firebaseQueries";
+import {
+  getUserWeekQuery,
+  userWeekMutation,
+} from "../utils/firebase/firebaseQueries";
 import { normalizeHours } from "../utils/hourValidation";
 import {
   analyzeWeeklyHoursDraft,
