@@ -10,11 +10,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - name: Checkout Backup Branch
+        uses: actions/checkout@v6
+        with:
+          ref: backups
+          fetch-depth: 0
 
       - name: Set Up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
           python-version: "3.10"
 
@@ -29,11 +32,10 @@ jobs:
 
       - name: Commit and Push Backup
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions@github.com"
-          git checkout -B backups
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions@github.com"
           mkdir -p backups
           mv firestore_backup_*.enc backups/
           git add backups/
           git commit -m "Encrypted Firestore Backup - $(date +'%Y-%m-%d')" || exit 0
-          git push origin backups --force
+          git push origin backups
