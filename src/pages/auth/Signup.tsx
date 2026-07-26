@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { pageRoutes } from "../../App";
+import { pageRoutes } from "../../pageRoutes";
 import { LoadingDialog } from "../../components/LoadingDialog";
 import { createUser } from "../../utils/firebaseQueries";
 import { useState } from "react";

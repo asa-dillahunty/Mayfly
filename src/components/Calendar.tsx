@@ -1,5 +1,4 @@
 import { useLayoutEffect } from "react";
-import { DayPicker } from "react-day-picker";
 
 import { ABBREVIATIONS } from "../utils/dateUtils.ts";
 import { useQuery } from "@tanstack/react-query";
@@ -8,14 +7,13 @@ import { getUserWeekQuery } from "../utils/firebaseQueries.ts";
 import styles from "./sass/Calendar.module.scss";
 
 export const WEEK_VIEW = 0;
-export const MONTH_VIEW = 1;
 export const DAYS_DISPLAYED = 8;
 
 const buildDateArray = () => {
   const currentDate = new Date();
   const dateArray = [];
   dateArray.length = 0;
-  for (var i = 0; i < DAYS_DISPLAYED; i++) {
+  for (let i = 0; i < DAYS_DISPLAYED; i++) {
     const temp = new Date(new Date().setDate(currentDate.getDate() - i));
     dateArray.push(new Date(temp.toDateString()));
   }
@@ -24,7 +22,7 @@ const buildDateArray = () => {
 
 interface DateCellProps {
   date: Date;
-  onDayClick: () => void;
+  onDayClick: (date: Date) => void;
   uid: string;
   isSelected: boolean;
 }
@@ -54,17 +52,13 @@ function DateCell({ date, onDayClick, uid, isSelected }: DateCellProps) {
 
 interface CalendarProps {
   uid: string;
-  view: number;
-  onDayClick: () => void;
-  startSelected;
+  onDayClick: (date: Date) => void;
   selectedDate: Date;
 }
 
 export default function Calendar({
   uid,
-  view,
   onDayClick,
-  startSelected,
   selectedDate,
 }: CalendarProps) {
   const onVisibilityChange = () => {
@@ -79,29 +73,25 @@ export default function Calendar({
 
   const calendarDates = buildDateArray();
 
-  if (view === WEEK_VIEW) {
-    return (
-      <div className={styles.carouselWrapper} dir="rtl">
-        <table className={styles.dateCarousel}>
-          <tbody>
-            <tr>
-              {calendarDates.map((currDate, i) => (
-                <DateCell
-                  key={i}
-                  uid={uid}
-                  date={currDate}
-                  onDayClick={onDayClick}
-                  isSelected={
-                    selectedDate.toDateString() === currDate.toDateString()
-                  }
-                />
-              ))}
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    );
-  } else if (view === MONTH_VIEW) {
-    return <DayPicker selected={selectedDate} onDayClick={onDayClick} />;
-  }
+  return (
+    <div className={styles.carouselWrapper} dir="rtl">
+      <table className={styles.dateCarousel}>
+        <tbody>
+          <tr>
+            {calendarDates.map((currDate, i) => (
+              <DateCell
+                key={i}
+                uid={uid}
+                date={currDate}
+                onDayClick={onDayClick}
+                isSelected={
+                  selectedDate.toDateString() === currDate.toDateString()
+                }
+              />
+            ))}
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  );
 }

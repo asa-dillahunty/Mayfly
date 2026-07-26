@@ -4,7 +4,7 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../utils/firebase.ts";
 import { LoadingDialog } from "../../components/LoadingDialog.tsx";
 import { useNavigate } from "react-router-dom";
-import { pageRoutes } from "../../App.tsx";
+import { pageRoutes } from "../../pageRoutes.ts";
 
 import styles from "./sass/Login.module.scss";
 

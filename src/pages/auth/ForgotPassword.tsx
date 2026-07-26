@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { LoadingDialog } from "../../components/LoadingDialog";
 import { resetPassword } from "../../utils/firebase";
 import { useState } from "react";
-import { pageRoutes } from "../../App";
+import { pageRoutes } from "../../pageRoutes";
 
 import "./Login.css";
 

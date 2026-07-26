@@ -47,8 +47,6 @@ import {
 
 const COMPANY_LIST_COLLECTION_NAME = "CompanyList";
 const ADMIN_DOC_NAME = "Administrative_Data";
-const COMPANY_DOCS_COLLECTION = "CompanyDocs"; // this is for 'last change' data
-const LAST_CHANGE_DOC_NAME = "Last_Change";
 const COMPANY_EMPLOYEE_COLLECTION = "Employees";
 export const FAKE_EMAIL_EXTENSION = "@dillahuntyfarms.com";
 
@@ -127,7 +125,7 @@ interface UserWeekMutationVariables {
 }
 
 interface UserWeekSettledResult {
-  error?: unknown;
+  error: unknown | null;
   variables: UserWeekMutationVariables;
 }
 
@@ -143,7 +141,10 @@ export function userWeekMutation() {
       await setDoc(doc(db, userId, docName), userWeek);
       return userWeek;
     },
-    onSuccess: async (data, variables) => {
+    onSuccess: async (
+      data: WeeklyHours,
+      variables: UserWeekMutationVariables,
+    ) => {
       const docName = buildDocName(variables.date);
       const queryKey = queryKeys.weeklyHours(variables.userId, docName);
 
@@ -153,8 +154,8 @@ export function userWeekMutation() {
         queryKey: queryKeys.weeklyReportsForWeek(docName),
       });
     },
-    onError: async (_data, variables) => {
-      console.log("on userWeekMutation error", _data, variables);
+    onError: async (error: unknown, variables: UserWeekMutationVariables) => {
+      console.log("on userWeekMutation error", error, variables);
       const docName = buildDocName(variables.date);
       const queryKey = queryKeys.weeklyHours(variables.userId, docName);
 
@@ -162,7 +163,14 @@ export function userWeekMutation() {
       // Invalidate and refetch
       queryClient.invalidateQueries({ queryKey: queryKey });
     },
-    onSettled: (_data, error, variables, _context) => {
+    onSettled: (
+      ...args: [
+        WeeklyHours | undefined,
+        unknown | null,
+        UserWeekMutationVariables,
+      ]
+    ) => {
+      const [, error, variables] = args;
       if (variables.onSettled) {
         variables.onSettled({ error, variables });
       }
@@ -257,6 +265,9 @@ export function useMakeAdmin() {
 
   const makeAdmin = async (userId: string) => {
     const adminData = await queryClient.fetchQuery(getAdminDataQuery(userId));
+    if (!adminData) {
+      throw new Error("Unable to find administrative data for this employee.");
+    }
     const newAdminData = {
       ...adminData,
       isAdmin: true,
@@ -268,7 +279,7 @@ export function useMakeAdmin() {
 
     const docRef = doc(db, userId, ADMIN_DOC_NAME);
     // FIXME: this is currently failing permissions
-    const result = await updateDoc(docRef, adminData);
+    const result = await updateDoc(docRef, newAdminData);
     console.log(result);
     // ASK: should we invalidate here instead?
     // ASK: should this hide the user?
@@ -277,86 +288,6 @@ export function useMakeAdmin() {
 
   return makeAdmin;
 }
-
-// TODO: investigate if we want to reimplement this 'last change' functionality
-// export async function pullLastChange(companyID) {
-//   // console.log("Pulling Last Change");
-//   const docRef = doc(
-//     db,
-//     COMPANY_LIST_COLLECTION_NAME +
-//       "/" +
-//       companyID +
-//       "/" +
-//       COMPANY_DOCS_COLLECTION,
-//     LAST_CHANGE_DOC_NAME
-//   );
-//   const docSnap = await getDoc(docRef);
-//   if (
-//     !firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][
-//       COMPANY_DOCS_COLLECTION
-//     ]
-//   )
-//     firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][
-//       COMPANY_DOCS_COLLECTION
-//     ] = {};
-//   firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][
-//     COMPANY_DOCS_COLLECTION
-//   ][LAST_CHANGE_DOC_NAME] = { ...docSnap.data() };
-//   return docSnap.data();
-// }
-
-// export function getLastChangeCached(companyID) {
-//   try {
-//     return firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][
-//       COMPANY_DOCS_COLLECTION
-//     ][LAST_CHANGE_DOC_NAME];
-//   } catch {
-//     return {
-//       time: {
-//         seconds: 0,
-//         nanoseconds: 0,
-//       },
-//     };
-//   }
-// }
-
-// export async function setLastChange(empID, docName, companyID) {
-//   if (!companyID) companyID = await getMyCompanyID(empID);
-//   const docData = {
-//     time: serverTimestamp(),
-//     empID: empID,
-//     docName: docName,
-//   };
-//   await setDoc(
-//     doc(
-//       db,
-//       COMPANY_LIST_COLLECTION_NAME +
-//         "/" +
-//         companyID +
-//         "/" +
-//         COMPANY_DOCS_COLLECTION,
-//       LAST_CHANGE_DOC_NAME
-//     ),
-//     {
-//       ...docData,
-//     }
-//   );
-//   if (!firebaseCache[COMPANY_LIST_COLLECTION_NAME])
-//     firebaseCache[COMPANY_LIST_COLLECTION_NAME] = {};
-//   if (!firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID])
-//     firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID] = {};
-//   if (
-//     !firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][
-//       COMPANY_DOCS_COLLECTION
-//     ]
-//   )
-//     firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][
-//       COMPANY_DOCS_COLLECTION
-//     ] = {};
-//   firebaseCache[COMPANY_LIST_COLLECTION_NAME][companyID][
-//     COMPANY_DOCS_COLLECTION
-//   ][LAST_CHANGE_DOC_NAME] = docData;
-// }
 
 // TODO: needs validation
 // used in claim user process
@@ -585,19 +516,58 @@ export function useCreateCompany() {
   return createCompany;
 }
 
-export async function setCompanyEmployee({
-  userId,
-  companyId,
-  userData,
-  onSettled,
-}: {
+type CompanyEmployeeWrite = Omit<CompanyEmployee, "id">;
+
+interface EmployeeMutationSettledResult {
+  error: unknown | null;
+  variables:
+    | UpdateEmployeeVariables
+    | RemoveEmployeeVariables
+    | CreateEmployeeVariables;
+}
+
+type EmployeeMutationSettledCallback = (
+  result: EmployeeMutationSettledResult,
+) => void | Promise<void>;
+
+interface UpdateEmployeeVariables {
   userId: string;
   companyId: string;
-  userData;
-  onSettled?: ({ error, variables }) => void;
-}) {
+  userData: CompanyEmployeeWrite;
+  onSettled?: EmployeeMutationSettledCallback;
+}
+
+interface RemoveEmployeeVariables {
+  userId: string;
+  companyId: string;
+  onSettled?: EmployeeMutationSettledCallback;
+}
+
+interface CreateEmployeeVariables {
+  companyId: string;
+  userData: CompanyEmployeeWrite;
+  onSettled?: EmployeeMutationSettledCallback;
+}
+
+function getCompanyEmployeeWrite(
+  userData: CompanyEmployeeWrite,
+): CompanyEmployeeWrite {
+  return {
+    firstName: userData.firstName,
+    lastName: userData.lastName,
+    name: userData.name,
+    rate: userData.rate,
+    ...(userData.email === undefined ? {} : { email: userData.email }),
+    ...(userData.isAdmin === undefined ? {} : { isAdmin: userData.isAdmin }),
+  };
+}
+
+export async function setCompanyEmployee(
+  variables: UpdateEmployeeVariables,
+) {
+  const { userId, companyId, userData } = variables;
   console.log("setCompanyEmployee");
-  const { id: _, ...userDataNoId } = userData;
+  const userDataNoId = getCompanyEmployeeWrite(userData);
   await setDoc(
     doc(
       db,
@@ -618,22 +588,22 @@ export async function setCompanyEmployee({
 export function useUpdateEmployeeData() {
   const setEmployeeDataMutation = useMutation({
     mutationFn: setCompanyEmployee,
-    onSuccess: async (data, variables) => {
+    onSuccess: async (
+      ...args: [CompanyEmployeeWrite, UpdateEmployeeVariables]
+    ) => {
+      const [, variables] = args;
       const queryKey = queryKeys.companyEmployee(
         variables.companyId,
         variables.userId,
       );
 
-      // ASK: update cache - is this always okay?
-      queryClient.setQueryData(queryKey, data);
-
-      // user docs are currently inside the company docs, invalidating the company query
-      // TODO: consider updating the company query cache instead of invalidating it
-      const companyQueryKey = queryKeys.company(variables.companyId);
-      queryClient.invalidateQueries({ queryKey: companyQueryKey });
-      queryClient.invalidateQueries({ queryKey: queryKeys.weeklyReports() });
+      await queryClient.invalidateQueries({ queryKey });
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.weeklyReports(),
+      });
     },
-    onError: async (_data, variables) => {
+    onError: async (error, variables) => {
+      console.error(error);
       const queryKey = queryKeys.companyEmployee(
         variables.companyId,
         variables.userId,
@@ -643,13 +613,17 @@ export function useUpdateEmployeeData() {
       // Invalidate and refetch
       queryClient.invalidateQueries({ queryKey: queryKey });
 
-      // invalidate company query
-      const companyQueryKey = queryKeys.company(variables.companyId);
-      queryClient.invalidateQueries({ queryKey: companyQueryKey });
     },
-    onSettled: (_data, error, variables, _context) => {
+    onSettled: (
+      ...args: [
+        CompanyEmployeeWrite | undefined,
+        Error | null,
+        UpdateEmployeeVariables,
+      ]
+    ) => {
+      const [, error, variables] = args;
       if (variables.onSettled) {
-        variables.onSettled({ error, variables });
+        return variables.onSettled({ error, variables });
       }
     },
   });
@@ -657,8 +631,8 @@ export function useUpdateEmployeeData() {
   const setEmployeeData = async (
     userId: string,
     companyId: string,
-    userData,
-    onSettled?,
+    userData: CompanyEmployeeWrite,
+    onSettled?: EmployeeMutationSettledCallback,
   ) => {
     setEmployeeDataMutation.mutate({ userId, companyId, userData, onSettled });
   };
@@ -666,15 +640,8 @@ export function useUpdateEmployeeData() {
   return setEmployeeData;
 }
 
-async function deleteCompanyEmployee({
-  userId,
-  companyId,
-  onSettled,
-}: {
-  userId: string;
-  companyId: string;
-  onSettled: ({ error, variables }) => void;
-}) {
+async function deleteCompanyEmployee(variables: RemoveEmployeeVariables) {
+  const { userId, companyId } = variables;
   const docRef = doc(
     db,
     COMPANY_LIST_COLLECTION_NAME +
@@ -697,14 +664,10 @@ async function deleteCompanyEmployee({
 export function useRemoveEmployee() {
   const removeEmployeeMutation = useMutation({
     mutationFn: deleteCompanyEmployee,
-    onSuccess: async (_data, _variables) => {
-      // user docs are currently inside the company docs, invalidating the company query
-      // TODO: consider updating the company query cache instead of invalidating it in onSettled
-    },
-    onError: async (_data, _variables) => {
-      // TODO: log the error
-    },
-    onSettled: (_data, error, variables, _context) => {
+    onSettled: (
+      ...args: [boolean | undefined, Error | null, RemoveEmployeeVariables]
+    ) => {
+      const [, error, variables] = args;
       const queryKey = queryKeys.companyEmployee(
         variables.companyId,
         variables.userId,
@@ -716,7 +679,7 @@ export function useRemoveEmployee() {
       queryClient.invalidateQueries({ queryKey: queryKeys.weeklyReports() });
 
       if (variables.onSettled) {
-        variables.onSettled({ error, variables });
+        return variables.onSettled({ error, variables });
       }
     },
   });
@@ -724,7 +687,7 @@ export function useRemoveEmployee() {
   const removeEmployee = async (
     userId: string,
     companyId: string,
-    onSettled,
+    onSettled?: EmployeeMutationSettledCallback,
   ) => {
     removeEmployeeMutation.mutate({ userId, companyId, onSettled });
   };
@@ -732,7 +695,11 @@ export function useRemoveEmployee() {
   return removeEmployee;
 }
 
-async function createEmployeeAuth({ userData, companyId, onSettled }) {
+async function createEmployeeAuth(variables: CreateEmployeeVariables) {
+  const { userData, companyId } = variables;
+  if (!userData.email) {
+    throw new Error("Employee email is required");
+  }
   const data = {
     companyID: companyId,
     email: userData.email,
@@ -745,7 +712,10 @@ async function createEmployeeAuth({ userData, companyId, onSettled }) {
   }
 
   console.log(result.data);
-  return result.data;
+  return {
+    ...result.data,
+    email: userData.email,
+  };
 }
 
 export function useCreateEmployee() {
@@ -754,8 +724,23 @@ export function useCreateEmployee() {
     mutationFn: createEmployeeAuth,
     onSuccess: async (data, variables) => {
       const { companyId, userData, onSettled } = variables;
+      const settleEmployeeCreation: EmployeeMutationSettledCallback = async (
+        result,
+      ) => {
+        if (!result.error) {
+          await queryClient.invalidateQueries({
+            queryKey: queryKeys.company(companyId),
+          });
+        }
+        await onSettled?.(result);
+      };
       // ASK: should we need to await this or something?
-      updateEmployeeData(data.empID, companyId, userData, onSettled);
+      updateEmployeeData(
+        data.empID,
+        companyId,
+        userData,
+        settleEmployeeCreation,
+      );
       // await createCompanyEmployee(empData, result.data.empID, companyId);
 
       const actionCodeSettings = {
@@ -764,7 +749,7 @@ export function useCreateEmployee() {
       };
 
       // ASK: should we await or catch this?
-      sendSignInLinkToEmail(auth, variables.userData.email, actionCodeSettings);
+      sendSignInLinkToEmail(auth, data.email, actionCodeSettings);
       // we are assuming updateEmployeeData will properly invalidate our queries?
     },
     onError: async (error, variables) => {
@@ -775,13 +760,17 @@ export function useCreateEmployee() {
 
       // we have to settle up here, because updateEmployeeData won't be triggered
       if (variables.onSettled) {
-        variables.onSettled({ error, variables });
+        await variables.onSettled({ error, variables });
       }
     },
     // onSettled: this is handled by updateEmployeeData
   });
 
-  const setEmployeeData = async (companyId: string, userData, onSettled) => {
+  const setEmployeeData = async (
+    companyId: string,
+    userData: CompanyEmployeeWrite,
+    onSettled?: EmployeeMutationSettledCallback,
+  ) => {
     createEmployeeMutation.mutate({ companyId, userData, onSettled });
   };
 
@@ -808,7 +797,10 @@ export async function resetPassword(email: string) {
 }
 
 // TODO: make epic for allowing strangers to create accounts?
-export async function createUser(userData) {
+export async function createUser(userData: {
+  username: string;
+  password: string;
+}) {
   throw new Error("This functionality is not currently supported");
   const email = userData.username + FAKE_EMAIL_EXTENSION;
   const userCredential = await createUserWithEmailAndPassword(

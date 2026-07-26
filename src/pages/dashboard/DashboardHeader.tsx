@@ -14,7 +14,10 @@ export default function DashboardHeader() {
       setBlocked(false);
     } catch (e) {
       setBlocked(false);
-      console.error("Error code 7034: " + e.message);
+      console.error(
+        "Error code 7034: " +
+          (e instanceof Error ? e.message : "Unknown logout error"),
+      );
     }
   };
 

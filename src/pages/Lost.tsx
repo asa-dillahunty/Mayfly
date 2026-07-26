@@ -4,10 +4,11 @@ import { useEffect, useRef } from "react";
 import ghostImage from "../assets/confusedGhost.png";
 import styles from "./sass/Lost.module.scss";
 
+const FRAMES_PER_SECOND = 1;
+const FRAME_DELAY = Math.floor(60 / FRAMES_PER_SECOND);
+
 function Lost() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const fps = 1;
-  const frameDelay = Math.floor(60 / fps);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -45,24 +46,33 @@ function Lost() {
       },
     };
 
-    ghost.img.src = ghostImage;
-    let frameCounter = frameDelay;
+    let animationFrameId: number | undefined;
+    let frameCounter = FRAME_DELAY;
+
+    function scheduleRender() {
+      animationFrameId = requestAnimationFrame(renderCanvas);
+    }
 
     function renderCanvas() {
       frameCounter++;
-      if (frameCounter < frameDelay) {
-        requestAnimationFrame(renderCanvas);
+      if (frameCounter < FRAME_DELAY) {
+        scheduleRender();
         return;
       }
       frameCounter = 0;
 
       ghost.draw();
-      requestAnimationFrame(renderCanvas);
+      scheduleRender();
     }
 
-    ghost.img.onload = () => requestAnimationFrame(renderCanvas);
+    ghost.img.onload = scheduleRender;
+    ghost.img.src = ghostImage;
 
     return () => {
+      ghost.img.onload = null;
+      if (animationFrameId !== undefined) {
+        cancelAnimationFrame(animationFrameId);
+      }
       context.clearRect(0, 0, canvas.width, canvas.height);
     };
   }, []);

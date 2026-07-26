@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import styles from "./sass/CustomPicker.module.scss";
 
 const hours = [
@@ -18,9 +18,6 @@ interface HoursAndMinutes {
 }
 
 export default function Picker({ value, onChange }: PickerProps) {
-  const [selectedHour, setSelectedHour] = useState(value.hours);
-  const [selectedMinutes, setSelectedMinutes] = useState(value.minutes);
-
   const setHourFromInside = (hours: number) => {
     if (value.hours !== hours) {
       onChange({
@@ -39,21 +36,16 @@ export default function Picker({ value, onChange }: PickerProps) {
     }
   };
 
-  useEffect(() => {
-    setSelectedHour(value.hours);
-    setSelectedMinutes(value.minutes);
-  }, [value, setSelectedHour, setSelectedMinutes]);
-
   return (
     <div className={styles.pickerContainer}>
       <PickerWheel
         values={hours}
-        value={selectedHour}
+        value={value.hours}
         onChange={setHourFromInside}
       />
       <PickerWheel
         values={minutes}
-        value={selectedMinutes}
+        value={value.minutes}
         onChange={setMinFromInside}
       />
       <div className={styles.selectBar}></div>
@@ -68,8 +60,7 @@ interface PickerWheelProps {
 }
 
 function PickerWheel({ value, values, onChange }: PickerWheelProps) {
-  const [selectedValue, setSelectedValue] = useState(value);
-  const [scrollTimeoutID, setScrollTimeoutID] = useState<number | undefined>();
+  const scrollTimeoutID = useRef<number | undefined>(undefined);
   const currentlyTouching = useRef(false);
   const selectContainerRef = useRef<HTMLDivElement>(null);
 
@@ -106,20 +97,19 @@ function PickerWheel({ value, values, onChange }: PickerWheelProps) {
   );
 
   useEffect(() => {
-    centerOnValue(selectedValue);
-  }, [selectedValue, centerOnValue]);
+    centerOnValue(value);
+  }, [value, centerOnValue]);
 
   useEffect(() => {
-    setSelectedValue(value);
-  }, [value, setSelectedValue]);
+    return () => clearTimeout(scrollTimeoutID.current);
+  }, []);
 
-  const handleScroll = (_event) => {
+  const handleScroll = () => {
     if (currentlyTouching.current) return;
-    clearTimeout(scrollTimeoutID);
-    const timeoutID = setTimeout(() => {
+    clearTimeout(scrollTimeoutID.current);
+    scrollTimeoutID.current = window.setTimeout(() => {
       if (!currentlyTouching.current) snapToClosest();
     }, 150);
-    setScrollTimeoutID(timeoutID);
   };
 
   const snapToClosest = () => {
@@ -131,8 +121,7 @@ function PickerWheel({ value, values, onChange }: PickerWheelProps) {
 
     // do the snap
     if (container.scrollTop !== newPosition) container.scrollTop = newPosition;
-    if (newValue === selectedValue) return;
-    setSelectedValue(newValue);
+    if (newValue === value) return;
     handleChange(newValue);
   };
 
@@ -160,17 +149,15 @@ function PickerWheel({ value, values, onChange }: PickerWheelProps) {
   };
 
   const handleChange = (num: number) => {
-    setSelectedValue(num);
     onChange(num);
   };
 
   const handleTouchEnd = () => {
     currentlyTouching.current = false;
-    clearTimeout(scrollTimeoutID);
-    const timeoutID = setTimeout(() => {
+    clearTimeout(scrollTimeoutID.current);
+    scrollTimeoutID.current = window.setTimeout(() => {
       if (!currentlyTouching.current) snapToClosest();
     }, 50);
-    setScrollTimeoutID(timeoutID);
   };
 
   return (

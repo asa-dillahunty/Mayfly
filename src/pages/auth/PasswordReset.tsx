@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type SubmitEvent } from "react";
 import { LoadingDialog } from "../../components/LoadingDialog.tsx";
 import { auth } from "../../utils/firebase.ts";
 
@@ -9,10 +9,17 @@ import {
   updatePassword,
 } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
-import { pageRoutes } from "../../App.tsx";
+import { pageRoutes } from "../../pageRoutes.ts";
 
-// TODO: investigate renaming?
-export default function PasswordReset(props) {
+interface PasswordResetProps {
+  reset: boolean;
+  token: string;
+}
+
+export default function PasswordReset({
+  reset,
+  token,
+}: PasswordResetProps) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [email, setEmail] = useState("");
@@ -21,7 +28,7 @@ export default function PasswordReset(props) {
 
   const [errorMessage, setErrorMessage] = useState("");
 
-  const validateEmail = (email) => {
+  const validateEmail = (email: string) => {
     return String(email)
       .toLowerCase()
       .match(
@@ -29,12 +36,12 @@ export default function PasswordReset(props) {
       );
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setBlocked(true);
 
     try {
-      if (!props.reset && !validateEmail(email)) {
+      if (!reset && !validateEmail(email)) {
         throw new Error("Please enter a valid email address");
       }
 
@@ -45,8 +52,8 @@ export default function PasswordReset(props) {
         throw new Error("Passwords must contain at least 3 characters");
       }
 
-      if (props.reset) {
-        await confirmPasswordReset(auth, props.token, password);
+      if (reset) {
+        await confirmPasswordReset(auth, token, password);
         setErrorMessage("");
         // we cannot sign the user in here because we do not have their email
 
@@ -61,7 +68,11 @@ export default function PasswordReset(props) {
         }, 1000);
       } else {
         await signInWithEmailLink(auth, email, window.location.href);
-        await updatePassword(auth.currentUser, password);
+        const currentUser = auth.currentUser;
+        if (!currentUser) {
+          throw new Error("Unable to sign in with this email link.");
+        }
+        await updatePassword(currentUser, password);
         setBlocked(false);
 
         // replace state to get rid of url parameters
@@ -72,7 +83,9 @@ export default function PasswordReset(props) {
       }
     } catch (error) {
       // Display error message
-      setErrorMessage(error.message);
+      setErrorMessage(
+        error instanceof Error ? error.message : "There has been an error.",
+      );
       setBlocked(false);
     }
   };
@@ -83,7 +96,7 @@ export default function PasswordReset(props) {
       {blocked && (
         <LoadingDialog
           message={
-            props.reset
+            reset
               ? "Resetting your password..."
               : "Setting your password..."
           }
@@ -102,11 +115,11 @@ export default function PasswordReset(props) {
           {/* <img src={logo} className="login-logo" alt="logo" />
 					<span className='title'>ayfly</span> Login */}
           <span className="title">Mayfly</span> <br />
-          {props.reset ? "Password Reset" : "Password Creation"}
+          {reset ? "Password Reset" : "Password Creation"}
         </h1>
         {errorMessage && <div className="error-message">*{errorMessage}</div>}
         <form onSubmit={handleSubmit}>
-          {props.reset ? (
+          {reset ? (
             <></>
           ) : (
             <input
@@ -132,7 +145,7 @@ export default function PasswordReset(props) {
             onChange={(e) => setConfirmPassword(e.target.value)}
           />
           <button type="submit" className="login-button" disabled={blocked}>
-            {props.reset ? "Reset Password" : "Set Password"}
+            {reset ? "Reset Password" : "Set Password"}
           </button>
           <p className="signup-p">
             Already done this?&nbsp;
