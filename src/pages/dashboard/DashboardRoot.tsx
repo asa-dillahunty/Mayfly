@@ -4,6 +4,7 @@ import { getAdminDataQuery } from "../../utils/firebaseQueries.ts";
 import DashboardHeader from "./DashboardHeader.tsx";
 import EmployeeDashboard from "./EmployeeDashboard.tsx";
 import AdminDashboard from "./AdminDashboard.tsx";
+import OmniAdminDashboard from "./OmniAdmin.tsx";
 
 import styles from "./sass/Dashboard.module.scss";
 
@@ -19,10 +20,7 @@ export default function DashboardRoot() {
       {!adminData ? (
         <></>
       ) : adminData.omniAdmin ? (
-        <div>
-          omniAdmin
-          {currentUserId}
-        </div>
+        <OmniAdminDashboard />
       ) : adminData.isAdmin ? (
         <AdminDashboard />
       ) : (

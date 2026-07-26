@@ -17,7 +17,6 @@ import {
 } from "./firebase.ts";
 import {
   useMutation,
-  useQueries,
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
@@ -32,6 +31,7 @@ import type {
   AdminData,
   CompanyData,
   CompanyEmployee,
+  CompanySummary,
   PrintableEmployeeReportRow,
   WeekDay,
   WeeklyHours,
@@ -524,42 +524,37 @@ export async function getCompany(companyId: string) {
 }
 
 export function useCompanies() {
-  // I have to get docs
-  const { data: companyDocList } = useQuery(getCompanyDocsQuery());
-  const docList = companyDocList ?? [];
-  const dataList = useQueries({
-    queries: docList.map((doc) => getCompanyQuery(doc.id)),
-    combine: (results) => {
-      return {
-        data: results.map((result) => result.data),
-        pending: results.some((result) => result.isPending),
-      };
-    },
-  });
+  const companyDocsQuery = useQuery(getCompanyDocsQuery());
 
-  return dataList;
+  return {
+    data: companyDocsQuery.data ?? [],
+    isError: companyDocsQuery.isError,
+    isPending: companyDocsQuery.isPending,
+  };
 }
 
 export function getCompanyDocsQuery() {
   const query = {
     queryKey: queryKeys.companies(),
-    queryFn: async () => {
+    queryFn: async (): Promise<CompanySummary[]> => {
       console.log("getCompanyDocsQuery");
       const companyList = collection(db, COMPANY_LIST_COLLECTION_NAME);
-      const companiesCollectionSnapshot = await getDocs(companyList); // Fetch documents from the "Companies" collection
-      return companiesCollectionSnapshot.docs;
+      const companiesCollectionSnapshot = await getDocs(companyList);
+      return companiesCollectionSnapshot.docs.map((companyDocument) => {
+        const companyData = companyDocument.data();
+
+        return {
+          id: companyDocument.id,
+          name:
+            typeof companyData.name === "string" ? companyData.name : undefined,
+        };
+      });
     },
   };
   return query;
 }
 
-async function createNewCompany({
-  companyName,
-  onSettled,
-}: {
-  companyName: string;
-  onSettled?: ({ error, variables }) => void;
-}) {
+async function createNewCompany({ companyName }: { companyName: string }) {
   const companyList = collection(db, COMPANY_LIST_COLLECTION_NAME);
   const docRef = await addDoc(companyList, {
     name: companyName,
@@ -573,25 +568,19 @@ export function useCreateCompany() {
     onSuccess: async (data) => {
       const newCompanyId = data.id;
       const companyQueryKey = queryKeys.company(newCompanyId);
-      queryClient.invalidateQueries({ queryKey: companyQueryKey });
+      await queryClient.invalidateQueries({ queryKey: companyQueryKey });
     },
-    onError: async (error, _variables) => {
-      // TODO: log the error
-      // Invalidate and refetch -> done in onSettled
+    onError: (error) => {
       console.error(error);
     },
-    onSettled: (_data, error, variables, _context) => {
+    onSettled: async () => {
       const companiesQueryKey = queryKeys.companies();
-      queryClient.invalidateQueries({ queryKey: companiesQueryKey });
-
-      if (variables.onSettled) {
-        variables.onSettled({ error, variables });
-      }
+      await queryClient.invalidateQueries({ queryKey: companiesQueryKey });
     },
   });
 
-  const createCompany = (companyName: string) => {
-    createCompanyMutation.mutate({ companyName: companyName });
+  const createCompany = async (companyName: string) => {
+    return await createCompanyMutation.mutateAsync({ companyName });
   };
   return createCompany;
 }

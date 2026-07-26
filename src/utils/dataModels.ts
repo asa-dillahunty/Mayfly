@@ -24,6 +24,11 @@ export interface CompanyData {
   Employees: CompanyEmployee[];
 }
 
+export interface CompanySummary {
+  id: string;
+  name?: string;
+}
+
 export interface CompanyReportProfile {
   address: string;
   ein: string;
