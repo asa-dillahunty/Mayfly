@@ -12,7 +12,7 @@ import {
 } from "../utils/dateUtils";
 import type { WeekDay } from "../utils/dataModels";
 import { EmployeeRow } from "./EmployeeRow";
-import styles from "./sass/NewDisplayTable.module.scss";
+import styles from "./sass/DisplayTable.module.scss";
 
 interface DisplayTableProps {
   companyId: string;
@@ -27,7 +27,7 @@ function jumpWeek(date: Date, amount: number) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate() + amount);
 }
 
-export function NewDisplayTable({
+export function DisplayTable({
   companyId,
   onSelectedDateChange,
   onUnsavedChangesChange,

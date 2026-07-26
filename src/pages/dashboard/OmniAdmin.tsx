@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 
 import { CreateCompanyDialog } from "../../components/CreateCompanyDialog";
 import { EmployeeInfoDialog } from "../../components/EmployeeInfoDialog";
-import { NewDisplayTable } from "../../components/NewDisplayTable";
+import { DisplayTable } from "../../components/DisplayTable";
 import type { CompanySummary } from "../../utils/dataModels";
 import { useCompanies } from "../../utils/firebaseQueries";
 import styles from "./sass/OmniAdmin.module.scss";
@@ -145,7 +145,7 @@ export default function OmniAdminDashboard() {
             className={styles.companyWorkspace}
           >
             <p className={styles.workspaceEyebrow}>Company workspace</p>
-            <NewDisplayTable
+            <DisplayTable
               companyId={selectedCompany.id}
               key={selectedCompany.id}
               onSelectedDateChange={setSelectedDate}

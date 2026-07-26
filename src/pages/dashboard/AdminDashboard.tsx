@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { AiOutlinePrinter } from "react-icons/ai";
 
 import { EmployeeInfoDialog } from "../../components/EmployeeInfoDialog";
-import { NewDisplayTable } from "../../components/NewDisplayTable";
+import { DisplayTable } from "../../components/DisplayTable";
 import { WeeklyReportDialog } from "../../components/WeeklyReportDialog";
 import { useWeeklyReport } from "../../hooks/useWeeklyReport";
 import { getCurrentUserId } from "../../utils/firebase";
@@ -66,7 +66,7 @@ export default function AdminDashboard() {
 
   return (
     <div className={styles.dashboardContainer}>
-      <NewDisplayTable
+      <DisplayTable
         companyId={adminData.company}
         onSelectedDateChange={handleSelectedDateChange}
         onUnsavedChangesChange={setHasUnsavedChanges}
