@@ -4,6 +4,10 @@
 /node_modules
 /.pnp
 .pnp.js
+.venv
+
+# python dependencies
+.venv
 
 # testing
 /coverage
@@ -11,6 +15,8 @@
 
 # production
 /build
+/dist
+
 
 # misc
 .DS_Store

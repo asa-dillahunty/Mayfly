@@ -1,0 +1,89 @@
+@use "../../variables" as *;
+
+.addNotesForm {
+  width: min(24rem, calc(100vw - 2rem));
+  max-height: calc(100svh - 2rem);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  background: $bg-main;
+  color: $fg-main;
+  box-shadow: 0 0.25rem 1rem rgb(0 0 0 / 20%);
+}
+
+.title {
+  margin: 0 0 1rem;
+  font-size: 1.35rem;
+  text-align: center;
+}
+
+.notesInput {
+  $notebook-line-height: 2rem;
+  $notebook-line-offset: 0.15rem;
+
+  width: 100%;
+  min-height: 12rem;
+  max-height: 60svh;
+  box-sizing: border-box;
+  flex: 1;
+  resize: vertical;
+  border: 1px solid $accent;
+  border-radius: 0.25rem;
+  padding: 0.75rem;
+  background-color: $bg-main;
+  background-attachment: local;
+  background-image: linear-gradient(
+    to bottom,
+    transparent ($notebook-line-height - 0.0625rem),
+    rgba($accent, 0.35) ($notebook-line-height - 0.0625rem),
+    rgba($accent, 0.35) $notebook-line-height
+  );
+  background-position: 0 $notebook-line-offset;
+  background-repeat: repeat-y;
+  background-size: 100% $notebook-line-height;
+  color: $fg-main;
+  font: inherit;
+  line-height: $notebook-line-height;
+}
+
+.notesInput:focus-visible {
+  @include cell-outline($accent);
+}
+
+.notesInput:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.buttonContainer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.cancelButton {
+  @include clear-button;
+}
+
+.submitButton {
+  @include primary-button;
+}
+
+@media (max-width: $mobile-breakpoint) {
+  .addNotesForm {
+    padding: 1rem;
+  }
+
+  .notesInput {
+    min-height: 50svh;
+  }
+
+  .cancelButton,
+  .submitButton {
+    min-height: 2.75rem;
+    flex: 1;
+  }
+}

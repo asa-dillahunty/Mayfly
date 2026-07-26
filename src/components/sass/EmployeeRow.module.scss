@@ -1,0 +1,215 @@
+@use "../../variables" as *;
+
+.employeeRow > :where(th, td) {
+  padding: 0.6rem 0.4rem;
+  border-bottom: 1px solid $bg-third;
+  text-align: center;
+}
+
+.editedRow > :where(th, td) {
+  background: rgba($accent, 0.12);
+}
+
+.actionCell {
+  position: relative;
+  padding: 0;
+}
+
+.saveButton {
+  @include secondary-button;
+  @include flex-default;
+  padding: 0.45rem;
+}
+
+.saveActions {
+  @include flex-default;
+  gap: 0.25rem;
+}
+
+.discardButton {
+  @include clear-button;
+  @include flex-default;
+  padding: 0.35rem;
+}
+
+.menuButton {
+  @include flex-default;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  color: $fg-main;
+  cursor: pointer;
+  font-size: 1.5rem;
+
+  &:hover,
+  &:focus-visible {
+    color: $accent;
+  }
+}
+
+.rowMenu {
+  min-width: 13rem;
+  position: absolute;
+  z-index: 2;
+  top: calc(100% - 0.35rem);
+  left: 0.4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 0.35rem;
+  border: 1px solid $bg-third;
+  border-radius: 0.25rem;
+  background: $bg-main;
+  box-shadow: 0 0.25rem 0.75rem rgb(0 0 0 / 18%);
+  font-size: 1.05rem;
+}
+
+@media (min-width: ($mobile-breakpoint + 1px)) {
+  .employeeRow:nth-last-child(-n + 2) .rowMenu {
+    top: auto;
+    bottom: calc(100% - 0.35rem);
+  }
+}
+
+.menuItem {
+  min-height: 2.75rem;
+  border: 0;
+  padding: 0.6rem;
+  background: transparent;
+  color: $fg-main;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: $bg-third;
+  }
+}
+
+.dangerAction {
+  color: $danger;
+}
+
+.mobileHoursAction {
+  display: none;
+}
+
+.nameCell {
+  width: 100%;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+.hoursInput {
+  width: 4ch;
+  box-sizing: border-box;
+  border: 1px solid transparent;
+  border-radius: 0.2rem;
+  padding: 0.35rem 0;
+  appearance: textfield;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: center;
+
+  &:focus {
+    @include cell-outline($accent);
+    background: $bg-main;
+  }
+
+  &[data-edited="true"] {
+    @include cell-outline($accent);
+    background: rgba($accent, 0.18);
+  }
+
+  &[aria-invalid="true"] {
+    @include cell-outline($danger);
+  }
+
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button {
+    margin: 0;
+    appearance: none;
+  }
+}
+
+.totalCell {
+  background: $secondary;
+  border-bottom-color: $secondary;
+  font-weight: bold;
+}
+
+.saveCell {
+  border-bottom-color: transparent;
+}
+
+.hiddenSaveActions {
+  visibility: hidden;
+}
+
+.saveButton:disabled,
+.discardButton:disabled,
+.menuButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+@media (max-width: $mobile-breakpoint) {
+  .employeeRow {
+    width: 100%;
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    align-items: stretch;
+    overflow: visible;
+    background: $bg-main;
+  }
+
+  .employeeRow > :where(th, td) {
+    border-bottom: 0;
+  }
+
+  .dayCell,
+  .additionalCell,
+  .saveCell {
+    display: none;
+  }
+
+  .actionCell {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .nameCell {
+    min-width: 0;
+    grid-column: 1;
+    grid-row: 1;
+    align-content: center;
+    overflow-wrap: anywhere;
+    padding: 0.75rem;
+  }
+
+  .totalCell {
+    grid-column: 2;
+    grid-row: 1;
+    align-content: center;
+    padding: 0.5rem 0.75rem;
+    white-space: nowrap;
+  }
+
+  .menuButton {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+  }
+
+  .rowMenu {
+    top: calc(100% - 0.2rem);
+    right: 0.2rem;
+    left: auto;
+  }
+
+  .mobileHoursAction {
+    display: block;
+  }
+}

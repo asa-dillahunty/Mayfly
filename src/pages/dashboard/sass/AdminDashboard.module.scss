@@ -1,0 +1,57 @@
+@use "../../../variables.scss" as *;
+
+.dashboardContainer {
+  @include flex-default(column);
+  gap: 1rem;
+  position: relative;
+  margin-bottom: 20px;
+  background-color: $bg-main;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.adminActions {
+  @include flex-default;
+  width: 100%;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.addEmployeeButton {
+  @include primary-button;
+}
+
+.printButton {
+  @include secondary-button;
+  @include flex-default;
+  gap: 0.5rem;
+}
+
+.reportError {
+  width: 100%;
+  margin: 0;
+  color: $danger;
+  text-align: right;
+}
+
+@media (max-width: $mobile-breakpoint) {
+  .dashboardContainer {
+    padding: 1rem;
+  }
+
+  .adminActions {
+    flex-direction: column-reverse;
+  }
+
+  .addEmployeeButton,
+  .printButton {
+    width: 100%;
+    min-height: 2.75rem;
+  }
+
+  .reportError {
+    text-align: center;
+  }
+}

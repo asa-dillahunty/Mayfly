@@ -1,0 +1,134 @@
+import type { WeekDay } from "./dataModels";
+
+export const PAY_PERIOD_DAYS = [
+  4, 5, 6, 0, 1, 2, 3,
+] as const satisfies readonly WeekDay[];
+const startOfPayPeriod = 4; // Thursday
+export const FAKE_EMAIL_EXTENSION = "@dillahuntyfarms.com";
+export const ABBREVIATIONS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+export const incrementDate = (thisDate: Date) => {
+  thisDate.setDate(thisDate.getDate() + 1);
+  return thisDate;
+};
+
+export const decrementDate = (thisDate: Date) => {
+  thisDate.setDate(thisDate.getDate() - 1);
+  return thisDate;
+};
+
+/**
+ * This function does a lot of math. Is this something I want to cache? #dynamicProgramming
+ */
+function getWeek(selectedDatetime: Date) {
+  // get the first day of the year of the pay period (Thursday)
+  const selectedDateUTC = Date.UTC(
+    selectedDatetime.getFullYear(),
+    selectedDatetime.getMonth(),
+    selectedDatetime.getDate(),
+  );
+
+  const dayOfWeekOfDayOne = new Date(
+    selectedDatetime.getFullYear(),
+    0,
+    1,
+  ).getDay();
+  // this actually gets the first wednesday
+  // we do +6 instead of -1 to avoid negative output from the mod
+  const firstThursday = Date.UTC(
+    selectedDatetime.getFullYear(),
+    0,
+    1 + ((startOfPayPeriod - dayOfWeekOfDayOne + 6) % 7),
+  );
+  // add a check here for the cusp of the year. Go back to last year. (or maybe return -1)
+  if (firstThursday >= selectedDateUTC) {
+    return -1;
+  }
+
+  const days = Math.floor((selectedDateUTC - firstThursday) / 86400000); //  24 * 60 * 60 * 1000
+  const weekNumber = Math.ceil(days / 7);
+  return weekNumber;
+}
+
+function getStartOfPayPeriod(date: Date) {
+  const firstDay = new Date(date.getTime());
+  while (firstDay.getDay() !== startOfPayPeriod) {
+    firstDay.setDate(firstDay.getDate() - 1);
+  }
+  return firstDay;
+}
+
+function getEndOfPayPeriod(date: Date) {
+  const finalDay = new Date(date.getTime());
+  finalDay.setDate(finalDay.getDate() + 1);
+  while (finalDay.getDay() !== startOfPayPeriod) {
+    finalDay.setDate(finalDay.getDate() + 1);
+  }
+  return finalDay;
+}
+
+export function getPayPeriodArray(): WeekDay[] {
+  return [...PAY_PERIOD_DAYS];
+}
+
+export function getWeekSpanString(selectedDate: Date) {
+  // we move ahead one day just in case it is the day of the pay period
+  const finalDay = getEndOfPayPeriod(selectedDate);
+  const firstDay = getStartOfPayPeriod(selectedDate);
+  // why + 1 ? date.getMonth() starts at 0 for January
+  return (
+    firstDay.getMonth() +
+    1 +
+    "/" +
+    firstDay.getDate() +
+    " - " +
+    (finalDay.getMonth() + 1) +
+    "/" +
+    finalDay.getDate()
+  );
+}
+
+export function getStartOfWeekString(selectedDate: Date) {
+  const firstDay = new Date(selectedDate.getTime());
+  while (firstDay.getDay() !== startOfPayPeriod) {
+    firstDay.setDate(firstDay.getDate() - 1);
+  }
+  return (
+    firstDay.getMonth() +
+    1 +
+    "/" +
+    firstDay.getDate() +
+    "/" +
+    (firstDay.getFullYear() % 100)
+  );
+}
+
+export function getEndOfWeekString(selectedDate: Date) {
+  const finalDay = new Date(selectedDate.getTime());
+  while (finalDay.getDay() !== startOfPayPeriod - 1) {
+    finalDay.setDate(finalDay.getDate() + 1);
+  }
+  // why + 1 ? date.getMonth() starts at 0 for January
+  // why % 100 ? grabs last two digits of the year
+  return (
+    finalDay.getMonth() +
+    1 +
+    "/" +
+    finalDay.getDate() +
+    "/" +
+    (finalDay.getFullYear() % 100)
+  );
+}
+
+export function buildDocName(date: Date) {
+  if (date === undefined) return ""; // ASK: should we allow date to be undefined?
+  const weekNum = getWeek(date);
+
+  /*
+    if the start of the last year was wednesday or it was a (tuesday and a leap year)
+    then there are actually 53 weeks instead of 52
+  */
+  if (weekNum === -1)
+    return date.getFullYear() - 1 + "-52"; // cusp edge case
+  else return date.getFullYear() + "-" + weekNum;
+}

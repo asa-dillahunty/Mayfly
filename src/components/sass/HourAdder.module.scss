@@ -1,0 +1,80 @@
+@use "../../variables.scss" as *;
+
+.hourAdderContent {
+  background-color: var(--background);
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 320px;
+  text-align: center;
+
+  margin-bottom: 20px;
+}
+
+.datePickerLabel {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.datePickerLabel[inert],
+.killScroll[inert] {
+  opacity: 0.55;
+}
+
+.workedHoursContainer {
+  @include flex-default(column);
+}
+
+.workedHoursLabel {
+  font-weight: bold;
+}
+
+.workedHours {
+  font-weight: bold;
+  font-size: 25px;
+}
+
+.weeklyTotal {
+  font-size: 10px;
+  margin-bottom: 10px;
+}
+
+.killScroll {
+  user-select: none;
+  width: 50%;
+  margin: auto;
+
+  background-color: var(--backgroundThree);
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  touch-action: none;
+}
+
+.addHoursButtonContainer {
+  position: relative;
+  margin: 25px 0px 5px 0px;
+}
+
+.addHoursButton {
+  @include primary-button;
+  padding: 6px 12px;
+}
+
+.addNotesButton {
+  @include flex-default(column);
+  padding: 4.25px 3px;
+
+  position: absolute;
+  right: 0;
+  top: 0;
+
+  background-color: $bg-main;
+  color: $fg-main;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+
+  &:hover {
+    background-color: $bg-third;
+  }
+}

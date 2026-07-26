@@ -1,0 +1,57 @@
+@use "../../variables" as *;
+
+.dialog {
+  width: min(24rem, calc(100vw - 2rem));
+  border-radius: 0.5rem;
+  background: $bg-main;
+  color: $fg-main;
+  box-shadow: 0 0.25rem 1rem rgb(0 0 0 / 20%);
+}
+
+.content {
+  box-sizing: border-box;
+  padding: 1.25rem;
+  text-align: center;
+}
+
+.title,
+.message {
+  margin: 0;
+}
+
+.message {
+  margin-top: 0.75rem;
+}
+
+.emphasizedMessage {
+  margin: 0.75rem 0 0;
+  color: $danger;
+  font-weight: bold;
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+
+.cancelButton,
+.confirmButton {
+  min-height: 2.75rem;
+  font-weight: bold;
+}
+
+.cancelButton {
+  @include clear-button;
+}
+
+.confirmButton {
+  @include danger-button;
+}
+
+@media (max-width: $mobile-breakpoint) {
+  .actions {
+    flex-direction: column;
+  }
+}
