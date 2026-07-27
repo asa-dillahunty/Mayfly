@@ -67,7 +67,7 @@ def backup_firestore():
 if __name__ == "__main__":
     json_data = backup_firestore()
     compressed_data = gzip.compress(json_data)
-    encrypted_data = encrypt_data(json_data, backup_password)
+    encrypted_data = encrypt_data(compressed_data, backup_password)
     
     backup_filename = f"firestore_backup_{datetime.now().strftime('%Y-%m-%d')}.enc"
     with open(backup_filename, "wb") as f:
