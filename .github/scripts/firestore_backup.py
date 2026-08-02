@@ -10,14 +10,6 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.fernet import Fernet
 import gzip
 
-# Load Firebase credentials from GitHub Secrets
-firebase_credentials = json.loads(os.getenv("FIREBASE_SERVICE_ACCOUNT"))
-backup_password = os.getenv("BACKUP_ENCRYPTION_PASSWORD")
-
-# Initialize Firebase
-cred = credentials.Certificate(firebase_credentials)
-firebase_admin.initialize_app(cred)
-db = firestore.client()
 
 def firestore_serializer(obj):
     """Convert Firestore timestamp objects to ISO format strings."""
@@ -47,7 +39,8 @@ def encrypt_data(data: bytes, password: str) -> bytes:
     # Prepend the salt so it can be used during decryption.
     return salt + encrypted
 
-def backup_firestore():
+
+def get_firestore_data(db):
     """Fetch Firestore data and return the JSON as bytes."""
     data = {}
     collections = db.collections()
@@ -61,16 +54,38 @@ def backup_firestore():
             data[collection_name][doc.id] = doc.to_dict()
     
     # Convert the data to a JSON string and then to bytes.
-    json_data = json.dumps(data, indent=2, default=firestore_serializer).encode("utf-8")
+    json_data = json.dumps(
+        data,
+        indent=2,
+        default=firestore_serializer,
+    ).encode("utf-8")
     return json_data
 
+
+def initialize_production_backup():
+    """Initialize the production client from the existing workflow secrets."""
+    firebase_credentials_value = os.getenv("FIREBASE_SERVICE_ACCOUNT")
+    backup_password = os.getenv("BACKUP_ENCRYPTION_PASSWORD")
+
+    if not firebase_credentials_value:
+        raise RuntimeError("FIREBASE_SERVICE_ACCOUNT is required")
+    if not backup_password:
+        raise RuntimeError("BACKUP_ENCRYPTION_PASSWORD is required")
+
+    firebase_credentials = json.loads(firebase_credentials_value)
+    cred = credentials.Certificate(firebase_credentials)
+    app = firebase_admin.initialize_app(cred)
+    return firestore.client(app=app), backup_password
+
+
 if __name__ == "__main__":
-    json_data = backup_firestore()
+    db, backup_password = initialize_production_backup()
+    json_data = get_firestore_data(db)
     compressed_data = gzip.compress(json_data)
     encrypted_data = encrypt_data(compressed_data, backup_password)
-    
+
     backup_filename = f"firestore_backup_{datetime.now().strftime('%Y-%m-%d')}.enc"
     with open(backup_filename, "wb") as f:
         f.write(encrypted_data)
-    
+
     print("Backup process completed successfully.")
