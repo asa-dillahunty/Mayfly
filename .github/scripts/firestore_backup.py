@@ -40,19 +40,25 @@ def encrypt_data(data: bytes, password: str) -> bytes:
     return salt + encrypted
 
 
+def collect_documents(collection, documents):
+    """Collect present documents and recursively visit every subcollection."""
+    for document_reference in collection.list_documents():
+        snapshot = document_reference.get()
+        if snapshot.exists:
+            documents[document_reference.path] = snapshot.to_dict()
+
+        for subcollection in document_reference.collections():
+            collect_documents(subcollection, documents)
+
+
 def get_firestore_data(db):
-    """Fetch Firestore data and return the JSON as bytes."""
-    data = {}
-    collections = db.collections()
-    
-    for collection in collections:
-        collection_name = collection.id
-        data[collection_name] = {}
-        
-        docs = collection.stream()
-        for doc in docs:
-            data[collection_name][doc.id] = doc.to_dict()
-    
+    """Fetch every Firestore document and return path-keyed JSON bytes."""
+    documents = {}
+    for collection in db.collections():
+        collect_documents(collection, documents)
+
+    data = {"documents": documents}
+
     # Convert the data to a JSON string and then to bytes.
     json_data = json.dumps(
         data,

@@ -7,6 +7,10 @@ TOP_LEVEL_PATHS = (
 NESTED_PATHS = (
     "CompanyList/synthetic-company/Employees/synthetic-user-uid",
     "CompanyList/synthetic-company/CompanyDocs/Last_Change",
+    (
+        "SyntheticRoot/root/ArbitraryLevel/missing-parent/"
+        "FinalLevel/deep-document"
+    ),
 )
 
 
@@ -19,6 +23,10 @@ def test_export_includes_nested_subcollection_documents(backup_observations):
     paths = backup_observations["paths"]
     missing_paths = [path for path in NESTED_PATHS if not paths[path]]
     assert missing_paths == []
+
+
+def test_document_fields_do_not_collide_with_path_metadata(backup_observations):
+    assert backup_observations["document_field_preserved"] is True
 
 
 def test_export_preserves_supported_firestore_value_types(backup_observations):

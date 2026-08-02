@@ -24,6 +24,10 @@ STRUCTURAL_PATHS = (
     f"CompanyList/{SYNTHETIC_COMPANY_ID}",
     f"CompanyList/{SYNTHETIC_COMPANY_ID}/Employees/{SYNTHETIC_USER_ID}",
     f"CompanyList/{SYNTHETIC_COMPANY_ID}/CompanyDocs/Last_Change",
+    (
+        "SyntheticRoot/root/ArbitraryLevel/missing-parent/"
+        "FinalLevel/deep-document"
+    ),
 )
 
 
@@ -73,6 +77,7 @@ def seed_structural_fixture(db):
         {
             "verificationPath": STRUCTURAL_PATHS[2],
             "name": "Synthetic Company",
+            "documents": "synthetic-document-field",
             "updatedAt": synthetic_timestamp,
         }
     )
@@ -89,20 +94,12 @@ def seed_structural_fixture(db):
             "time": synthetic_timestamp,
         }
     )
-
-
-def exported_value_is_present(exported_value, expected_value):
-    if isinstance(exported_value, dict):
-        return any(
-            exported_value_is_present(value, expected_value)
-            for value in exported_value.values()
-        )
-    if isinstance(exported_value, list):
-        return any(
-            exported_value_is_present(value, expected_value)
-            for value in exported_value
-        )
-    return exported_value == expected_value
+    db.document(STRUCTURAL_PATHS[5]).set(
+        {
+            "verificationPath": STRUCTURAL_PATHS[5],
+            "depth": 3,
+        }
+    )
 
 
 def json_type_name(value):
@@ -151,7 +148,9 @@ def observe_value_types(db, emulator_host, project_id):
 
         try:
             exported_data = json.loads(get_firestore_data(db))
-            exported_value = exported_data["ValueProbes"][probe_name]["value"]
+            exported_value = exported_data["documents"][
+                f"ValueProbes/{probe_name}"
+            ]["value"]
             observed_json_type = json_type_name(exported_value)
             results[probe_name] = {
                 "status": (
@@ -179,12 +178,17 @@ def observe_structure_and_archive(db, emulator_host, project_id):
     compressed_data = gzip.compress(exported_json, mtime=0)
     encrypted_data = encrypt_data(compressed_data, TEST_PASSWORD)
     restored_json = gzip.decompress(decrypt_data(encrypted_data, TEST_PASSWORD))
+    exported_documents = exported_data["documents"]
 
     return {
         "paths": {
-            path: exported_value_is_present(exported_data, path)
+            path: path in exported_documents
             for path in STRUCTURAL_PATHS
         },
+        "document_field_preserved": (
+            exported_documents[STRUCTURAL_PATHS[2]]["documents"]
+            == "synthetic-document-field"
+        ),
         "round_trip_matches": restored_json == exported_json,
     }
 

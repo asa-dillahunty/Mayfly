@@ -29,9 +29,9 @@ The command:
 
 1. starts Firestore on the fixed demo project
    `demo-mayfly-backup-verification`;
-2. runs four focused tests for top-level documents, nested-subcollection
-   documents, Firestore value types, and the compressed/encrypted archive
-   round-trip; and
+2. runs five focused tests for top-level documents, recursive subcollection
+   documents, field/path separation, Firestore value types, and the
+   compressed/encrypted archive round-trip; and
 3. stops the processes it started and fails unless ports 8085, 4405, and 9150
    are closed.
 
@@ -39,12 +39,14 @@ The Python client uses anonymous credentials and requires the exact emulator
 host and demo project supplied by the npm runner. Other Firebase environment
 variables are not used by the verification.
 
-The current exporter produces two passes and two intentional failures. It
-includes top-level documents and completes the archive round-trip, but omits
-nested-subcollection documents and does not preserve every seeded Firestore
-value type. The command therefore exits nonzero until those production defects
-are repaired. The exact findings are recorded in
-`docs/planning/tickets/in-progress/FLY-025.md`.
+The verified recursive exporter implementation produces four passes and one
+intentional failure. It includes top-level and arbitrarily nested documents,
+keeps document fields
+separate from full-path metadata, and completes the archive round-trip. It does
+not preserve every seeded Firestore value type, so the command remains nonzero
+until that separate requirement is repaired. The original baseline is recorded
+in `docs/planning/tickets/complete/FLY-025.md`; the recursive repair is tracked
+in `docs/planning/tickets/complete/FLY-026.md`.
 
 The dedicated emulator configuration intentionally does not load production
 Firestore Rules because this test exercises the server-side exporter, not
