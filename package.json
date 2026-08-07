@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "verify:firestore-backup": "node .github/scripts/tests/run_firestore_backup_verification.mjs"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.101.4",
@@ -34,6 +35,7 @@
     "eslint": "^10.8.0",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.3",
+    "firebase-tools": "15.25.0",
     "globals": "^17.7.0",
     "prettier": "^3.9.6",
     "typescript": "~6.0.3",

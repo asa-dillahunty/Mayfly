@@ -4,8 +4,7 @@ from pathlib import Path
 from getpass import getpass
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from cryptography.fernet import Fernet
-
+from cryptography.fernet import Fernet, InvalidToken
 # CONFIG
 BACKUP_DIR = Path("../../backups")
 

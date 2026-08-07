@@ -744,7 +744,7 @@ export function useCreateEmployee() {
       // await createCompanyEmployee(empData, result.data.empID, companyId);
 
       const actionCodeSettings = {
-        url: "https://mayfly.asadillahunty.com/",
+        url: "https://mayfly.asadillahunty.com/create-password",
         handleCodeInApp: true,
       };
 
