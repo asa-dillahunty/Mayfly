@@ -3,6 +3,8 @@ import { LoadingDialog } from "../../components/LoadingDialog.tsx";
 import { auth } from "../../utils/firebase/firebaseAuth.ts";
 
 import "./PasswordReset.css";
+import styles from "./sass/Login.module.scss";
+
 import {
   confirmPasswordReset,
   signInWithEmailLink,
@@ -16,10 +18,7 @@ interface PasswordResetProps {
   token: string;
 }
 
-export default function PasswordReset({
-  reset,
-  token,
-}: PasswordResetProps) {
+export default function PasswordReset({ reset, token }: PasswordResetProps) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [email, setEmail] = useState("");
@@ -92,13 +91,11 @@ export default function PasswordReset({
 
   // TODO: Replace Toast with something better. Consider removing it since the page changes immediately on success
   return (
-    <div className="login-container">
+    <div className={styles.loginContainer}>
       {blocked && (
         <LoadingDialog
           message={
-            reset
-              ? "Resetting your password..."
-              : "Setting your password..."
+            reset ? "Resetting your password..." : "Setting your password..."
           }
         />
       )}
@@ -110,21 +107,23 @@ export default function PasswordReset({
       >
         <Toast.Body>Password set successfully!</Toast.Body>
       </Toast> */}
-      <div className="login-form">
-        <h1 className="login-title">
+      <div className={styles.loginForm}>
+        <h1 className={styles.loginTitle}>
           {/* <img src={logo} className="login-logo" alt="logo" />
 					<span className='title'>ayfly</span> Login */}
-          <span className="title">Mayfly</span> <br />
+          <span className={styles.title}>Mayfly</span> <br />
           {reset ? "Password Reset" : "Password Creation"}
         </h1>
-        {errorMessage && <div className="error-message">*{errorMessage}</div>}
+        {errorMessage && (
+          <div className={styles.errorMessage}>*{errorMessage}</div>
+        )}
         <form onSubmit={handleSubmit}>
           {reset ? (
             <></>
           ) : (
             <input
               type="email"
-              className="login-input"
+              className={styles.loginInput}
               placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -132,22 +131,26 @@ export default function PasswordReset({
           )}
           <input
             type="password"
-            className="login-input"
+            className={styles.loginInput}
             placeholder="New Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
           <input
             type="password"
-            className="login-input"
+            className={styles.loginInput}
             placeholder="Confirm Password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
           />
-          <button type="submit" className="login-button" disabled={blocked}>
+          <button
+            type="submit"
+            className={styles.loginButton}
+            disabled={blocked}
+          >
             {reset ? "Reset Password" : "Set Password"}
           </button>
-          <p className="signup-p">
+          <p className={styles.forgotLink}>
             Already done this?&nbsp;
             <span
               onClick={() => {
