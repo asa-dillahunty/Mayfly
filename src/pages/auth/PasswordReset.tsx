@@ -154,7 +154,7 @@ export default function PasswordReset({ reset, token }: PasswordResetProps) {
             Already done this?&nbsp;
             <span
               onClick={() => {
-                navigate(pageRoutes.login.path);
+                navigate(pageRoutes.login.path, { replace: true });
               }}
             >
               Login

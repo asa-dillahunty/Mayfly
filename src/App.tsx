@@ -4,7 +4,13 @@ import "./App.scss";
 import { auth } from "./utils/firebase/firebaseAuth.ts";
 import { onAuthStateChanged } from "firebase/auth";
 import { LoadingDialog } from "./components/LoadingDialog.tsx";
-import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import {
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import { useSetAtom } from "jotai";
 import { UID } from "./utils/atoms.tsx";
 import { pageRoutes } from "./pageRoutes.ts";
@@ -14,18 +20,16 @@ const PasswordReset = lazy(() => import("./pages/auth/PasswordReset.tsx"));
 const ForgotPassword = lazy(() => import("./pages/auth/ForgotPassword.tsx"));
 const Signup = lazy(() => import("./pages/auth/Signup.tsx"));
 const Lost = lazy(() => import("./pages/Lost.tsx"));
-const DashboardRoot = lazy(
-  () => import("./pages/dashboard/DashboardRoot.tsx"),
-);
+const DashboardRoot = lazy(() => import("./pages/dashboard/DashboardRoot.tsx"));
 
 interface ActionCodeRoute {
-  mode: "resetPassword" | "signUp";
+  mode: "resetPassword" | "signIn" | "signUp";
   path: string;
   token: string;
 }
 
-function getActionCodeRoute(): ActionCodeRoute | null {
-  const urlParams = new URLSearchParams(window.location.search);
+function getActionCodeRoute(search: string): ActionCodeRoute | null {
+  const urlParams = new URLSearchParams(search);
   const token = urlParams.get("oobCode");
   const mode = urlParams.get("mode");
 
@@ -34,6 +38,13 @@ function getActionCodeRoute(): ActionCodeRoute | null {
     return {
       mode,
       path: pageRoutes.passwordReset.path,
+      token,
+    };
+  }
+  if (mode === "signIn") {
+    return {
+      mode,
+      path: pageRoutes.passwordCreation.path,
       token,
     };
   }
@@ -48,7 +59,8 @@ function getActionCodeRoute(): ActionCodeRoute | null {
 }
 
 function App() {
-  const [actionCodeRoute] = useState(getActionCodeRoute);
+  const location = useLocation();
+  const actionCodeRoute = getActionCodeRoute(location.search);
   const [loading, setLoading] = useState(actionCodeRoute === null);
   const setUID = useSetAtom(UID);
   const navigate = useNavigate();
@@ -72,11 +84,16 @@ function App() {
   }, [actionCodeRoute, navigate, setUID]);
 
   if (loading) return <LoadingDialog message="Loading..." />;
-  if (
-    actionCodeRoute &&
-    window.location.pathname !== actionCodeRoute.path
-  ) {
-    return <Navigate replace to={actionCodeRoute.path} />;
+  if (actionCodeRoute && window.location.pathname !== actionCodeRoute.path) {
+    return (
+      <Navigate
+        replace
+        to={{
+          pathname: actionCodeRoute.path,
+          search: location.search,
+        }}
+      />
+    );
   }
 
   return (
@@ -84,16 +101,22 @@ function App() {
       <Suspense fallback={<LoadingDialog message="Loading..." />}>
         <Routes>
           <Route path={pageRoutes.login.path} element={<Login />} />
-          <Route
-            path={pageRoutes.dashboard.path}
-            element={<DashboardRoot />}
-          />
+          <Route path={pageRoutes.dashboard.path} element={<DashboardRoot />} />
           <Route path={pageRoutes.forgot.path} element={<ForgotPassword />} />
           <Route
             path={pageRoutes.passwordReset.path}
             element={
               <PasswordReset
                 reset={actionCodeRoute?.mode === "resetPassword"}
+                token={actionCodeRoute?.token ?? ""}
+              />
+            }
+          />
+          <Route
+            path={pageRoutes.passwordCreation.path}
+            element={
+              <PasswordReset
+                reset={false}
                 token={actionCodeRoute?.token ?? ""}
               />
             }

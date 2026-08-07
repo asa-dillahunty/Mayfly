@@ -11,6 +11,9 @@ export const pageRoutes = {
   passwordReset: {
     path: "/password-reset",
   },
+  passwordCreation: {
+    path: "/create-password",
+  },
   signup: {
     path: "/signup",
   },
